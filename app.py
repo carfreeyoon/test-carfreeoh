@@ -2477,6 +2477,12 @@ if not IS_CLIENT_VIEW:
     if "pending_visible_sections" not in st.session_state:
         st.session_state.pending_visible_sections = None
 
+    if "active_quote_data" not in st.session_state:
+        st.session_state.active_quote_data = None
+
+    if "active_quote_raw" not in st.session_state:
+        st.session_state.active_quote_raw = ""
+
     if st.session_state.pending_visible_sections is not None:
         apply_visible_sections_to_state(st.session_state.pending_visible_sections)
         visible_sections = normalize_visible_sections(st.session_state.pending_visible_sections)
@@ -2514,6 +2520,38 @@ if not IS_CLIENT_VIEW:
                 elif pre_key == "인승": passenger_count = pre_clean_num(pre_val)
                 elif "CC" in pre_key: cc_text = pre_val.replace(" ", "")
                 elif "형태" in pre_key: car_shape = pre_val.replace(" ", "")
+
+        st.session_state.active_quote_data = {
+            "car_name": car_name,
+            "car_option": car_option,
+            "car_price": car_price,
+            "months": months,
+            "mileage": mileage,
+            "rent_monthly_pay": rent_monthly_pay,
+            "rent_deposit": rent_deposit,
+            "cc_text": cc_text,
+            "cc_raw_text": cc_raw_text,
+            "fuel_text": fuel_text,
+            "passenger_count": passenger_count,
+            "car_shape": car_shape,
+            "rent_resale_pct": rent_resale_pct,
+        }
+        st.session_state.active_quote_raw = pre_raw_data
+    elif st.session_state.active_quote_data:
+        active_quote_data = st.session_state.active_quote_data
+        car_name = active_quote_data.get("car_name", car_name)
+        car_option = active_quote_data.get("car_option", car_option)
+        car_price = int(active_quote_data.get("car_price", car_price))
+        months = int(active_quote_data.get("months", months))
+        mileage = active_quote_data.get("mileage", mileage)
+        rent_monthly_pay = int(active_quote_data.get("rent_monthly_pay", rent_monthly_pay))
+        rent_deposit = int(active_quote_data.get("rent_deposit", rent_deposit))
+        cc_text = active_quote_data.get("cc_text", cc_text)
+        cc_raw_text = active_quote_data.get("cc_raw_text", cc_raw_text)
+        fuel_text = active_quote_data.get("fuel_text", fuel_text)
+        passenger_count = int(active_quote_data.get("passenger_count", passenger_count))
+        car_shape = active_quote_data.get("car_shape", car_shape)
+        rent_resale_pct = float(active_quote_data.get("rent_resale_pct", rent_resale_pct))
 
     control_col, history_col = st.columns([0.68, 0.32], gap="medium")
     with control_col:
@@ -2560,6 +2598,23 @@ if not IS_CLIENT_VIEW:
                 elif key == "인승": passenger_count = clean_num(val)
                 elif "CC" in key: cc_text = val.replace(" ", "")
                 elif "형태" in key: car_shape = val.replace(" ", "")
+
+        st.session_state.active_quote_data = {
+            "car_name": car_name,
+            "car_option": car_option,
+            "car_price": car_price,
+            "months": months,
+            "mileage": mileage,
+            "rent_monthly_pay": rent_monthly_pay,
+            "rent_deposit": rent_deposit,
+            "cc_text": cc_text,
+            "cc_raw_text": cc_raw_text,
+            "fuel_text": fuel_text,
+            "passenger_count": passenger_count,
+            "car_shape": car_shape,
+            "rent_resale_pct": rent_resale_pct,
+        }
+        st.session_state.active_quote_raw = raw_data
 
     # ==========================================
     # [렌트 조건 빠른 수정]
