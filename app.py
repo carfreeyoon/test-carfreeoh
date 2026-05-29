@@ -2430,7 +2430,7 @@ if not IS_CLIENT_VIEW:
     # ==========================================
     # [렌트 조건 빠른 수정]
     # ==========================================
-    quick_edit_source_signature = raw_data.strip() if raw_data.strip() else f"{car_name}|{car_price}|{months}|{mileage}|{rent_monthly_pay}|{rent_resale_pct}"
+    quick_edit_source_signature = raw_data.strip() if raw_data.strip() else f"{car_name}|{car_price}|{months}|{mileage}|{rent_monthly_pay}|{rent_resale_pct}|{rent_deposit}"
 
     def quick_money_to_int(value):
         value_text = str(value).replace(",", "").strip()
@@ -2442,13 +2442,23 @@ if not IS_CLIENT_VIEW:
         except Exception:
             return float(default_value)
 
+    def quick_prepayment_display_value(mode, value):
+        amount = quick_money_to_int(value)
+        if not amount or not car_price:
+            return ""
+        if mode == "%":
+            prepayment_amount = int(car_price * (quick_pct_to_float(value, 0) / 100))
+            return f"{prepayment_amount:,}원" if prepayment_amount else ""
+        prepayment_pct = (amount / car_price) * 100
+        return f"{prepayment_pct:.1f}%" if prepayment_pct else ""
+
     if st.session_state.get("quick_edit_source_signature") != quick_edit_source_signature:
         st.session_state.quick_rent_monthly_pay = f"{rent_monthly_pay:,}"
         st.session_state.quick_rent_resale_pct = f"{rent_resale_pct:g}"
         st.session_state.quick_months = int(months)
         st.session_state.quick_mileage = mileage
-        st.session_state.quick_prepay_method = "원"
-        st.session_state.quick_rent_prepay_value = f"{rent_deposit:,}" if rent_deposit else ""
+        st.session_state.quick_prepayment_mode = "원" if rent_deposit else "%"
+        st.session_state.quick_prepayment_value = f"{rent_deposit:,}" if rent_deposit else ""
         st.session_state.quick_edit_applied = False
         st.session_state.quick_edit_source_signature = quick_edit_source_signature
 
@@ -2458,8 +2468,8 @@ if not IS_CLIENT_VIEW:
         st.session_state.quick_rent_resale_pct = f"{float(pending_quick_edit.get('rent_resale_pct', rent_resale_pct)):g}"
         st.session_state.quick_months = int(pending_quick_edit.get("months", months))
         st.session_state.quick_mileage = pending_quick_edit.get("mileage", mileage)
-        st.session_state.quick_prepay_method = str(pending_quick_edit.get("prepay_method", st.session_state.get("quick_prepay_method", "원")))
-        st.session_state.quick_rent_prepay_value = str(pending_quick_edit.get("prepay_value", st.session_state.get("quick_rent_prepay_value", "")))
+        st.session_state.quick_prepayment_mode = pending_quick_edit.get("prepayment_mode", st.session_state.get("quick_prepayment_mode", "원" if rent_deposit else "%"))
+        st.session_state.quick_prepayment_value = pending_quick_edit.get("prepayment_value", st.session_state.get("quick_prepayment_value", f"{rent_deposit:,}" if rent_deposit else ""))
         st.session_state.quick_edit_applied = True
         st.session_state.pending_quick_edit = None
 
@@ -2472,89 +2482,45 @@ if not IS_CLIENT_VIEW:
     if st.session_state.quick_mileage not in quick_mileage_options:
         quick_mileage_options.append(st.session_state.quick_mileage)
 
+    st.markdown('<div class="quick-rent-condition">', unsafe_allow_html=True)
+
+    quick_edit_submitted = False
+
     st.markdown("""
     <style>
-    .quick-prepay-info {
-        height: 15px;
-        line-height: 15px;
-        font-size: 10px;
+    .quick-prepayment-label {
+        min-height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 6px;
+        margin: 0 0 6px 0;
+        font-size: 14px;
+        font-weight: 700;
+        color: #111827;
+    }
+    .quick-prepayment-helper {
+        font-size: 11px;
         font-weight: 800;
-        text-align: right;
         color: #d94b4b;
-        margin: -2px 0 3px 0;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        max-width: 82px;
     }
-
-    html.caprio-dark .quick-prepay-info {
+    html.caprio-dark .quick-prepayment-label {
+        color: #f3f6fb !important;
+    }
+    html.caprio-dark .quick-prepayment-helper {
         color: #ff8da1 !important;
-    }
-
-    .quick-prepay-method-anchor + div[data-testid="stFormSubmitButton"] button {
-        height: 43px !important;
-        min-height: 43px !important;
-        border-radius: 8px !important;
-        font-weight: 900 !important;
-        background: #145aa8 !important;
-        border: 1px solid #145aa8 !important;
-        color: #ffffff !important;
-        box-shadow: none !important;
-    }
-
-    html.caprio-dark .quick-prepay-method-anchor + div[data-testid="stFormSubmitButton"] button {
-        background: #1f6fc7 !important;
-        border-color: #2f86e6 !important;
-        color: #ffffff !important;
-    }
-
-    div[data-testid="stTextInput"]:has(input[aria-label="선납금(%)"]) input {
-        background: #eef6ff !important;
-        border-color: #b8d8ff !important;
-    }
-
-    div[data-testid="stTextInput"]:has(input[aria-label="선납금(원)"]) input {
-        background: #fff7e6 !important;
-        border-color: #efd08a !important;
-    }
-
-    html.caprio-dark div[data-testid="stTextInput"]:has(input[aria-label="선납금(%)"]) input {
-        background: #172a42 !important;
-        border-color: #335d88 !important;
-    }
-
-    html.caprio-dark div[data-testid="stTextInput"]:has(input[aria-label="선납금(원)"]) input {
-        background: #322719 !important;
-        border-color: #7a5a2a !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="quick-rent-condition">', unsafe_allow_html=True)
-
-    quick_edit_submitted = False
-    quick_prepay_method_toggled = False
-
-    prepay_method_now = st.session_state.get("quick_prepay_method", "원")
-    prepay_input_now = str(st.session_state.get("quick_rent_prepay_value", "")).replace(",", "").strip()
-    prepay_info_text = ""
-    if prepay_input_now and car_price:
-        try:
-            if prepay_method_now == "%":
-                prepay_pct_now = float(prepay_input_now.replace("%", ""))
-                prepay_amount_now = int(car_price * prepay_pct_now / 100)
-                prepay_info_text = f"{prepay_amount_now:,}원"
-            else:
-                prepay_amount_now = int("".join(filter(str.isdigit, prepay_input_now)))
-                prepay_pct_now = (prepay_amount_now / car_price * 100) if car_price else 0
-                prepay_info_text = f"{prepay_pct_now:.1f}%"
-        except Exception:
-            prepay_info_text = ""
-
     with st.form("quick_rent_edit_form"):
         st.markdown("#### 🛠️ 렌트 조건 빠른 수정")
 
-        quick_col1, quick_col2, quick_col3, quick_col4, quick_col5, quick_col6, quick_col7 = st.columns([1.2, 1.1, 0.9, 1.0, 0.55, 1.0, 0.7])
+        quick_col1, quick_col2, quick_col3, quick_col4, quick_col5, quick_col6, quick_col7 = st.columns([1.18, 1.08, 0.88, 1.02, 0.62, 1.02, 0.72])
 
         with quick_col1:
             st.text_input("월납입", key="quick_rent_monthly_pay")
@@ -2577,29 +2543,41 @@ if not IS_CLIENT_VIEW:
             )
 
         with quick_col5:
-            st.markdown("선납방식")
-            st.markdown('<div class="quick-prepay-method-anchor"></div>', unsafe_allow_html=True)
-            quick_prepay_method_toggled = st.form_submit_button(prepay_method_now, use_container_width=True)
+            st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
+            quick_prepayment_toggle_clicked = st.form_submit_button(
+                st.session_state.get("quick_prepayment_mode", "%"),
+                use_container_width=True
+            )
 
         with quick_col6:
-            st.markdown(f'<div class="quick-prepay-info">{prepay_info_text}</div>', unsafe_allow_html=True)
+            quick_prepayment_mode = st.session_state.get("quick_prepayment_mode", "%")
+            quick_prepayment_helper = quick_prepayment_display_value(
+                quick_prepayment_mode,
+                st.session_state.get("quick_prepayment_value", "")
+            )
+            quick_prepayment_label = f"선납금({quick_prepayment_mode})"
+            quick_prepayment_placeholder = "퍼센트 기준으로 입력" if quick_prepayment_mode == "%" else "원 기준으로 입력"
+            st.markdown(
+                f'<div class="quick-prepayment-label"><span>{quick_prepayment_label}</span><span class="quick-prepayment-helper">{quick_prepayment_helper}</span></div>',
+                unsafe_allow_html=True
+            )
             st.text_input(
-                f"선납금({prepay_method_now})",
-                key="quick_rent_prepay_value",
-                placeholder="퍼센트 기준으로 입력" if prepay_method_now == "%" else "원 기준으로 입력"
+                "선납금",
+                key="quick_prepayment_value",
+                placeholder=quick_prepayment_placeholder,
+                label_visibility="collapsed"
             )
 
         with quick_col7:
             st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
             quick_edit_submitted = st.form_submit_button("적용", use_container_width=True)
 
+    if quick_prepayment_toggle_clicked:
+        st.session_state.quick_prepayment_mode = "원" if st.session_state.get("quick_prepayment_mode", "%") == "%" else "%"
+        st.rerun()
+
     st.markdown('</div>', unsafe_allow_html=True)
 
-
-    if quick_prepay_method_toggled:
-        st.session_state.quick_prepay_method = "원" if st.session_state.get("quick_prepay_method", "원") == "%" else "%"
-        st.session_state.quick_rent_prepay_value = ""
-        st.rerun()
 
     if quick_edit_submitted:
         st.session_state.quick_edit_applied = True
@@ -2609,15 +2587,11 @@ if not IS_CLIENT_VIEW:
         rent_resale_pct = quick_pct_to_float(st.session_state.quick_rent_resale_pct, rent_resale_pct)
         months = int(st.session_state.quick_months)
         mileage = st.session_state.quick_mileage
-        quick_prepay_value = str(st.session_state.get("quick_rent_prepay_value", "")).replace(",", "").strip()
-        if quick_prepay_value:
-            try:
-                if st.session_state.get("quick_prepay_method", "원") == "%":
-                    rent_deposit = int(car_price * float(quick_prepay_value.replace("%", "")) / 100)
-                else:
-                    rent_deposit = quick_money_to_int(quick_prepay_value)
-            except Exception:
-                pass
+        quick_prepayment_input_value = st.session_state.get("quick_prepayment_value", "")
+        if st.session_state.get("quick_prepayment_mode", "%") == "%":
+            rent_deposit = int(car_price * (quick_pct_to_float(quick_prepayment_input_value, 0) / 100))
+        else:
+            rent_deposit = quick_money_to_int(quick_prepayment_input_value)
 
     st.sidebar.markdown(
         '<div class="rent-fixed-resale-label" style="font-size:14px; font-weight:400;">📉 렌트 고정 잔존가치 (%)</div>',
