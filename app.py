@@ -381,7 +381,7 @@ def render_share_section_selector(current_sections):
 
     return collect_visible_sections_from_state()
 
-def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, make_share_url_func, visible_sections):
+def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url_func, visible_sections):
     st.markdown('<div class="quote-history-panel">', unsafe_allow_html=True)
     st.markdown('<div class="quote-history-title">🕘 견적 저장 / 이력</div>', unsafe_allow_html=True)
 
@@ -414,6 +414,9 @@ def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mile
                         "rent_resale_pct": rent_resale_pct,
                         "months": months,
                         "mileage": mileage,
+                        "rent_deposit": rent_deposit,
+                        "prepayment_mode": st.session_state.get("quick_prepayment_mode", "원" if rent_deposit else "%"),
+                        "prepayment_value": st.session_state.get("quick_prepayment_value", f"{rent_deposit:,}" if rent_deposit else ""),
                     },
                     "visible_sections": normalize_visible_sections(visible_sections),
                 }
@@ -2553,11 +2556,49 @@ if not IS_CLIENT_VIEW:
         car_shape = active_quote_data.get("car_shape", car_shape)
         rent_resale_pct = float(active_quote_data.get("rent_resale_pct", rent_resale_pct))
 
+    def pre_history_money_to_int(value):
+        value_text = str(value).replace(",", "").strip()
+        return int("".join(filter(str.isdigit, value_text))) if any(ch.isdigit() for ch in value_text) else 0
+
+    def pre_history_pct_to_float(value, default_value):
+        try:
+            return float(str(value).replace("%", "").replace(",", "").strip())
+        except Exception:
+            return float(default_value)
+
+    if st.session_state.get("quick_edit_applied"):
+        rent_monthly_pay = pre_history_money_to_int(st.session_state.get("quick_rent_monthly_pay", rent_monthly_pay))
+        rent_resale_pct = pre_history_pct_to_float(st.session_state.get("quick_rent_resale_pct", rent_resale_pct), rent_resale_pct)
+        months = int(st.session_state.get("quick_months", months))
+        mileage = st.session_state.get("quick_mileage", mileage)
+        quick_prepayment_input_value = st.session_state.get("quick_prepayment_value", "")
+        if st.session_state.get("quick_prepayment_mode", "%") == "%":
+            rent_deposit = int(car_price * (pre_history_pct_to_float(quick_prepayment_input_value, 0) / 100))
+        else:
+            rent_deposit = pre_history_money_to_int(quick_prepayment_input_value)
+        st.session_state.active_quote_data = {
+            "car_name": car_name,
+            "car_option": car_option,
+            "car_price": car_price,
+            "months": months,
+            "mileage": mileage,
+            "rent_monthly_pay": rent_monthly_pay,
+            "rent_deposit": rent_deposit,
+            "cc_text": cc_text,
+            "cc_raw_text": cc_raw_text,
+            "fuel_text": fuel_text,
+            "passenger_count": passenger_count,
+            "car_shape": car_shape,
+            "rent_resale_pct": rent_resale_pct,
+        }
+
+    history_raw_data = st.session_state.get("active_quote_raw", pre_raw_data) if st.session_state.active_quote_data else pre_raw_data
+
     control_col, history_col = st.columns([0.68, 0.32], gap="medium")
     with control_col:
         visible_sections = render_share_section_selector(visible_sections)
     with history_col:
-        render_quote_history_area(pre_raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, make_share_url, visible_sections)
+        render_quote_history_area(history_raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url, visible_sections)
 
     # ==========================================
     # [TOP MAIN] 타사 견적 파싱 구역
@@ -2674,6 +2715,7 @@ if not IS_CLIENT_VIEW:
         st.session_state.quick_rent_resale_pct = f"{float(pending_quick_edit.get('rent_resale_pct', rent_resale_pct)):g}"
         st.session_state.quick_months = int(pending_quick_edit.get("months", months))
         st.session_state.quick_mileage = pending_quick_edit.get("mileage", mileage)
+        rent_deposit = int(pending_quick_edit.get("rent_deposit", rent_deposit))
         st.session_state.quick_prepayment_mode = pending_quick_edit.get("prepayment_mode", st.session_state.get("quick_prepayment_mode", "원" if rent_deposit else "%"))
         st.session_state.quick_prepayment_value = pending_quick_edit.get("prepayment_value", st.session_state.get("quick_prepayment_value", f"{rent_deposit:,}" if rent_deposit else ""))
         st.session_state.quick_edit_applied = True
@@ -2795,6 +2837,21 @@ if not IS_CLIENT_VIEW:
             rent_deposit = int(car_price * (quick_pct_to_float(quick_prepayment_input_value, 0) / 100))
         else:
             rent_deposit = quick_money_to_int(quick_prepayment_input_value)
+        st.session_state.active_quote_data = {
+            "car_name": car_name,
+            "car_option": car_option,
+            "car_price": car_price,
+            "months": months,
+            "mileage": mileage,
+            "rent_monthly_pay": rent_monthly_pay,
+            "rent_deposit": rent_deposit,
+            "cc_text": cc_text,
+            "cc_raw_text": cc_raw_text,
+            "fuel_text": fuel_text,
+            "passenger_count": passenger_count,
+            "car_shape": car_shape,
+            "rent_resale_pct": rent_resale_pct,
+        }
 
     st.sidebar.markdown(
         '<div class="rent-fixed-resale-label" style="font-size:14px; font-weight:400;">📉 렌트 고정 잔존가치 (%)</div>',
