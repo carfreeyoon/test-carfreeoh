@@ -1863,6 +1863,82 @@ st.markdown("""
         color: #f3f6fb !important;
         fill: #f3f6fb !important;
     }
+
+
+    /* [PATCH] 다크모드 전역 입력/버튼 색상 보정: 폼 밖 영역 포함 */
+    html.caprio-dark [data-testid="stSidebar"] {
+        background-color: #111827 !important;
+        color: #f3f6fb !important;
+        border-right: 1px solid #26364c !important;
+    }
+
+    html.caprio-dark [data-testid="stSidebar"] * {
+        color: inherit;
+    }
+
+    html.caprio-dark input,
+    html.caprio-dark textarea,
+    html.caprio-dark select,
+    html.caprio-dark div[data-baseweb="input"],
+    html.caprio-dark div[data-baseweb="input"] > div,
+    html.caprio-dark div[data-baseweb="input"] input,
+    html.caprio-dark div[data-baseweb="textarea"],
+    html.caprio-dark div[data-baseweb="textarea"] textarea,
+    html.caprio-dark div[data-baseweb="select"] > div {
+        background-color: #232631 !important;
+        color: #f3f6fb !important;
+        -webkit-text-fill-color: #f3f6fb !important;
+        border-color: #46566d !important;
+        box-shadow: none !important;
+    }
+
+    html.caprio-dark input::placeholder,
+    html.caprio-dark textarea::placeholder {
+        color: #9aa7bb !important;
+        -webkit-text-fill-color: #9aa7bb !important;
+        opacity: 1 !important;
+    }
+
+    html.caprio-dark div[data-baseweb="select"] svg,
+    html.caprio-dark div[data-baseweb="input"] svg {
+        color: #f3f6fb !important;
+        fill: #f3f6fb !important;
+    }
+
+    html.caprio-dark div[data-testid="stButton"] button,
+    html.caprio-dark div[data-testid="stNumberInput"] button {
+        background-color: #131a24 !important;
+        color: #f3f6fb !important;
+        border: 1px solid #46566d !important;
+        box-shadow: none !important;
+        -webkit-text-fill-color: #f3f6fb !important;
+    }
+
+    html.caprio-dark div[data-testid="stButton"] button p,
+    html.caprio-dark div[data-testid="stNumberInput"] button p {
+        color: #f3f6fb !important;
+        -webkit-text-fill-color: #f3f6fb !important;
+    }
+
+    html.caprio-dark div[data-testid="stButton"] button svg,
+    html.caprio-dark div[data-testid="stNumberInput"] button svg {
+        color: #f3f6fb !important;
+        fill: #f3f6fb !important;
+    }
+
+    html.caprio-dark div[data-testid="stButton"] button:disabled,
+    html.caprio-dark div[data-testid="stNumberInput"] button:disabled {
+        background-color: #1a2230 !important;
+        color: #8b98aa !important;
+        border-color: #344256 !important;
+        -webkit-text-fill-color: #8b98aa !important;
+    }
+
+    html.caprio-dark div[data-testid="stButton"] button:disabled p,
+    html.caprio-dark div[data-testid="stNumberInput"] button:disabled p {
+        color: #8b98aa !important;
+        -webkit-text-fill-color: #8b98aa !important;
+    }
     
 
     /* [PATCH] MO 섹션 간격 통일: 섹션별 중복 여백 제거 + 단일 간격 적용 */
