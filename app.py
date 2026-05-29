@@ -1707,16 +1707,12 @@ st.markdown("""
     html.caprio-light input,
     html.caprio-light textarea,
     html.caprio-light select,
-    html.caprio-light [data-baseweb="input"],
-    html.caprio-light [data-baseweb="input"] > div,
     html.caprio-light [data-baseweb="input"] input,
     html.caprio-light [data-baseweb="textarea"] textarea,
     html.caprio-light [data-baseweb="select"] > div,
     html:not(.caprio-dark) input,
     html:not(.caprio-dark) textarea,
     html:not(.caprio-dark) select,
-    html:not(.caprio-dark) [data-baseweb="input"],
-    html:not(.caprio-dark) [data-baseweb="input"] > div,
     html:not(.caprio-dark) [data-baseweb="input"] input,
     html:not(.caprio-dark) [data-baseweb="textarea"] textarea,
     html:not(.caprio-dark) [data-baseweb="select"] > div {
@@ -1749,16 +1745,6 @@ st.markdown("""
 
 
     /* [PATCH] 영업자 화면 테마 보정: PC 화이트 버튼 / MO 다크 라벨·적용 버튼 */
-    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div,
-    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div > div,
-    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"],
-    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"] > div,
-    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] input,
-    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div,
-    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div > div,
-    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"],
-    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"] > div,
-    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] input,
     html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] button,
     html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] button,
     html.caprio-light [data-testid="stSidebar"] div[data-testid="stButton"] button,
@@ -1778,6 +1764,17 @@ st.markdown("""
         fill: #111827 !important;
     }
 
+    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"],
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"] {
+        border: 1px solid #d8dee8 !important;
+        border-radius: 8px !important;
+        background-color: #ffffff !important;
+        box-shadow: none !important;
+        overflow: hidden !important;
+    }
+
+    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"] > div,
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"] > div,
     html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] input,
     html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] input {
         border: 0 !important;
