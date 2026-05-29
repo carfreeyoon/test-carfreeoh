@@ -1778,6 +1778,20 @@ st.markdown("""
         fill: #111827 !important;
     }
 
+    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] input,
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] input {
+        border: 0 !important;
+        box-shadow: none !important;
+    }
+
+    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] button,
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] button {
+        border: 0 !important;
+        border-left: 1px solid #d8dee8 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+
     html.caprio-light div[data-testid="stFormSubmitButton"] button,
     html:not(.caprio-dark) div[data-testid="stFormSubmitButton"] button {
         background-color: #ffffff !important;
