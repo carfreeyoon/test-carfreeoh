@@ -1939,6 +1939,23 @@ st.markdown("""
         color: #8b98aa !important;
         -webkit-text-fill-color: #8b98aa !important;
     }
+
+    /* [PATCH] 다크모드 잔여 색상 보정: 사이드바 number 테두리 + 조건설정 텍스트 */
+    html.caprio-dark [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div,
+    html.caprio-dark [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div > div,
+    html.caprio-dark [data-testid="stSidebar"] div[data-testid="stNumberInput"] button {
+        border-color: #46566d !important;
+        box-shadow: none !important;
+    }
+
+    html.caprio-dark .share-selector-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stCheckbox"],
+    html.caprio-dark .share-selector-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stCheckbox"] label,
+    html.caprio-dark .share-selector-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"],
+    html.caprio-dark .share-selector-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p {
+        color: #f3f6fb !important;
+        -webkit-text-fill-color: #f3f6fb !important;
+        opacity: 1 !important;
+    }
     
 
     /* [PATCH] MO 섹션 간격 통일: 섹션별 중복 여백 제거 + 단일 간격 적용 */
@@ -2519,14 +2536,24 @@ if not IS_CLIENT_VIEW:
             return float(default_value)
 
     def quick_prepayment_display_value(mode, value):
-        amount = quick_money_to_int(value)
-        if not amount or not car_price:
+        if not car_price:
             return ""
         if mode == "%":
-            prepayment_amount = int(car_price * (quick_pct_to_float(value, 0) / 100))
+            pct = quick_pct_to_float(value, 0)
+            prepayment_amount = int(car_price * (pct / 100))
             return f"{prepayment_amount:,}원" if prepayment_amount else ""
+        amount = quick_money_to_int(value)
         prepayment_pct = (amount / car_price) * 100
         return f"{prepayment_pct:.1f}%" if prepayment_pct else ""
+
+    def convert_quick_prepayment_value(mode, value):
+        if not car_price:
+            return ""
+        if mode == "%":
+            converted_amount = int(car_price * (quick_pct_to_float(value, 0) / 100))
+            return f"{converted_amount:,}" if converted_amount else ""
+        converted_pct = (quick_money_to_int(value) / car_price) * 100
+        return f"{converted_pct:.1f}" if converted_pct else ""
 
     if st.session_state.get("quick_edit_source_signature") != quick_edit_source_signature:
         st.session_state.quick_rent_monthly_pay = f"{rent_monthly_pay:,}"
@@ -2576,13 +2603,13 @@ if not IS_CLIENT_VIEW:
         color: #111827;
     }
     .quick-prepayment-helper {
-        font-size: 11px;
-        font-weight: 800;
+        font-size: 13px;
+        font-weight: 900;
         color: #d94b4b;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
-        max-width: 82px;
+        max-width: 116px;
     }
     html.caprio-dark .quick-prepayment-label {
         color: #f3f6fb !important;
@@ -2649,7 +2676,12 @@ if not IS_CLIENT_VIEW:
             quick_edit_submitted = st.form_submit_button("적용", use_container_width=True)
 
     if quick_prepayment_toggle_clicked:
-        st.session_state.quick_prepayment_mode = "원" if st.session_state.get("quick_prepayment_mode", "%") == "%" else "%"
+        current_prepayment_mode = st.session_state.get("quick_prepayment_mode", "%")
+        st.session_state.quick_prepayment_value = convert_quick_prepayment_value(
+            current_prepayment_mode,
+            st.session_state.get("quick_prepayment_value", "")
+        )
+        st.session_state.quick_prepayment_mode = "원" if current_prepayment_mode == "%" else "%"
         st.rerun()
 
     st.markdown('</div>', unsafe_allow_html=True)
