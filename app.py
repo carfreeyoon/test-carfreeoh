@@ -381,7 +381,7 @@ def render_share_section_selector(current_sections):
 
     return collect_visible_sections_from_state()
 
-def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url_func, visible_sections):
+def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url_func, visible_sections, has_active_quote=True):
     st.markdown('<div class="quote-history-panel">', unsafe_allow_html=True)
     st.markdown('<div class="quote-history-title">🕘 견적 저장 / 이력</div>', unsafe_allow_html=True)
 
@@ -397,7 +397,7 @@ def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mile
         st.rerun()
 
     if save_clicked:
-        if raw_data.strip() or car_name:
+        if raw_data.strip() or has_active_quote:
             short_car_name = car_name[:15] + "..." if len(car_name) > 15 else car_name
             history_title = (
                 f"{short_car_name}\n"
@@ -2288,7 +2288,7 @@ def make_share_url():
         "installment_resale_pct": installment_resale_pct,
         "insurance_annual": insurance_annual if "insurance_annual" in globals() else 1000000,
         "installment_rate": installment_rate if "installment_rate" in globals() else 5.0,
-        "installment_prepaid": installment_prepaid if "installment_prepaid" in globals() else 10000000,
+        "installment_prepaid": installment_prepaid if "installment_prepaid" in globals() else 0,
         "is_corporate": is_corporate if "is_corporate" in globals() else False,
         "rent_resale_pct": rent_resale_pct,
         "visible_sections": normalize_visible_sections(visible_sections)
@@ -2305,7 +2305,7 @@ def make_share_url():
 # ==========================================
 if IS_CLIENT_VIEW:
     is_corporate = bool(shared_quote_data.get("is_corporate", False))
-    installment_prepaid = int(shared_quote_data.get("installment_prepaid", 10000000))
+    installment_prepaid = int(shared_quote_data.get("installment_prepaid", 0))
     installment_rate = float(shared_quote_data.get("installment_rate", 5.0))
     insurance_annual = int(shared_quote_data.get("insurance_annual", 1000000))
 else:
@@ -2319,7 +2319,7 @@ else:
     installment_prepaid = int(
         st.sidebar.text_input(
             "💵 할부 선납금",
-            value=f"{int(shared_quote_data.get('installment_prepaid', 10000000)):,}"
+            value=f"{int(shared_quote_data.get('installment_prepaid', 0)):,}"
         ).replace(",", "")
     )
 
@@ -2598,7 +2598,7 @@ if not IS_CLIENT_VIEW:
     with control_col:
         visible_sections = render_share_section_selector(visible_sections)
     with history_col:
-        render_quote_history_area(history_raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url, visible_sections)
+        render_quote_history_area(history_raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url, visible_sections, st.session_state.active_quote_data is not None)
 
     # ==========================================
     # [TOP MAIN] 타사 견적 파싱 구역
