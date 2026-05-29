@@ -1926,6 +1926,40 @@ st.markdown("""
         fill: #f3f6fb !important;
     }
 
+    /* 다크모드: number_input 내부 테두리/체크박스 텍스트 통합 보정 */
+    html.caprio-dark [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div,
+    html.caprio-dark [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div > div,
+    html.caprio-dark [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"],
+    html.caprio-dark [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"] > div,
+    html.caprio-dark [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="base-input"],
+    html.caprio-dark [data-testid="stSidebar"] div[data-testid="stNumberInput"] input,
+    html.caprio-dark [data-testid="stSidebar"] div[data-testid="stNumberInput"] button,
+    html.caprio-dark [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[role="button"] {
+        background-color: #232631 !important;
+        color: #f3f6fb !important;
+        -webkit-text-fill-color: #f3f6fb !important;
+        border-color: #46566d !important;
+        box-shadow: none !important;
+        outline-color: #46566d !important;
+    }
+
+    html.caprio-dark div[data-testid="stCheckbox"],
+    html.caprio-dark div[data-testid="stCheckbox"] *,
+    html.caprio-dark div[data-testid="stCheckbox"] label,
+    html.caprio-dark div[data-testid="stCheckbox"] label *,
+    html.caprio-dark div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"],
+    html.caprio-dark div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] *,
+    html.caprio-dark div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p,
+    html.caprio-dark div[data-testid="stCheckbox"] [aria-disabled="true"],
+    html.caprio-dark div[data-testid="stCheckbox"] [aria-disabled="true"] *,
+    html.caprio-dark div[data-testid="stCheckbox"] [disabled],
+    html.caprio-dark div[data-testid="stCheckbox"] [disabled] * {
+        color: #f3f6fb !important;
+        -webkit-text-fill-color: #f3f6fb !important;
+        opacity: 1 !important;
+        filter: none !important;
+    }
+
     html.caprio-dark div[data-testid="stButton"] button:disabled,
     html.caprio-dark div[data-testid="stNumberInput"] button:disabled {
         background-color: #1a2230 !important;
