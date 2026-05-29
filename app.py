@@ -2721,14 +2721,22 @@ if not IS_CLIENT_VIEW:
         st.session_state.quick_edit_applied = True
         st.session_state.pending_quick_edit = None
 
+    # quick edit state 보장 (텍스트 공백/active 유지 대응)
+    st.session_state.setdefault("quick_months", int(months))
+    st.session_state.setdefault("quick_mileage", mileage)
+    st.session_state.setdefault("quick_rent_monthly_pay", f"{rent_monthly_pay:,}")
+    st.session_state.setdefault("quick_rent_resale_pct", f"{rent_resale_pct:g}")
+    st.session_state.setdefault("quick_prepayment_mode", "원" if rent_deposit else "%")
+    st.session_state.setdefault("quick_prepayment_value", f"{rent_deposit:,}" if rent_deposit else "")
+
     quick_month_options = [24, 36, 48, 60]
-    if int(st.session_state.quick_months) not in quick_month_options:
-        quick_month_options.append(int(st.session_state.quick_months))
+    if int(st.session_state.get("quick_months", months)) not in quick_month_options:
+        quick_month_options.append(int(st.session_state.get("quick_months", months)))
         quick_month_options = sorted(quick_month_options)
 
     quick_mileage_options = ["1만KM", "1.5만KM", "2만Km", "3만KM"]
-    if st.session_state.quick_mileage not in quick_mileage_options:
-        quick_mileage_options.append(st.session_state.quick_mileage)
+    if st.session_state.get("quick_mileage", mileage) not in quick_mileage_options:
+        quick_mileage_options.append(st.session_state.get("quick_mileage", mileage))
 
     st.markdown('<div class="quick-rent-condition">', unsafe_allow_html=True)
 
