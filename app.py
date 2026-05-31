@@ -403,7 +403,8 @@ def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mile
                 f"{short_car_name}\n"
                 f"월 {rent_monthly_pay:,}원｜{months}개월｜{mileage}"
             )
-            st.session_state.quote_history.append(
+            st.session_state.quote_history.insert(
+                0,
                 {
                     "title": history_title,
                     "raw": raw_data,
@@ -2663,13 +2664,13 @@ if not IS_CLIENT_VIEW:
             "rent_resale_pct": rent_resale_pct,
         }
 
-    # 저장/이력 영역은 화면상으로는 우측 상단에 두되,
-    # 실제 렌더링은 견적 원문 확정/빠른수정 적용값이 모두 반영된 뒤에 실행한다.
-    # 이렇게 해야 2번째 저장부터 이전 스냅샷이 저장되는 문제를 막을 수 있다.
+    history_raw_data = st.session_state.get("active_quote_raw", pre_raw_data) if st.session_state.active_quote_data else pre_raw_data
+
     control_col, history_col = st.columns([0.68, 0.32], gap="medium")
     with control_col:
         visible_sections = render_share_section_selector(visible_sections)
-    history_area_placeholder = history_col.container()
+    with history_col:
+        render_quote_history_area(history_raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url, visible_sections, st.session_state.active_quote_data is not None)
 
     # ==========================================
     # [TOP MAIN] 타사 견적 파싱 구역
@@ -2931,21 +2932,6 @@ if not IS_CLIENT_VIEW:
             "car_shape": car_shape,
             "rent_resale_pct": rent_resale_pct,
         }
-
-    history_raw_data = st.session_state.get("active_quote_raw", pre_raw_data) if st.session_state.active_quote_data else pre_raw_data
-    with history_area_placeholder:
-        render_quote_history_area(
-            history_raw_data,
-            car_name,
-            rent_monthly_pay,
-            months,
-            mileage,
-            rent_resale_pct,
-            rent_deposit,
-            make_share_url,
-            visible_sections,
-            st.session_state.active_quote_data is not None,
-        )
 
     st.sidebar.markdown(
         '<div class="rent-fixed-resale-label" style="font-size:14px; font-weight:400;">📉 렌트 고정 잔존가치 (%)</div>',
@@ -3219,7 +3205,12 @@ if visible_sections.get("rate_table", True):
     # ==========================================
     # [📊 BOTTOM] 검증 요율표 구역
     # ==========================================
-    st.markdown('<div class="excel-header-gray">안녕하세요</div>', unsafe_allow_html=True)
+    st.markdown('''
+    <div style="width:55%; background:#fff3cd; border:2px solid #ff9800; color:#111827; font-weight:900; font-size:18px; padding:14px; margin:12px 0; border-radius:8px; text-align:center; box-sizing:border-box;">
+        🔥 RATE TABLE TOP TEST - 검증표 실제 출력 위치 확인
+    </div>
+    ''', unsafe_allow_html=True)
+    st.markdown('<div class="excel-header-gray">💻 내부 데이터 산출 요율 검증표</div>', unsafe_allow_html=True)
     m_col1, m_col2, m_col3, m_col4 = st.columns(4)
 
     with m_col1:
