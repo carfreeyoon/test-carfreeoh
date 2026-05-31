@@ -403,8 +403,7 @@ def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mile
                 f"{short_car_name}\n"
                 f"월 {rent_monthly_pay:,}원｜{months}개월｜{mileage}"
             )
-            st.session_state.quote_history.insert(
-                0,
+            st.session_state.quote_history.append(
                 {
                     "title": history_title,
                     "raw": raw_data,
