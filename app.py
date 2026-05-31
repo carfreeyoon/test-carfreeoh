@@ -15,7 +15,7 @@ st.set_page_config(page_title="카프리오 비교 프로그램", layout="wide")
 APP_PASSWORD = st.secrets.get("APP_PASSWORD", "")
 SUPABASE_URL = st.secrets.get("SUPABASE_URL", "").rstrip("/")
 SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", "")
-APP_BASE_URL = "https://carfreeoh-rentcalculator.streamlit.app"
+APP_BASE_URL = "https://test-carfreeoh.streamlit.app"
 
 
 # ==========================================
@@ -3205,12 +3205,7 @@ if visible_sections.get("rate_table", True):
     # ==========================================
     # [📊 BOTTOM] 검증 요율표 구역
     # ==========================================
-    st.markdown('''
-    <div style="width:55%; background:#fff3cd; border:2px solid #ff9800; color:#111827; font-weight:900; font-size:18px; padding:14px; margin:12px 0; border-radius:8px; text-align:center; box-sizing:border-box;">
-        🔥 RATE TABLE TOP TEST - 검증표 실제 출력 위치 확인
-    </div>
-    ''', unsafe_allow_html=True)
-    st.markdown('<div class="excel-header-gray">💻 내부 데이터 산출 요율 검증표</div>', unsafe_allow_html=True)
+    st.markdown('<div class="excel-header-gray">안녕하세요</div>', unsafe_allow_html=True)
     m_col1, m_col2, m_col3, m_col4 = st.columns(4)
 
     with m_col1:
