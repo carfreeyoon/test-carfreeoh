@@ -22,6 +22,7 @@ APP_BASE_URL = "https://carfreeoh-rentcalculator.streamlit.app"
 # [고객 공유 항목 선택 기본값/유틸]
 # ==========================================
 DEFAULT_VISIBLE_SECTIONS = {
+    "client_intro": True,
     "conditions": True,
     "common": True,
     "installment_condition": True,
@@ -37,6 +38,7 @@ DEFAULT_VISIBLE_SECTIONS = {
     "guide_installment": True,
     "guide_rent": True,
     "guide_lease": True,
+    "client_cta": True,
 }
 
 SHARE_SECTION_GROUPS = {
@@ -80,6 +82,9 @@ def normalize_visible_sections(data=None):
         sections["guide_installment"] = False
         sections["guide_rent"] = False
         sections["guide_lease"] = False
+
+    sections["client_intro"] = True
+    sections["client_cta"] = True
 
     return sections
 
@@ -158,7 +163,10 @@ def render_share_section_selector(current_sections):
 
     def set_all_sections(value):
         for section_key in DEFAULT_VISIBLE_SECTIONS:
-            st.session_state[f"share_{section_key}"] = value
+            if section_key in ["client_intro", "client_cta"]:
+                st.session_state[f"share_{section_key}"] = True
+            else:
+                st.session_state[f"share_{section_key}"] = value
 
     def sync_parent_to_children(parent_key):
         parent_value = bool(st.session_state.get(f"share_{parent_key}", True))
@@ -2264,7 +2272,6 @@ passenger_count = 7
 car_shape = "하이브리드"
 installment_resale_pct = 50 # 할부 잔존가치(매각율) 기본값
 rent_resale_pct = 58       # 렌트 고정 잔존가치(기본값 58%)
-customer_name = ""
 
 # 공유 링크로 접속한 경우 기본값 반영
 shared_quote_data = {}
@@ -2289,7 +2296,8 @@ if shared_quote_data:
     car_shape = shared_quote_data.get("car_shape", car_shape)
     installment_resale_pct = int(shared_quote_data.get("installment_resale_pct", installment_resale_pct))
     rent_resale_pct = float(shared_quote_data.get("rent_resale_pct", rent_resale_pct))
-    customer_name = str(shared_quote_data.get("customer_name", customer_name)).strip()
+
+customer_name = str(shared_quote_data.get("customer_name", "")).strip()
 
 visible_sections = normalize_visible_sections(shared_quote_data.get("visible_sections") if IS_CLIENT_VIEW else None)
 
@@ -2313,7 +2321,7 @@ def make_share_url():
         "installment_prepaid": installment_prepaid if "installment_prepaid" in globals() else 0,
         "is_corporate": is_corporate if "is_corporate" in globals() else False,
         "rent_resale_pct": rent_resale_pct,
-        "customer_name": customer_name if "customer_name" in globals() else "",
+        "customer_name": st.session_state.get("customer_name", customer_name) if not IS_CLIENT_VIEW else customer_name,
         "visible_sections": collect_visible_sections_from_state() if not IS_CLIENT_VIEW else normalize_visible_sections(visible_sections)
     }
     short_code = save_share_data(share_data)
@@ -2674,12 +2682,7 @@ if not IS_CLIENT_VIEW:
     with control_col:
         visible_sections = render_share_section_selector(visible_sections)
     with history_col:
-        customer_name = st.text_input(
-            "👤 고객명",
-            value=str(st.session_state.get("customer_name", customer_name)).strip(),
-            key="customer_name",
-            placeholder="고객명"
-        ).strip()
+        st.text_input("고객명", value=customer_name, key="customer_name", placeholder="고객명")
         render_quote_history_area(history_raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url, visible_sections, st.session_state.active_quote_data is not None)
 
     # ==========================================
@@ -3058,17 +3061,19 @@ tax_type_text = "승합차(9인승 이상)" if e15 != "" else car_shape
 
 car_option_display = format_option_html(car_option)
 
-customer_label = f"{html.escape(customer_name)}님" if str(customer_name).strip() else "고객님"
-st.markdown(f"""
-<div class="common-info-box">
-    <div style="font-size:20px; font-weight:850; margin-bottom:7px; color:#0b3873;">
-        {customer_label}, 더 합리적인 선택을 위해 비교 준비했어요 🙂
+customer_display_name = f"{str(customer_name).strip()}님" if str(customer_name).strip() else "고객님"
+
+if visible_sections.get("client_intro", True):
+    st.markdown(f"""
+    <div class="common-info-box">
+        <div style="font-size:19px; font-weight:900; margin-bottom:8px; color:#0b3873; line-height:1.35;">
+            {customer_display_name}, 더 합리적인 선택을 위해 비교 준비했어요 🙂
+        </div>
+        <div style="font-size:14px; color:#475569; line-height:1.55;">
+            복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.
+        </div>
     </div>
-    <div style="font-size:14px; line-height:1.55; color:#334155;">
-        복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.
-    </div>
-</div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 if visible_sections.get("common", True):
     # ==========================================
@@ -3695,19 +3700,20 @@ if visible_sections.get("guide", True):
 
         st.markdown(guide_html, unsafe_allow_html=True)
 
-st.markdown("""
-<div class="common-info-box">
-    <div style="font-size:18px; font-weight:850; margin-bottom:7px; color:#0b3873;">
-        혼자 비교하기 복잡했다면, 언제든 카프리오에 물어보세요 🙂
+if visible_sections.get("client_cta", True):
+    st.markdown("""
+    <div class="common-info-box">
+        <div style="font-size:18px; font-weight:900; margin-bottom:8px; color:#0b3873; line-height:1.35;">
+            혼자 비교하기 복잡했다면, 언제든 카프리오에 물어보세요 🙂
+        </div>
+        <div style="font-size:14px; color:#475569; line-height:1.55; margin-bottom:8px;">
+            할부·렌트·리스까지 고객님께 더 유리한 방향으로 도와드릴게요.
+        </div>
+        <div style="font-size:12px; color:#64748b; line-height:1.45;">
+            렌트·리스는 국내 33개 금융사 조건까지 함께 비교해드리고 있어요.
+        </div>
     </div>
-    <div style="font-size:14px; line-height:1.55; color:#334155; margin-bottom:7px;">
-        할부·렌트·리스까지 고객님께 더 유리한 방향으로 도와드릴게요.
-    </div>
-    <div style="font-size:12px; line-height:1.45; color:#64748b;">
-        렌트·리스는 국내 33개 금융사 조건까지 함께 비교해드리고 있어요.
-    </div>
-</div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 st.markdown("""
 <div class="caprio-footer-note">
