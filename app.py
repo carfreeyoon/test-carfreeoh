@@ -2331,6 +2331,7 @@ if shared_quote_data:
     rent_resale_pct = float(shared_quote_data.get("rent_resale_pct", rent_resale_pct))
 
 customer_name = str(shared_quote_data.get("customer_name", "")).strip()
+CLIENT_PUBLIC_VIEW = IS_CLIENT_VIEW or (str(st.query_params.get("view", "")).strip().lower() == "client" and bool(str(st.query_params.get("q", "")).strip()))
 
 visible_sections = normalize_visible_sections(shared_quote_data.get("visible_sections") if IS_CLIENT_VIEW else None)
 
@@ -3096,12 +3097,12 @@ tax_type_text = "승합차(9인승 이상)" if e15 != "" else car_shape
 
 car_option_display = format_option_html(car_option)
 
-if IS_CLIENT_VIEW:
+if CLIENT_PUBLIC_VIEW:
     customer_name_display = str(customer_name).strip()
     customer_title_name = f"{html.escape(customer_name_display)}님" if customer_name_display else "고객님"
 
     st.markdown(f"""
-    <div class="client-welcome-box" style="border:1px solid #d6e0eb; border-radius:14px; padding:18px 20px; margin:0 0 18px 0; background:#f8fafc;">
+    <div class="common-info-box client-welcome-box" style="display:block !important; visibility:visible !important; opacity:1 !important; margin-bottom:18px !important;">
         <div style="font-size:22px; font-weight:900; line-height:1.35; color:#0f172a;">{customer_title_name}, 더 합리적인 선택을 위해 비교 준비했어요 🙂</div>
         <div style="font-size:15px; font-weight:650; line-height:1.55; color:#526174; margin-top:6px;">복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.</div>
     </div>
@@ -3118,7 +3119,6 @@ if IS_CLIENT_VIEW:
     }}
     </style>
     """, unsafe_allow_html=True)
-
 if visible_sections.get("common", True):
     # ==========================================
     # [공통 조건 구역]
@@ -3744,9 +3744,9 @@ if visible_sections.get("guide", True):
 
         st.markdown(guide_html, unsafe_allow_html=True)
 
-if IS_CLIENT_VIEW:
+if CLIENT_PUBLIC_VIEW:
     st.markdown("""
-    <div class="client-cta-box" style="border:1px solid #d6e0eb; border-radius:14px; padding:18px 20px; margin:24px 0 16px 0; background:#f8fafc; text-align:center;">
+    <div class="common-info-box client-cta-box" style="border:1px solid #d6e0eb; border-radius:14px; padding:18px 20px; margin:24px 0 16px 0; background:#f8fafc; text-align:center;">
         <div style="font-size:20px; font-weight:900; line-height:1.35; color:#0f172a;">혼자 비교하기 복잡했다면, 언제든 카프리오에 물어보세요 🙂</div>
         <div style="font-size:15px; font-weight:650; line-height:1.55; color:#526174; margin-top:6px;">할부·렌트·리스까지 고객님께 더 유리한 방향으로 도와드릴게요.</div>
         <div style="font-size:12px; font-weight:600; line-height:1.45; color:#7b8798; margin-top:10px;">렌트·리스는 국내 33개 금융사 조건까지 함께 비교해드리고 있어요.</div>
