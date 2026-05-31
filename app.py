@@ -3062,33 +3062,54 @@ tax_type_text = "승합차(9인승 이상)" if e15 != "" else car_shape
 
 car_option_display = format_option_html(car_option)
 
+
 # ==========================================
-# [상단 공통 안내문]
+# [본문 최상단 공통 안내문 - 고객용/영업자용 무조건 노출]
+# visible_sections 조건과 무관하게, 결과 본문 첫 섹션 위에 항상 렌더링한다.
 # ==========================================
 st.markdown("""
 <style>
-.caprio-top-note{
-    width:100%;
-    max-width:1734px;
-    margin:18px auto 18px auto;
-    padding:14px 18px;
-    border-radius:10px;
-    background:#111827;
-    border:1px solid #334155;
-    color:#ffffff;
-    font-size:18px;
-    font-weight:800;
-    line-height:1.5;
-    text-align:center;
-    box-sizing:border-box;
+.caprio-main-top-message {
+    width: 100% !important;
+    max-width: 1734px !important;
+    margin: 26px auto 22px auto !important;
+    padding: 24px 28px !important;
+    border-radius: 16px !important;
+    background: #e8f3ff !important;
+    border: 3px solid #2f80ed !important;
+    color: #0b3873 !important;
+    font-size: 30px !important;
+    font-weight: 950 !important;
+    line-height: 1.45 !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 8px 24px rgba(47, 128, 237, 0.22) !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    min-height: 92px !important;
 }
-html.caprio-dark .caprio-top-note{
-    background:#111827;
-    border-color:#334155;
-    color:#ffffff;
+
+html.caprio-dark .caprio-main-top-message {
+    background: #12345a !important;
+    border-color: #79b8ff !important;
+    color: #ffffff !important;
+    box-shadow: 0 8px 24px rgba(121, 184, 255, 0.22) !important;
+}
+
+@media (max-width: 768px) {
+    .caprio-main-top-message {
+        width: calc(100% - 16px) !important;
+        margin: 20px auto 18px auto !important;
+        padding: 20px 16px !important;
+        border-radius: 14px !important;
+        font-size: 24px !important;
+        line-height: 1.35 !important;
+        min-height: 78px !important;
+    }
 }
 </style>
-<div class="caprio-top-note">
+<div class="caprio-main-top-message">
     안녕하세요
 </div>
 """, unsafe_allow_html=True)
