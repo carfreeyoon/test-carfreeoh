@@ -1203,7 +1203,7 @@ st.markdown("""
     }
 
     div.block-container {
-        padding-top: 5.6rem !important;
+        padding-top: 9.2rem !important;
     }
 
     #caprio-brand-header {
@@ -1212,26 +1212,73 @@ st.markdown("""
         left: 0;
         right: 0;
         z-index: 2147483000;
-        height: 72px;
+        min-height: 126px;
         background: rgba(255,255,255,0.94);
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
         border-bottom: 1px solid #e6edf7;
         box-shadow: 0 4px 18px rgba(15, 45, 90, 0.08);
         display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-start;
         pointer-events: auto;
     }
 
     #caprio-brand-inner {
         width: min(1180px, 100%);
-        height: 100%;
+        height: 72px;
         display: flex;
         align-items: center;
         padding: 0 30px;
         box-sizing: border-box;
         gap: 18px;
+        flex: 0 0 72px;
+    }
+
+    #caprio-fixed-intro {
+        width: min(1180px, calc(100% - 32px));
+        box-sizing: border-box;
+        margin: 0 auto 12px auto;
+        padding: 10px 18px;
+        border-radius: 10px;
+        background: #f4f8ff;
+        border: 1px solid #d7e5f7;
+        color: #0b3873;
+        font-size: 14px;
+        font-weight: 750;
+        line-height: 1.55;
+        letter-spacing: -0.03em;
+        text-align: left;
+    }
+
+    html.caprio-dark #caprio-fixed-intro {
+        background: #111c2d !important;
+        border-color: #243a5e !important;
+        color: #dceaff !important;
+    }
+
+
+    @media (max-width: 768px) {
+        div.block-container {
+            padding-top: 10.6rem !important;
+        }
+        #caprio-brand-header {
+            min-height: 148px !important;
+        }
+        #caprio-brand-inner {
+            height: 70px !important;
+            flex-basis: 70px !important;
+            padding: 0 16px !important;
+            gap: 10px !important;
+        }
+        #caprio-fixed-intro {
+            width: calc(100% - 24px) !important;
+            margin-bottom: 10px !important;
+            padding: 9px 12px !important;
+            font-size: 12.5px !important;
+            line-height: 1.45 !important;
+        }
     }
 
     #caprio-brand-logo {
@@ -2184,6 +2231,10 @@ components.html(f"""
                     <div id="caprio-brand-slogan">카 라이프에 <span class="free-word">자유</span>를 더하다</div>
                     <button id="caprio-theme-toggle" type="button">🌙 다크</button>
                 </div>
+                <div id="caprio-fixed-intro">
+                    고객님, 더 합리적인 선택을 위해 비교 준비했어요 🙂<br>
+                    복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.
+                </div>
             `;
             doc.body.appendChild(header);
         }}
@@ -3068,7 +3119,7 @@ if visible_sections.get("common", True):
     # ==========================================
     st.markdown(f"""
     <div class="common-info-box">
-        <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#0b3873;">🚘 비교 차량 공통 조건<br><span style="display:block; margin-top:10px; padding:12px 14px; border:3px solid #ff0000; background:#fff3cd; color:#111827; font-size:15px; font-weight:900; line-height:1.7;">고객님, 더 합리적인 선택을 위해 비교 준비했어요 🙂<br>복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.</span></div>
+        <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#0b3873;">🚘 비교 차량 공통 조건</div>
         <table class="vehicle-table-mobile-primary">
             <tbody>
                 <tr>
