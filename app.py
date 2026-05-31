@@ -3062,18 +3062,6 @@ tax_type_text = "승합차(9인승 이상)" if e15 != "" else car_shape
 
 car_option_display = format_option_html(car_option)
 
-# ==========================================
-# [고정 인삿말] 영업자용/고객용 공통 무조건 노출
-# ==========================================
-st.markdown("""
-<div class="common-info-box">
-    <div style="font-size:16px; font-weight:900; line-height:1.65; color:#0b3873;">
-        고객님, 더 합리적인 선택을 위해 비교 준비했어요 🙂<br>
-        복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.
-    </div>
-</div>
-""", unsafe_allow_html=True)
-
 if visible_sections.get("common", True):
     # ==========================================
     # [공통 조건 구역]
@@ -3081,6 +3069,10 @@ if visible_sections.get("common", True):
     st.markdown(f"""
     <div class="common-info-box">
         <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#0b3873;">🚘 비교 차량 공통 조건</div>
+        <div style="font-size:14px; font-weight:700; line-height:1.7; margin:0 0 14px 0; padding:12px 14px; border:1px solid #d6e0eb; border-radius:8px; background:rgba(255,255,255,0.04); color:#f3f6fb;">
+            고객님, 더 합리적인 선택을 위해 비교 준비했어요 🙂<br>
+            복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.
+        </div>
         <table class="vehicle-table-mobile-primary">
             <tbody>
                 <tr>
