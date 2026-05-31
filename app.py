@@ -3062,6 +3062,22 @@ tax_type_text = "승합차(9인승 이상)" if e15 != "" else car_shape
 
 car_option_display = format_option_html(car_option)
 
+# ==========================================
+# [TEST] 고객용/영업자용 공통 출력부 인삿말 노출 테스트
+# 저장/URL/체크/고객명 로직은 건드리지 않음
+# ==========================================
+st.markdown("""
+<div class="common-info-box">
+    <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#0b3873;">
+        🔥 INTRO TEST - 고객용 출력부 노출 확인
+    </div>
+    <div style="font-size:13px; line-height:1.7;">
+        고객님, 더 합리적인 선택을 위해 비교 준비했어요 🙂<br>
+        복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
 if visible_sections.get("common", True):
     # ==========================================
     # [공통 조건 구역]
