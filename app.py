@@ -147,6 +147,15 @@ def format_option_html(option_text):
     return '<div class="option-stack">' + ''.join(formatted_parts) + '</div>'
 
 
+
+
+def safe_pct_float_value(value, default_value=0):
+    try:
+        cleaned = re.sub(r"[^0-9.]", "", str(value or ""))
+        return float(cleaned) if cleaned else float(default_value)
+    except Exception:
+        return float(default_value)
+
 def render_output_section_gap():
     """모바일 출력 섹션 간격 통일용. PC에는 영향을 주지 않음."""
     st.markdown('<div class="output-section-gap"></div>', unsafe_allow_html=True)
@@ -2596,7 +2605,7 @@ if not IS_CLIENT_VIEW:
                 elif "약정거리" in pre_key: mileage = pre_val.replace(" ", "")
                 elif "월납입" in pre_key: rent_monthly_pay = pre_clean_num(pre_val)
                 elif "선납금" in pre_key or "보증금" in pre_key: rent_deposit = pre_clean_num(pre_val)
-                elif "잔존" in pre_key: rent_resale_pct = float(pre_val.replace("%", "").replace(" ", ""))
+                elif "잔존" in pre_key: rent_resale_pct = safe_pct_float_value(pre_val, rent_resale_pct)
                 elif pre_key == "CC원문": cc_raw_text = pre_val.replace(" ", "")
                 elif pre_key == "유종": fuel_text = pre_val.replace(" ", "")
                 elif pre_key == "인승": passenger_count = pre_clean_num(pre_val)
@@ -2716,7 +2725,7 @@ if not IS_CLIENT_VIEW:
                 elif "약정거리" in key: mileage = val.replace(" ", "")
                 elif "월납입" in key: rent_monthly_pay = clean_num(val)
                 elif "선납금" in key or "보증금" in key: rent_deposit = clean_num(val)
-                elif "잔존" in key: rent_resale_pct = float(val.replace("%", "").replace(" ", ""))
+                elif "잔존" in key: rent_resale_pct = safe_pct_float_value(val, rent_resale_pct)
                 elif key == "CC원문": cc_raw_text = val.replace(" ", "")
                 elif key == "유종": fuel_text = val.replace(" ", "")
                 elif key == "인승": passenger_count = clean_num(val)
