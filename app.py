@@ -2264,6 +2264,7 @@ passenger_count = 7
 car_shape = "하이브리드"
 installment_resale_pct = 50 # 할부 잔존가치(매각율) 기본값
 rent_resale_pct = 58       # 렌트 고정 잔존가치(기본값 58%)
+customer_name = ""
 
 # 공유 링크로 접속한 경우 기본값 반영
 shared_quote_data = {}
@@ -2288,10 +2289,7 @@ if shared_quote_data:
     car_shape = shared_quote_data.get("car_shape", car_shape)
     installment_resale_pct = int(shared_quote_data.get("installment_resale_pct", installment_resale_pct))
     rent_resale_pct = float(shared_quote_data.get("rent_resale_pct", rent_resale_pct))
-
-customer_name = str(shared_quote_data.get("customer_name", "")).strip() if shared_quote_data else ""
-if not IS_CLIENT_VIEW:
-    customer_name = str(st.session_state.get("customer_name", customer_name)).strip()
+    customer_name = str(shared_quote_data.get("customer_name", customer_name)).strip()
 
 visible_sections = normalize_visible_sections(shared_quote_data.get("visible_sections") if IS_CLIENT_VIEW else None)
 
@@ -2315,7 +2313,7 @@ def make_share_url():
         "installment_prepaid": installment_prepaid if "installment_prepaid" in globals() else 0,
         "is_corporate": is_corporate if "is_corporate" in globals() else False,
         "rent_resale_pct": rent_resale_pct,
-        "customer_name": str(st.session_state.get("customer_name", customer_name)).strip() if not IS_CLIENT_VIEW else customer_name,
+        "customer_name": customer_name if "customer_name" in globals() else "",
         "visible_sections": collect_visible_sections_from_state() if not IS_CLIENT_VIEW else normalize_visible_sections(visible_sections)
     }
     short_code = save_share_data(share_data)
@@ -2676,13 +2674,12 @@ if not IS_CLIENT_VIEW:
     with control_col:
         visible_sections = render_share_section_selector(visible_sections)
     with history_col:
-        st.text_input(
-            "고객명",
-            value=str(st.session_state.get("customer_name", "")).strip(),
+        customer_name = st.text_input(
+            "👤 고객명",
+            value=str(st.session_state.get("customer_name", customer_name)).strip(),
             key="customer_name",
-            placeholder="고객명",
-            label_visibility="collapsed"
-        )
+            placeholder="고객명"
+        ).strip()
         render_quote_history_area(history_raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url, visible_sections, st.session_state.active_quote_data is not None)
 
     # ==========================================
@@ -3061,7 +3058,17 @@ tax_type_text = "승합차(9인승 이상)" if e15 != "" else car_shape
 
 car_option_display = format_option_html(car_option)
 
-customer_label = f"{customer_name}님" if str(customer_name).strip() else "고객님"
+customer_label = f"{html.escape(customer_name)}님" if str(customer_name).strip() else "고객님"
+st.markdown(f"""
+<div class="common-info-box">
+    <div style="font-size:20px; font-weight:850; margin-bottom:7px; color:#0b3873;">
+        {customer_label}, 더 합리적인 선택을 위해 비교 준비했어요 🙂
+    </div>
+    <div style="font-size:14px; line-height:1.55; color:#334155;">
+        복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
 if visible_sections.get("common", True):
     # ==========================================
@@ -3069,12 +3076,6 @@ if visible_sections.get("common", True):
     # ==========================================
     st.markdown(f"""
     <div class="common-info-box">
-        <div style="font-size:18px; font-weight:900; margin-bottom:6px; color:#0b3873;">
-            {html.escape(customer_label)}, 더 합리적인 선택을 위해 비교 준비했어요 🙂
-        </div>
-        <div style="font-size:14px; line-height:1.55; color:#475569; font-weight:650; margin-bottom:14px;">
-            복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.
-        </div>
         <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#0b3873;">🚘 비교 차량 공통 조건</div>
         <table class="vehicle-table-mobile-primary">
             <tbody>
@@ -3695,18 +3696,21 @@ if visible_sections.get("guide", True):
         st.markdown(guide_html, unsafe_allow_html=True)
 
 st.markdown("""
-<div class="caprio-footer-note">
-    <div class="common-info-box">
-        <div style="font-size:17px; font-weight:900; margin-bottom:6px; color:#0b3873;">
-            혼자 비교하기 복잡했다면, 언제든 카프리오에 물어보세요 🙂
-        </div>
-        <div style="font-size:14px; line-height:1.55; color:#475569; font-weight:650;">
-            할부·렌트·리스까지 고객님께 더 유리한 방향으로 도와드릴게요.
-        </div>
-        <div style="font-size:12px; line-height:1.45; color:#64748b; margin-top:8px; font-weight:600;">
-            렌트·리스는 국내 33개 금융사 조건까지 함께 비교해드리고 있어요.
-        </div>
+<div class="common-info-box">
+    <div style="font-size:18px; font-weight:850; margin-bottom:7px; color:#0b3873;">
+        혼자 비교하기 복잡했다면, 언제든 카프리오에 물어보세요 🙂
     </div>
+    <div style="font-size:14px; line-height:1.55; color:#334155; margin-bottom:7px;">
+        할부·렌트·리스까지 고객님께 더 유리한 방향으로 도와드릴게요.
+    </div>
+    <div style="font-size:12px; line-height:1.45; color:#64748b;">
+        렌트·리스는 국내 33개 금융사 조건까지 함께 비교해드리고 있어요.
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<div class="caprio-footer-note">
     <div class="caprio-footer-guide">
         ※ 본 비교 결과는 입력 조건 및 금융사 기준에 따른 참고용 자료이며, 실제 승인·금리·잔존가치·보험조건 등에 따라 최종 견적은 달라질 수 있습니다.
     </div>
