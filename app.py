@@ -149,110 +149,53 @@ def render_output_section_gap():
     """모바일 출력 섹션 간격 통일용. PC에는 영향을 주지 않음."""
     st.markdown('<div class="output-section-gap"></div>', unsafe_allow_html=True)
 
-
-# ==========================================
-# [공통 최상단 안내문 렌더 함수]
-# 고객용/영업자용 분기 및 visible_sections와 무관하게 호출 위치에서 무조건 출력한다.
-# ==========================================
-def render_caprio_always_top_message():
-    st.markdown("""
-<style>
-.caprio-always-top-message {
-    width: 100% !important;
-    max-width: 1734px !important;
-    margin: 34px auto 30px auto !important;
-    padding: 30px 34px !important;
-    border-radius: 18px !important;
-    background: #e8f3ff !important;
-    border: 4px solid #2f80ed !important;
-    color: #0b3873 !important;
-    font-size: 32px !important;
-    font-weight: 950 !important;
-    line-height: 1.45 !important;
-    text-align: center !important;
-    box-sizing: border-box !important;
-    box-shadow: 0 10px 28px rgba(47, 128, 237, 0.26) !important;
-    display: block !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    min-height: 104px !important;
-    position: relative !important;
-    z-index: 20 !important;
-}
-
-html.caprio-dark .caprio-always-top-message {
-    background: #12345a !important;
-    border-color: #79b8ff !important;
-    color: #ffffff !important;
-    box-shadow: 0 10px 28px rgba(121, 184, 255, 0.24) !important;
-}
-
-@media (max-width: 768px) {
-    .caprio-always-top-message {
-        width: calc(100% - 16px) !important;
-        margin: 24px auto 22px auto !important;
-        padding: 22px 16px !important;
-        border-radius: 15px !important;
-        font-size: 25px !important;
-        line-height: 1.35 !important;
+def render_global_top_notice(notice_text="안녕하세요"):
+    """고객용 공유 payload에 포함된 상단 문구를 고객/영업자 공통으로 출력한다."""
+    notice_text = str(notice_text or "안녕하세요").strip() or "안녕하세요"
+    notice_html = html.escape(notice_text).replace("\n", "<br>")
+    st.markdown(f"""
+    <style>
+    .caprio-global-top-notice {{
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
         min-height: 86px !important;
-    }
-}
-</style>
-<div class="caprio-always-top-message">
-    안녕하세요
-</div>
-""", unsafe_allow_html=True)
+        margin: 16px 0 18px 0 !important;
+        padding: 22px 24px !important;
+        border-radius: 14px !important;
+        background: #fff4c2 !important;
+        border: 3px solid #ff3b30 !important;
+        color: #111827 !important;
+        -webkit-text-fill-color: #111827 !important;
+        font-size: 32px !important;
+        font-weight: 900 !important;
+        line-height: 1.35 !important;
+        text-align: center !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        z-index: 999 !important;
+    }}
+    html.caprio-dark .caprio-global-top-notice {{
+        background: #3b2f00 !important;
+        border-color: #ffd43b !important;
+        color: #ffffff !important;
+        -webkit-text-fill-color: #ffffff !important;
+    }}
+    @media (max-width: 768px) {{
+        .caprio-global-top-notice {{
+            min-height: 72px !important;
+            margin: 12px 0 14px 0 !important;
+            padding: 18px 14px !important;
+            border-radius: 12px !important;
+            font-size: 25px !important;
+            line-height: 1.3 !important;
+        }}
+    }}
+    </style>
+    <div class="caprio-global-top-notice">{notice_html}</div>
+    """, unsafe_allow_html=True)
 
-
-
-# ==========================================
-# [고객용 분기 진입 테스트 박스]
-# 목적: 고객용 URL(view=client&q=...)에서 고객용 렌더 분기가 실제 실행되는지 확인한다.
-# 이 박스가 고객용에서 보이면 공유 URL/저장값 문제가 아니라 고객용 삽입 위치 문제다.
-# ==========================================
-def render_client_view_debug_notice():
-    st.markdown("""
-<style>
-.caprio-client-debug-notice {
-    position: relative !important;
-    z-index: 2147483000 !important;
-    width: calc(100% - 24px) !important;
-    max-width: 1734px !important;
-    margin: 26px auto 26px auto !important;
-    padding: 34px 24px !important;
-    min-height: 120px !important;
-    display: flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    box-sizing: border-box !important;
-    border: 6px solid #ff0000 !important;
-    border-radius: 18px !important;
-    background: #fff000 !important;
-    color: #000000 !important;
-    font-size: 36px !important;
-    font-weight: 950 !important;
-    line-height: 1.35 !important;
-    text-align: center !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    box-shadow: 0 0 0 8px rgba(255,0,0,.18), 0 16px 40px rgba(0,0,0,.22) !important;
-}
-@media (max-width: 768px) {
-    .caprio-client-debug-notice {
-        width: calc(100% - 12px) !important;
-        margin: 18px auto 20px auto !important;
-        padding: 26px 12px !important;
-        min-height: 108px !important;
-        font-size: 27px !important;
-        border-width: 5px !important;
-    }
-}
-</style>
-<div class="caprio-client-debug-notice">
-    고객용 분기 테스트: 이 문구가 보이면 고객용 코드 실행 중
-</div>
-""", unsafe_allow_html=True)
 
 def render_share_section_selector(current_sections):
     current_sections = normalize_visible_sections(current_sections)
@@ -2393,6 +2336,7 @@ if shared_quote_data:
     rent_resale_pct = float(shared_quote_data.get("rent_resale_pct", rent_resale_pct))
 
 visible_sections = normalize_visible_sections(shared_quote_data.get("visible_sections") if IS_CLIENT_VIEW else None)
+top_notice_text = str(shared_quote_data.get("top_notice", "안녕하세요") or "안녕하세요").strip() or "안녕하세요"
 
 def make_share_url():
     share_data = {
@@ -2414,7 +2358,8 @@ def make_share_url():
         "installment_prepaid": installment_prepaid if "installment_prepaid" in globals() else 0,
         "is_corporate": is_corporate if "is_corporate" in globals() else False,
         "rent_resale_pct": rent_resale_pct,
-        "visible_sections": collect_visible_sections_from_state() if not IS_CLIENT_VIEW else normalize_visible_sections(visible_sections)
+        "visible_sections": collect_visible_sections_from_state() if not IS_CLIENT_VIEW else normalize_visible_sections(visible_sections),
+        "top_notice": "안녕하세요"
     }
     short_code = save_share_data(share_data)
     if short_code:
@@ -2422,6 +2367,9 @@ def make_share_url():
 
     encoded = encode_share_data(share_data)
     return f"{APP_BASE_URL}/?view=client&q={encoded}"
+
+# 고객/영업자 공통 최상단 문구: 공유 payload에 함께 태워 고객용에서도 동일하게 출력
+render_global_top_notice(top_notice_text)
     
 # ==========================================
 # [SIDEBAR] 조건 설정 구역
@@ -2581,13 +2529,6 @@ CC원문\t{cc_raw_val}
 인승\t{passenger_val}
 형태\t{shape_val}"""
 
-
-
-# ==========================================
-# [앱 본문 최상단 공통 안내문]
-# 고객용/영업자용 모두 무조건 노출. 저장 링크/체크 섹션과 무관.
-# ==========================================
-render_caprio_always_top_message()
 
 # ==========================================
 # [견적 이력 저장 / 견적 입력 / 사이드바 이력]
