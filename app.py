@@ -381,7 +381,7 @@ def render_share_section_selector(current_sections):
 
     return collect_visible_sections_from_state()
 
-def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url_func, visible_sections, has_active_quote=True):
+def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url_func, visible_sections, has_active_quote=True, current_quote_snapshot_func=None):
     st.markdown('<div class="quote-history-panel">', unsafe_allow_html=True)
     st.markdown('<div class="quote-history-title">🕘 견적 저장 / 이력</div>', unsafe_allow_html=True)
 
@@ -398,10 +398,19 @@ def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mile
 
     if save_clicked:
         if raw_data.strip() or has_active_quote:
-            short_car_name = car_name[:15] + "..." if len(car_name) > 15 else car_name
+            current_snapshot = current_quote_snapshot_func() if callable(current_quote_snapshot_func) else {}
+            current_car_name = str(current_snapshot.get("car_name", car_name))
+            current_rent_monthly_pay = int(current_snapshot.get("rent_monthly_pay", rent_monthly_pay))
+            current_months = int(current_snapshot.get("months", months))
+            current_mileage = current_snapshot.get("mileage", mileage)
+            current_rent_resale_pct = float(current_snapshot.get("rent_resale_pct", rent_resale_pct))
+            current_rent_deposit = int(current_snapshot.get("rent_deposit", rent_deposit))
+            current_visible_sections = normalize_visible_sections(current_snapshot.get("visible_sections", visible_sections))
+
+            short_car_name = current_car_name[:15] + "..." if len(current_car_name) > 15 else current_car_name
             history_title = (
                 f"{short_car_name}\n"
-                f"월 {rent_monthly_pay:,}원｜{months}개월｜{mileage}"
+                f"월 {current_rent_monthly_pay:,}원｜{current_months}개월｜{current_mileage}"
             )
             st.session_state.quote_history.insert(
                 0,
@@ -410,15 +419,15 @@ def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mile
                     "raw": raw_data,
                     "share_url": make_share_url_func(),
                     "quick_edit": {
-                        "rent_monthly_pay": rent_monthly_pay,
-                        "rent_resale_pct": rent_resale_pct,
-                        "months": months,
-                        "mileage": mileage,
-                        "rent_deposit": rent_deposit,
-                        "prepayment_mode": st.session_state.get("quick_prepayment_mode", "원" if rent_deposit else "%"),
-                        "prepayment_value": st.session_state.get("quick_prepayment_value", f"{rent_deposit:,}" if rent_deposit else ""),
+                        "rent_monthly_pay": current_rent_monthly_pay,
+                        "rent_resale_pct": current_rent_resale_pct,
+                        "months": current_months,
+                        "mileage": current_mileage,
+                        "rent_deposit": current_rent_deposit,
+                        "prepayment_mode": st.session_state.get("quick_prepayment_mode", "원" if current_rent_deposit else "%"),
+                        "prepayment_value": st.session_state.get("quick_prepayment_value", f"{current_rent_deposit:,}" if current_rent_deposit else ""),
                     },
-                    "visible_sections": normalize_visible_sections(visible_sections),
+                    "visible_sections": current_visible_sections,
                 }
             )
             st.session_state.quote_history = st.session_state.quote_history[:5]
@@ -2291,8 +2300,25 @@ if shared_quote_data:
 
 visible_sections = normalize_visible_sections(shared_quote_data.get("visible_sections") if IS_CLIENT_VIEW else None)
 
-def make_share_url():
-    share_data = {
+def current_money_to_int(value, default_value=0):
+    value_text = str(value).replace(",", "").strip()
+    digits = "".join(ch for ch in value_text if ch.isdigit())
+    return int(digits) if digits else int(default_value or 0)
+
+
+def current_pct_to_float(value, default_value=0):
+    try:
+        return float(str(value).replace("%", "").replace(",", "").strip())
+    except Exception:
+        return float(default_value or 0)
+
+
+def get_current_quote_snapshot():
+    """저장 버튼 클릭 시점의 최신 견적 상태를 다시 수집한다.
+    기존 렌더링 변수에만 의존하면 두 번째 수정 저장 시 이전 스냅샷이 저장될 수 있어,
+    active_quote_data와 quick_* session_state를 기준으로 최종 저장값을 재구성한다.
+    """
+    snapshot = {
         "car_name": car_name,
         "car_option": car_option,
         "car_price": car_price,
@@ -2311,8 +2337,47 @@ def make_share_url():
         "installment_prepaid": installment_prepaid if "installment_prepaid" in globals() else 0,
         "is_corporate": is_corporate if "is_corporate" in globals() else False,
         "rent_resale_pct": rent_resale_pct,
-        "visible_sections": collect_visible_sections_from_state() if not IS_CLIENT_VIEW else normalize_visible_sections(visible_sections)
     }
+
+    active_quote_data = st.session_state.get("active_quote_data")
+    if isinstance(active_quote_data, dict):
+        for key in snapshot:
+            if key in active_quote_data:
+                snapshot[key] = active_quote_data.get(key, snapshot[key])
+
+    if st.session_state.get("quick_edit_applied"):
+        current_car_price = current_money_to_int(snapshot.get("car_price", car_price), car_price)
+        snapshot["rent_monthly_pay"] = current_money_to_int(
+            st.session_state.get("quick_rent_monthly_pay", snapshot.get("rent_monthly_pay", rent_monthly_pay)),
+            snapshot.get("rent_monthly_pay", rent_monthly_pay),
+        )
+        snapshot["rent_resale_pct"] = current_pct_to_float(
+            st.session_state.get("quick_rent_resale_pct", snapshot.get("rent_resale_pct", rent_resale_pct)),
+            snapshot.get("rent_resale_pct", rent_resale_pct),
+        )
+        snapshot["months"] = int(st.session_state.get("quick_months", snapshot.get("months", months)))
+        snapshot["mileage"] = st.session_state.get("quick_mileage", snapshot.get("mileage", mileage))
+
+        quick_prepayment_input_value = st.session_state.get("quick_prepayment_value", "")
+        if st.session_state.get("quick_prepayment_mode", "%") == "%":
+            snapshot["rent_deposit"] = int(current_car_price * (current_pct_to_float(quick_prepayment_input_value, 0) / 100))
+        else:
+            snapshot["rent_deposit"] = current_money_to_int(quick_prepayment_input_value, snapshot.get("rent_deposit", rent_deposit))
+
+    snapshot["car_price"] = current_money_to_int(snapshot.get("car_price", car_price), car_price)
+    snapshot["months"] = int(snapshot.get("months", months))
+    snapshot["rent_monthly_pay"] = current_money_to_int(snapshot.get("rent_monthly_pay", rent_monthly_pay), rent_monthly_pay)
+    snapshot["rent_deposit"] = current_money_to_int(snapshot.get("rent_deposit", rent_deposit), rent_deposit)
+    snapshot["passenger_count"] = int(snapshot.get("passenger_count", passenger_count))
+    snapshot["installment_resale_pct"] = int(snapshot.get("installment_resale_pct", installment_resale_pct))
+    snapshot["rent_resale_pct"] = current_pct_to_float(snapshot.get("rent_resale_pct", rent_resale_pct), rent_resale_pct)
+
+    snapshot["visible_sections"] = collect_visible_sections_from_state() if not IS_CLIENT_VIEW else normalize_visible_sections(visible_sections)
+    return snapshot
+
+
+def make_share_url():
+    share_data = get_current_quote_snapshot()
     short_code = save_share_data(share_data)
     if short_code:
         return f"{APP_BASE_URL}/?view=client&q={short_code}"
@@ -2670,7 +2735,7 @@ if not IS_CLIENT_VIEW:
     with control_col:
         visible_sections = render_share_section_selector(visible_sections)
     with history_col:
-        render_quote_history_area(history_raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url, visible_sections, st.session_state.active_quote_data is not None)
+        render_quote_history_area(history_raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url, visible_sections, st.session_state.active_quote_data is not None, get_current_quote_snapshot)
 
     # ==========================================
     # [TOP MAIN] 타사 견적 파싱 구역
