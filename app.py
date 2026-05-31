@@ -2311,7 +2311,7 @@ def make_share_url():
         "installment_prepaid": installment_prepaid if "installment_prepaid" in globals() else 0,
         "is_corporate": is_corporate if "is_corporate" in globals() else False,
         "rent_resale_pct": rent_resale_pct,
-        "visible_sections": normalize_visible_sections(visible_sections)
+        "visible_sections": collect_visible_sections_from_state() if not IS_CLIENT_VIEW else normalize_visible_sections(visible_sections)
     }
     short_code = save_share_data(share_data)
     if short_code:
@@ -2519,9 +2519,10 @@ if not IS_CLIENT_VIEW:
     # [TOP MAIN] 고객 공유 URL 불러오기
     # ==========================================
     st.markdown("#### 🔗 고객 공유 URL 불러오기")
-    share_url_input = st.text_input(
+    share_url_input = st.text_area(
         "고객 공유 URL 불러오기",
-        placeholder="고객 공유 링크를 붙여넣고 Enter를 누르세요.",
+        placeholder="고객 공유 링크를 붙여넣고 Ctrl+Enter를 누르세요.",
+        height=68,
         key="share_url_input",
         label_visibility="collapsed"
     )
@@ -2558,7 +2559,9 @@ if not IS_CLIENT_VIEW:
                 "prepayment_mode": "원" if int(loaded_share_data.get("rent_deposit", rent_deposit)) else "%",
                 "prepayment_value": f"{int(loaded_share_data.get('rent_deposit', rent_deposit)):,}" if int(loaded_share_data.get("rent_deposit", rent_deposit)) else "",
             }
-            st.session_state.pending_visible_sections = loaded_share_data.get("visible_sections")
+            loaded_visible_sections = normalize_visible_sections(loaded_share_data.get("visible_sections"))
+            apply_visible_sections_to_state(loaded_visible_sections)
+            st.session_state.pending_visible_sections = loaded_visible_sections
             st.success("공유 견적을 불러왔습니다.")
             st.rerun()
         else:
