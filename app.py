@@ -22,7 +22,6 @@ APP_BASE_URL = "https://carfreeoh-rentcalculator.streamlit.app"
 # [고객 공유 항목 선택 기본값/유틸]
 # ==========================================
 DEFAULT_VISIBLE_SECTIONS = {
-    "intro": True,
     "conditions": True,
     "common": True,
     "installment_condition": True,
@@ -38,7 +37,6 @@ DEFAULT_VISIBLE_SECTIONS = {
     "guide_installment": True,
     "guide_rent": True,
     "guide_lease": True,
-    "outro": True,
 }
 
 SHARE_SECTION_GROUPS = {
@@ -146,15 +144,6 @@ def format_option_html(option_text):
 
     return '<div class="option-stack">' + ''.join(formatted_parts) + '</div>'
 
-
-
-
-def safe_pct_float_value(value, default_value=0):
-    try:
-        cleaned = re.sub(r"[^0-9.]", "", str(value or ""))
-        return float(cleaned) if cleaned else float(default_value)
-    except Exception:
-        return float(default_value)
 
 def render_output_section_gap():
     """모바일 출력 섹션 간격 통일용. PC에는 영향을 주지 않음."""
@@ -351,9 +340,6 @@ def render_share_section_selector(current_sections):
         if st.button("전체 선택 / 해제", use_container_width=True):
             set_all_sections(not all_selected_now)
             st.rerun()
-        st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
-        st.checkbox("인삿말", key="share_intro")
-        st.checkbox("마무리말", key="share_outro")
 
     with group_cols[1]:
         st.checkbox("조건설정", key="share_conditions", on_change=sync_parent_to_children, args=("conditions",))
@@ -2302,8 +2288,6 @@ if shared_quote_data:
     installment_resale_pct = int(shared_quote_data.get("installment_resale_pct", installment_resale_pct))
     rent_resale_pct = float(shared_quote_data.get("rent_resale_pct", rent_resale_pct))
 
-customer_name = str(shared_quote_data.get("customer_name", "")).strip()
-
 visible_sections = normalize_visible_sections(shared_quote_data.get("visible_sections") if IS_CLIENT_VIEW else None)
 
 def make_share_url():
@@ -2326,7 +2310,6 @@ def make_share_url():
         "installment_prepaid": installment_prepaid if "installment_prepaid" in globals() else 0,
         "is_corporate": is_corporate if "is_corporate" in globals() else False,
         "rent_resale_pct": rent_resale_pct,
-        "customer_name": str(st.session_state.get("customer_name", customer_name)).strip() if not IS_CLIENT_VIEW else customer_name,
         "visible_sections": collect_visible_sections_from_state() if not IS_CLIENT_VIEW else normalize_visible_sections(visible_sections)
     }
     short_code = save_share_data(share_data)
@@ -2605,7 +2588,7 @@ if not IS_CLIENT_VIEW:
                 elif "약정거리" in pre_key: mileage = pre_val.replace(" ", "")
                 elif "월납입" in pre_key: rent_monthly_pay = pre_clean_num(pre_val)
                 elif "선납금" in pre_key or "보증금" in pre_key: rent_deposit = pre_clean_num(pre_val)
-                elif "잔존" in pre_key: rent_resale_pct = safe_pct_float_value(pre_val, rent_resale_pct)
+                elif "잔존" in pre_key: rent_resale_pct = float(pre_val.replace("%", "").replace(" ", ""))
                 elif pre_key == "CC원문": cc_raw_text = pre_val.replace(" ", "")
                 elif pre_key == "유종": fuel_text = pre_val.replace(" ", "")
                 elif pre_key == "인승": passenger_count = pre_clean_num(pre_val)
@@ -2686,11 +2669,7 @@ if not IS_CLIENT_VIEW:
     control_col, history_col = st.columns([0.68, 0.32], gap="medium")
     with control_col:
         visible_sections = render_share_section_selector(visible_sections)
-    with history_col:
-        st.session_state.setdefault("customer_name", customer_name)
-        st.text_input("고객명", key="customer_name", placeholder="고객명 입력")
-        customer_name = str(st.session_state.get("customer_name", "")).strip()
-        history_area_placeholder = st.container()
+    history_area_placeholder = history_col.container()
 
     # ==========================================
     # [TOP MAIN] 타사 견적 파싱 구역
@@ -2725,7 +2704,7 @@ if not IS_CLIENT_VIEW:
                 elif "약정거리" in key: mileage = val.replace(" ", "")
                 elif "월납입" in key: rent_monthly_pay = clean_num(val)
                 elif "선납금" in key or "보증금" in key: rent_deposit = clean_num(val)
-                elif "잔존" in key: rent_resale_pct = safe_pct_float_value(val, rent_resale_pct)
+                elif "잔존" in key: rent_resale_pct = float(val.replace("%", "").replace(" ", ""))
                 elif key == "CC원문": cc_raw_text = val.replace(" ", "")
                 elif key == "유종": fuel_text = val.replace(" ", "")
                 elif key == "인승": passenger_count = clean_num(val)
@@ -3083,23 +3062,17 @@ tax_type_text = "승합차(9인승 이상)" if e15 != "" else car_shape
 
 car_option_display = format_option_html(car_option)
 
-customer_name_display = str(customer_name or "").strip()
-customer_label = f"{html.escape(customer_name_display)}님" if customer_name_display else "고객님"
-intro_message_html = f'''
-        <div style="font-size:16px; font-weight:800; line-height:1.65; color:#0b3873; margin-bottom:14px;">
-            {customer_label}, 더 합리적인 선택을 위해 비교 준비했어요 🙂<br>
-            <span style="font-size:14px; font-weight:600; color:#334155;">복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.</span>
-        </div>
-        <div style="height:1px; background:#d9e2ec; margin:0 0 14px 0;"></div>
-''' if visible_sections.get("intro", True) else ""
-
-outro_message_html = '''
-    <div style="font-size:16px; font-weight:800; line-height:1.65; color:#0b3873; margin-bottom:14px;">
-        혼자 비교하기 복잡했다면, 언제든 카프리오에 물어보세요 🙂<br>
-        <span style="font-size:14px; font-weight:600; color:#334155;">할부·렌트·리스까지 고객님께 더 유리한 방향으로 도와드릴게요.</span>
+# ==========================================
+# [고정 인삿말] 영업자용/고객용 공통 무조건 노출
+# ==========================================
+st.markdown("""
+<div class="common-info-box">
+    <div style="font-size:16px; font-weight:900; line-height:1.65; color:#0b3873;">
+        고객님, 더 합리적인 선택을 위해 비교 준비했어요 🙂<br>
+        복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.
     </div>
-    <div style="height:1px; background:#d9e2ec; margin:0 0 14px 0;"></div>
-''' if visible_sections.get("outro", True) else ""
+</div>
+""", unsafe_allow_html=True)
 
 if visible_sections.get("common", True):
     # ==========================================
@@ -3107,7 +3080,6 @@ if visible_sections.get("common", True):
     # ==========================================
     st.markdown(f"""
     <div class="common-info-box">
-        {intro_message_html}
         <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#0b3873;">🚘 비교 차량 공통 조건</div>
         <table class="vehicle-table-mobile-primary">
             <tbody>
@@ -3146,7 +3118,6 @@ if visible_sections.get("common", True):
 if visible_sections.get("installment_condition", True):
     st.markdown(f"""
         <div class="common-info-box">
-            {intro_message_html if (visible_sections.get("intro", True) and not visible_sections.get("common", True)) else ""}
             <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#0b3873;">
                 📋 할부 조건 설정
             </div>
@@ -3728,9 +3699,8 @@ if visible_sections.get("guide", True):
 
         st.markdown(guide_html, unsafe_allow_html=True)
 
-st.markdown(f"""
+st.markdown("""
 <div class="caprio-footer-note">
-    {outro_message_html}
     <div class="caprio-footer-guide">
         ※ 본 비교 결과는 입력 조건 및 금융사 기준에 따른 참고용 자료이며, 실제 승인·금리·잔존가치·보험조건 등에 따라 최종 견적은 달라질 수 있습니다.
     </div>
