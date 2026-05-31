@@ -656,6 +656,23 @@ def decode_share_data(encoded_text):
         return {}
 
 
+def extract_share_query_value(value):
+    value = str(value or "").strip()
+    if not value:
+        return ""
+
+    parsed_url = urllib.parse.urlparse(value)
+    query_value = urllib.parse.parse_qs(parsed_url.query).get("q", [""])[0]
+    if query_value:
+        return query_value.strip()
+
+    query_match = re.search(r"[?&]q=([^&\s]+)", value)
+    if query_match:
+        return urllib.parse.unquote(query_match.group(1)).strip()
+
+    return value.strip()
+
+
 # ==========================================
 # [EARLY UI SECURITY PATCH] 로그인 전 상단/하단 Streamlit 기본 UI 숨김
 # ==========================================
@@ -1764,31 +1781,6 @@ st.markdown("""
         fill: #111827 !important;
     }
 
-    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"],
-    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"] {
-        border: 1px solid #d8dee8 !important;
-        border-radius: 8px !important;
-        background-color: #ffffff !important;
-        box-shadow: none !important;
-        overflow: hidden !important;
-    }
-
-    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"] > div,
-    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"] > div,
-    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] input,
-    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] input {
-        border: 0 !important;
-        box-shadow: none !important;
-    }
-
-    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] button,
-    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] button {
-        border: 0 !important;
-        border-left: 1px solid #d8dee8 !important;
-        border-radius: 0 !important;
-        box-shadow: none !important;
-    }
-
     html.caprio-light div[data-testid="stFormSubmitButton"] button,
     html:not(.caprio-dark) div[data-testid="stFormSubmitButton"] button {
         background-color: #ffffff !important;
@@ -2278,6 +2270,9 @@ shared_quote_data = {}
 if st.query_params.get("q"):
     shared_quote_data = decode_share_data(st.query_params.get("q", ""))
 
+if not IS_CLIENT_VIEW and isinstance(st.session_state.get("loaded_share_data"), dict):
+    shared_quote_data = st.session_state.loaded_share_data
+
 if shared_quote_data:
     car_name = shared_quote_data.get("car_name", car_name)
     car_option = shared_quote_data.get("car_option", car_option)
@@ -2519,6 +2514,55 @@ if not IS_CLIENT_VIEW:
     visible_sections = normalize_visible_sections(visible_sections)
     for section_key, section_value in visible_sections.items():
         st.session_state.setdefault(f"share_{section_key}", section_value)
+
+    # ==========================================
+    # [TOP MAIN] 고객 공유 URL 불러오기
+    # ==========================================
+    st.markdown("#### 🔗 고객 공유 URL 불러오기")
+    share_url_input = st.text_input(
+        "고객 공유 URL 불러오기",
+        placeholder="고객 공유 링크를 붙여넣고 Enter를 누르세요.",
+        key="share_url_input",
+        label_visibility="collapsed"
+    )
+
+    share_query_value = extract_share_query_value(share_url_input)
+    if share_query_value and share_query_value != st.session_state.get("loaded_share_query_value"):
+        loaded_share_data = decode_share_data(share_query_value)
+        if loaded_share_data:
+            st.session_state.loaded_share_data = loaded_share_data
+            st.session_state.loaded_share_query_value = share_query_value
+            st.session_state.active_quote_data = {
+                "car_name": loaded_share_data.get("car_name", car_name),
+                "car_option": loaded_share_data.get("car_option", car_option),
+                "car_price": int(loaded_share_data.get("car_price", car_price)),
+                "months": int(loaded_share_data.get("months", months)),
+                "mileage": loaded_share_data.get("mileage", mileage),
+                "rent_monthly_pay": int(loaded_share_data.get("rent_monthly_pay", rent_monthly_pay)),
+                "rent_deposit": int(loaded_share_data.get("rent_deposit", rent_deposit)),
+                "cc_text": loaded_share_data.get("cc_text", cc_text),
+                "cc_raw_text": loaded_share_data.get("cc_raw_text", cc_raw_text),
+                "fuel_text": loaded_share_data.get("fuel_text", fuel_text),
+                "passenger_count": int(loaded_share_data.get("passenger_count", passenger_count)),
+                "car_shape": loaded_share_data.get("car_shape", car_shape),
+                "rent_resale_pct": float(loaded_share_data.get("rent_resale_pct", rent_resale_pct)),
+            }
+            st.session_state.active_quote_raw = ""
+            st.session_state.raw_quote_input = ""
+            st.session_state.pending_quick_edit = {
+                "rent_monthly_pay": int(loaded_share_data.get("rent_monthly_pay", rent_monthly_pay)),
+                "rent_resale_pct": float(loaded_share_data.get("rent_resale_pct", rent_resale_pct)),
+                "months": int(loaded_share_data.get("months", months)),
+                "mileage": loaded_share_data.get("mileage", mileage),
+                "rent_deposit": int(loaded_share_data.get("rent_deposit", rent_deposit)),
+                "prepayment_mode": "원" if int(loaded_share_data.get("rent_deposit", rent_deposit)) else "%",
+                "prepayment_value": f"{int(loaded_share_data.get('rent_deposit', rent_deposit)):,}" if int(loaded_share_data.get("rent_deposit", rent_deposit)) else "",
+            }
+            st.session_state.pending_visible_sections = loaded_share_data.get("visible_sections")
+            st.success("공유 견적을 불러왔습니다.")
+            st.rerun()
+        else:
+            st.warning("유효한 고객 공유 URL 또는 코드가 아닙니다.")
 
     # ==========================================
     # [TOP MAIN] 고객 공유 선택 / 견적 저장 이력
