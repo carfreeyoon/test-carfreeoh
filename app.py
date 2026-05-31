@@ -205,6 +205,55 @@ html.caprio-dark .caprio-always-top-message {
 """, unsafe_allow_html=True)
 
 
+
+# ==========================================
+# [고객용 분기 진입 테스트 박스]
+# 목적: 고객용 URL(view=client&q=...)에서 고객용 렌더 분기가 실제 실행되는지 확인한다.
+# 이 박스가 고객용에서 보이면 공유 URL/저장값 문제가 아니라 고객용 삽입 위치 문제다.
+# ==========================================
+def render_client_view_debug_notice():
+    st.markdown("""
+<style>
+.caprio-client-debug-notice {
+    position: relative !important;
+    z-index: 2147483000 !important;
+    width: calc(100% - 24px) !important;
+    max-width: 1734px !important;
+    margin: 26px auto 26px auto !important;
+    padding: 34px 24px !important;
+    min-height: 120px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    border: 6px solid #ff0000 !important;
+    border-radius: 18px !important;
+    background: #fff000 !important;
+    color: #000000 !important;
+    font-size: 36px !important;
+    font-weight: 950 !important;
+    line-height: 1.35 !important;
+    text-align: center !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    box-shadow: 0 0 0 8px rgba(255,0,0,.18), 0 16px 40px rgba(0,0,0,.22) !important;
+}
+@media (max-width: 768px) {
+    .caprio-client-debug-notice {
+        width: calc(100% - 12px) !important;
+        margin: 18px auto 20px auto !important;
+        padding: 26px 12px !important;
+        min-height: 108px !important;
+        font-size: 27px !important;
+        border-width: 5px !important;
+    }
+}
+</style>
+<div class="caprio-client-debug-notice">
+    고객용 분기 테스트: 이 문구가 보이면 고객용 코드 실행 중
+</div>
+""", unsafe_allow_html=True)
+
 def render_share_section_selector(current_sections):
     current_sections = normalize_visible_sections(current_sections)
 
