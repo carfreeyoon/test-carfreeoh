@@ -149,53 +149,6 @@ def render_output_section_gap():
     """모바일 출력 섹션 간격 통일용. PC에는 영향을 주지 않음."""
     st.markdown('<div class="output-section-gap"></div>', unsafe_allow_html=True)
 
-def render_global_top_notice(notice_text="안녕하세요"):
-    """고객용 공유 payload에 포함된 상단 문구를 고객/영업자 공통으로 출력한다."""
-    notice_text = str(notice_text or "안녕하세요").strip() or "안녕하세요"
-    notice_html = html.escape(notice_text).replace("\n", "<br>")
-    st.markdown(f"""
-    <style>
-    .caprio-global-top-notice {{
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        width: 100% !important;
-        min-height: 86px !important;
-        margin: 16px 0 18px 0 !important;
-        padding: 22px 24px !important;
-        border-radius: 14px !important;
-        background: #fff4c2 !important;
-        border: 3px solid #ff3b30 !important;
-        color: #111827 !important;
-        -webkit-text-fill-color: #111827 !important;
-        font-size: 32px !important;
-        font-weight: 900 !important;
-        line-height: 1.35 !important;
-        text-align: center !important;
-        box-sizing: border-box !important;
-        position: relative !important;
-        z-index: 999 !important;
-    }}
-    html.caprio-dark .caprio-global-top-notice {{
-        background: #3b2f00 !important;
-        border-color: #ffd43b !important;
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-    }}
-    @media (max-width: 768px) {{
-        .caprio-global-top-notice {{
-            min-height: 72px !important;
-            margin: 12px 0 14px 0 !important;
-            padding: 18px 14px !important;
-            border-radius: 12px !important;
-            font-size: 25px !important;
-            line-height: 1.3 !important;
-        }}
-    }}
-    </style>
-    <div class="caprio-global-top-notice">{notice_html}</div>
-    """, unsafe_allow_html=True)
-
 
 def render_share_section_selector(current_sections):
     current_sections = normalize_visible_sections(current_sections)
@@ -2336,7 +2289,6 @@ if shared_quote_data:
     rent_resale_pct = float(shared_quote_data.get("rent_resale_pct", rent_resale_pct))
 
 visible_sections = normalize_visible_sections(shared_quote_data.get("visible_sections") if IS_CLIENT_VIEW else None)
-top_notice_text = str(shared_quote_data.get("top_notice", "안녕하세요") or "안녕하세요").strip() or "안녕하세요"
 
 def make_share_url():
     share_data = {
@@ -2358,8 +2310,7 @@ def make_share_url():
         "installment_prepaid": installment_prepaid if "installment_prepaid" in globals() else 0,
         "is_corporate": is_corporate if "is_corporate" in globals() else False,
         "rent_resale_pct": rent_resale_pct,
-        "visible_sections": collect_visible_sections_from_state() if not IS_CLIENT_VIEW else normalize_visible_sections(visible_sections),
-        "top_notice": "안녕하세요"
+        "visible_sections": collect_visible_sections_from_state() if not IS_CLIENT_VIEW else normalize_visible_sections(visible_sections)
     }
     short_code = save_share_data(share_data)
     if short_code:
@@ -2367,9 +2318,6 @@ def make_share_url():
 
     encoded = encode_share_data(share_data)
     return f"{APP_BASE_URL}/?view=client&q={encoded}"
-
-# 고객/영업자 공통 최상단 문구: 공유 payload에 함께 태워 고객용에서도 동일하게 출력
-render_global_top_notice(top_notice_text)
     
 # ==========================================
 # [SIDEBAR] 조건 설정 구역
@@ -3271,7 +3219,7 @@ if visible_sections.get("rate_table", True):
     # ==========================================
     # [📊 BOTTOM] 검증 요율표 구역
     # ==========================================
-    st.markdown('<div class="excel-header-gray">💻 내부 데이터 산출 요율 검증표</div>', unsafe_allow_html=True)
+    st.markdown('<div class="excel-header-gray">안녕하세요</div>', unsafe_allow_html=True)
     m_col1, m_col2, m_col3, m_col4 = st.columns(4)
 
     with m_col1:
