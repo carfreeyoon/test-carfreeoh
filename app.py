@@ -150,6 +150,61 @@ def render_output_section_gap():
     st.markdown('<div class="output-section-gap"></div>', unsafe_allow_html=True)
 
 
+# ==========================================
+# [공통 최상단 안내문 렌더 함수]
+# 고객용/영업자용 분기 및 visible_sections와 무관하게 호출 위치에서 무조건 출력한다.
+# ==========================================
+def render_caprio_always_top_message():
+    st.markdown("""
+<style>
+.caprio-always-top-message {
+    width: 100% !important;
+    max-width: 1734px !important;
+    margin: 34px auto 30px auto !important;
+    padding: 30px 34px !important;
+    border-radius: 18px !important;
+    background: #e8f3ff !important;
+    border: 4px solid #2f80ed !important;
+    color: #0b3873 !important;
+    font-size: 32px !important;
+    font-weight: 950 !important;
+    line-height: 1.45 !important;
+    text-align: center !important;
+    box-sizing: border-box !important;
+    box-shadow: 0 10px 28px rgba(47, 128, 237, 0.26) !important;
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    min-height: 104px !important;
+    position: relative !important;
+    z-index: 20 !important;
+}
+
+html.caprio-dark .caprio-always-top-message {
+    background: #12345a !important;
+    border-color: #79b8ff !important;
+    color: #ffffff !important;
+    box-shadow: 0 10px 28px rgba(121, 184, 255, 0.24) !important;
+}
+
+@media (max-width: 768px) {
+    .caprio-always-top-message {
+        width: calc(100% - 16px) !important;
+        margin: 24px auto 22px auto !important;
+        padding: 22px 16px !important;
+        border-radius: 15px !important;
+        font-size: 25px !important;
+        line-height: 1.35 !important;
+        min-height: 86px !important;
+    }
+}
+</style>
+<div class="caprio-always-top-message">
+    안녕하세요
+</div>
+""", unsafe_allow_html=True)
+
+
 def render_share_section_selector(current_sections):
     current_sections = normalize_visible_sections(current_sections)
 
@@ -2248,60 +2303,6 @@ components.html(f"""
 </script>
 """, height=0, width=0)
 
-# ==========================================
-# [앱 최상단 공통 안내문 - 고객용/영업자용 무조건 노출]
-# 헤더 바로 아래, 어떤 섹션/입력/결과 조건과도 무관하게 항상 렌더링한다.
-# ==========================================
-st.markdown("""
-<style>
-.caprio-always-top-message {
-    width: 100% !important;
-    max-width: 1734px !important;
-    margin: 34px auto 30px auto !important;
-    padding: 30px 34px !important;
-    border-radius: 18px !important;
-    background: #e8f3ff !important;
-    border: 4px solid #2f80ed !important;
-    color: #0b3873 !important;
-    font-size: 32px !important;
-    font-weight: 950 !important;
-    line-height: 1.45 !important;
-    text-align: center !important;
-    box-sizing: border-box !important;
-    box-shadow: 0 10px 28px rgba(47, 128, 237, 0.26) !important;
-    display: block !important;
-    opacity: 1 !important;
-    visibility: visible !important;
-    min-height: 104px !important;
-    position: relative !important;
-    z-index: 5 !important;
-}
-
-html.caprio-dark .caprio-always-top-message {
-    background: #12345a !important;
-    border-color: #79b8ff !important;
-    color: #ffffff !important;
-    box-shadow: 0 10px 28px rgba(121, 184, 255, 0.24) !important;
-}
-
-@media (max-width: 768px) {
-    .caprio-always-top-message {
-        width: calc(100% - 16px) !important;
-        margin: 24px auto 22px auto !important;
-        padding: 22px 16px !important;
-        border-radius: 15px !important;
-        font-size: 25px !important;
-        line-height: 1.35 !important;
-        min-height: 86px !important;
-    }
-}
-</style>
-<div class="caprio-always-top-message">
-    안녕하세요
-</div>
-""", unsafe_allow_html=True)
-
-
 # 초기 기본값 설정
 car_name = "기아 카니발 가솔린 1.6 터보 하이브리드 2WD 7인승 노블레스"
 car_option = "-"
@@ -2531,6 +2532,13 @@ CC원문\t{cc_raw_val}
 인승\t{passenger_val}
 형태\t{shape_val}"""
 
+
+
+# ==========================================
+# [앱 본문 최상단 공통 안내문]
+# 고객용/영업자용 모두 무조건 노출. 저장 링크/체크 섹션과 무관.
+# ==========================================
+render_caprio_always_top_message()
 
 # ==========================================
 # [견적 이력 저장 / 견적 입력 / 사이드바 이력]
