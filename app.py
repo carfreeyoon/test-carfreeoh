@@ -3064,6 +3064,16 @@ car_option_display = format_option_html(car_option)
 
 if visible_sections.get("common", True):
     # ==========================================
+    # [공통 조건 구역 - 고객용/영업자용 조건 경로 테스트]
+    # ==========================================
+    common_test_label = "🔥 CLIENT COMMON TEST" if IS_CLIENT_VIEW else "🔥 STAFF COMMON TEST"
+    st.markdown(f"""
+    <div class="common-info-box">
+        <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#d00000;">{common_test_label}</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ==========================================
     # [공통 조건 구역]
     # ==========================================
     st.markdown(f"""
@@ -3686,17 +3696,6 @@ if visible_sections.get("guide", True):
         )
 
         st.markdown(guide_html, unsafe_allow_html=True)
-
-st.markdown("""
-<div style="width:55%; margin:18px auto; padding:14px; border:3px solid #ff3b30; background:#fff3f3; color:#b00020; font-size:18px; font-weight:900; text-align:center; border-radius:10px; box-sizing:border-box;">
-    🔥 FOOTER BEFORE TEST - 고객용 최종 출력 위치 확인
-</div>
-<style>
-@media (max-width:768px){
-    div[style*="FOOTER BEFORE TEST"] { width:100% !important; }
-}
-</style>
-""", unsafe_allow_html=True)
 
 st.markdown("""
 <div class="caprio-footer-note">
