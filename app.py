@@ -3245,7 +3245,7 @@ def render_customer_outro_card():
     st.markdown("""
     <div class="common-info-box customer-message-box">
         <div style="font-size:15px; font-weight:bold; margin-bottom:9px; line-height:1.45; color:#0b3873;">
-            혼자 비교하기 복잡했다면<br>
+            혼자 비교하기 복잡하다면<br>
             언제든 카프리오에 물어보세요 🙂
         </div>
         <div style="font-size:13px; line-height:1.6; color:#333333;">
