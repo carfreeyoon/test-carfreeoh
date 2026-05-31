@@ -3048,22 +3048,6 @@ tax_type_text = "승합차(9인승 이상)" if e15 != "" else car_shape
 
 car_option_display = format_option_html(car_option)
 
-# ==========================================
-# [STEP 1 TEST] 인삿말 기본 노출 확인용 카드
-# - 체크박스/URL/고객명/저장 연동 없음
-# - 실제 공통조건 출력 바로 직전에 무조건 노출
-# ==========================================
-st.markdown("""
-    <div class="common-info-box">
-        <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#0b3873;">
-            고객님, 더 합리적인 선택을 위해 비교 준비했어요 🙂
-        </div>
-        <div style="font-size:14px; line-height:1.65; color:#334155; font-weight:650;">
-            복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.
-        </div>
-    </div>
-""", unsafe_allow_html=True)
-
 if visible_sections.get("common", True):
     # ==========================================
     # [공통 조건 구역]
@@ -3071,6 +3055,7 @@ if visible_sections.get("common", True):
     st.markdown(f"""
     <div class="common-info-box">
         <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#0b3873;">🚘 비교 차량 공통 조건</div>
+        <div style="font-size:14px; font-weight:900; color:#ff4d4f; margin-bottom:10px;">🔥 TEST: 공통조건 내부 삽입 확인</div>
         <table class="vehicle-table-mobile-primary">
             <tbody>
                 <tr>
