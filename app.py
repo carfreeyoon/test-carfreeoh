@@ -3079,38 +3079,12 @@ car_option_display = format_option_html(car_option)
 
 def render_customer_message_card(message_html):
     st.markdown(f"""
-    <div class="common-info-box customer-message-box">
-        <div class="customer-message-text">{message_html}</div>
+    <div class="common-info-box">
+        <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#0b3873;">{message_html}</div>
     </div>
     """, unsafe_allow_html=True)
 
-st.markdown("""
-<style>
-.customer-message-box{
-    width:55%;
-    padding:18px 20px !important;
-}
-.customer-message-text{
-    font-size:18px;
-    font-weight:800;
-    line-height:1.65;
-    color:#0b3873;
-}
-html.caprio-dark .customer-message-text{
-    color:#f3f6fb !important;
-}
-@media (max-width:768px){
-    .customer-message-box{
-        width:100% !important;
-        padding:16px !important;
-    }
-    .customer-message-text{
-        font-size:16px !important;
-        line-height:1.55 !important;
-    }
-}
-</style>
-""", unsafe_allow_html=True)
+visible_sections = normalize_visible_sections(visible_sections)
 
 if visible_sections.get("intro", True):
     display_customer_name = str(customer_name or "").strip()
