@@ -1903,6 +1903,115 @@ st.markdown("""
     }
 
 
+    /* [PATCH] 화이트모드 흐린 선 전체 보강: 입력칸/버튼/카드/구분선만 진하게 */
+    html.caprio-light,
+    html:not(.caprio-dark) {
+        --caprio-light-border-strong: #94a3b8;
+        --caprio-light-border-mid: #a8b3c2;
+        --caprio-light-border-soft: #cbd5e1;
+    }
+
+    /* 전역 입력 박스: textarea 포함 */
+    html.caprio-light div[data-testid="stTextArea"] textarea,
+    html:not(.caprio-dark) div[data-testid="stTextArea"] textarea,
+    html.caprio-light div[data-testid="stTextInput"] input,
+    html:not(.caprio-dark) div[data-testid="stTextInput"] input,
+    html.caprio-light div[data-testid="stNumberInput"] input,
+    html:not(.caprio-dark) div[data-testid="stNumberInput"] input,
+    html.caprio-light input,
+    html:not(.caprio-dark) input,
+    html.caprio-light textarea,
+    html:not(.caprio-dark) textarea,
+    html.caprio-light select,
+    html:not(.caprio-dark) select,
+    html.caprio-light div[data-baseweb="input"],
+    html:not(.caprio-dark) div[data-baseweb="input"],
+    html.caprio-light div[data-baseweb="input"] > div,
+    html:not(.caprio-dark) div[data-baseweb="input"] > div,
+    html.caprio-light div[data-baseweb="textarea"],
+    html:not(.caprio-dark) div[data-baseweb="textarea"],
+    html.caprio-light div[data-baseweb="textarea"] > div,
+    html:not(.caprio-dark) div[data-baseweb="textarea"] > div,
+    html.caprio-light div[data-baseweb="select"] > div,
+    html:not(.caprio-dark) div[data-baseweb="select"] > div {
+        border-color: var(--caprio-light-border-strong) !important;
+        outline-color: var(--caprio-light-border-strong) !important;
+        box-shadow: none !important;
+    }
+
+    /* 사이드바 입력/숫자 +/- 버튼: 조금 더 진하게 */
+    html.caprio-light [data-testid="stSidebar"] div[data-testid="stTextInput"] input,
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stTextInput"] input,
+    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] input,
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] input,
+    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div,
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div,
+    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div > div,
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div > div,
+    html.caprio-light [data-testid="stSidebar"] div[data-baseweb="input"],
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-baseweb="input"],
+    html.caprio-light [data-testid="stSidebar"] div[data-baseweb="input"] > div,
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-baseweb="input"] > div {
+        border-color: #64748b !important;
+        outline-color: #64748b !important;
+    }
+
+    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] button,
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] button {
+        border-color: #64748b !important;
+        color: #111827 !important;
+        -webkit-text-fill-color: #111827 !important;
+    }
+
+    /* 버튼/이력 버튼/공유 선택 버튼: 흐린 테두리 보강 */
+    html.caprio-light div[data-testid="stButton"] button,
+    html:not(.caprio-dark) div[data-testid="stButton"] button,
+    html.caprio-light div[data-testid="stFormSubmitButton"] button,
+    html:not(.caprio-dark) div[data-testid="stFormSubmitButton"] button,
+    html.caprio-light .share-selector-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button,
+    html:not(.caprio-dark) .share-selector-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button {
+        border-color: var(--caprio-light-border-strong) !important;
+        box-shadow: none !important;
+    }
+
+    /* 고객명/저장영역/텍스트영역 주변 카드와 구분선 */
+    html.caprio-light .quote-history-panel,
+    html:not(.caprio-dark) .quote-history-panel,
+    html.caprio-light .common-info-box,
+    html:not(.caprio-dark) .common-info-box,
+    html.caprio-light .capture-box,
+    html:not(.caprio-dark) .capture-box,
+    html.caprio-light div[data-testid="stForm"],
+    html:not(.caprio-dark) div[data-testid="stForm"] {
+        border-color: var(--caprio-light-border-mid) !important;
+    }
+
+    html.caprio-light .share-group-divider,
+    html:not(.caprio-dark) .share-group-divider,
+    html.caprio-light hr,
+    html:not(.caprio-dark) hr {
+        background-color: var(--caprio-light-border-soft) !important;
+        border-color: var(--caprio-light-border-soft) !important;
+        opacity: 1 !important;
+    }
+
+    /* 테이블 선도 화이트에서 너무 흐리지 않게만 보강 */
+    html.caprio-light .common-table th,
+    html.caprio-light .common-table td,
+    html.caprio-light .pure-table th,
+    html.caprio-light .pure-table td,
+    html.caprio-light .matrix-table th,
+    html.caprio-light .matrix-table td,
+    html:not(.caprio-dark) .common-table th,
+    html:not(.caprio-dark) .common-table td,
+    html:not(.caprio-dark) .pure-table th,
+    html:not(.caprio-dark) .pure-table td,
+    html:not(.caprio-dark) .matrix-table th,
+    html:not(.caprio-dark) .matrix-table td {
+        border-color: #cbd5e1 !important;
+    }
+
+
     
     /* [PATCH] 다크모드 폼 입력칸/셀렉트 통일 (PC/MO) */
     html.caprio-dark div[data-testid="stForm"] {
