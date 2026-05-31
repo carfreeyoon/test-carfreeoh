@@ -3068,11 +3068,7 @@ if visible_sections.get("common", True):
     # ==========================================
     st.markdown(f"""
     <div class="common-info-box">
-        <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#0b3873;">🚘 비교 차량 공통 조건</div>
-        <div style="font-size:14px; font-weight:700; line-height:1.7; margin:0 0 14px 0; padding:12px 14px; border:1px solid #d6e0eb; border-radius:8px; background:rgba(255,255,255,0.04); color:#f3f6fb;">
-            고객님, 더 합리적인 선택을 위해 비교 준비했어요 🙂<br>
-            복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.
-        </div>
+        <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#0b3873;">🚘 비교 차량 공통 조건<br><span style="display:block; margin-top:10px; padding:12px 14px; border:3px solid #ff0000; background:#fff3cd; color:#111827; font-size:15px; font-weight:900; line-height:1.7;">고객님, 더 합리적인 선택을 위해 비교 준비했어요 🙂<br>복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.</span></div>
         <table class="vehicle-table-mobile-primary">
             <tbody>
                 <tr>
