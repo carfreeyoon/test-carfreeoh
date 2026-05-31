@@ -3096,7 +3096,7 @@ tax_type_text = "승합차(9인승 이상)" if e15 != "" else car_shape
 
 car_option_display = format_option_html(car_option)
 
-if IS_CLIENT_VIEW:
+if str(st.query_params.get("view", "")) == "client":
     customer_name_display = str(customer_name).strip()
     customer_title_name = f"{html.escape(customer_name_display)}님" if customer_name_display else "고객님"
 
@@ -3744,7 +3744,7 @@ if visible_sections.get("guide", True):
 
         st.markdown(guide_html, unsafe_allow_html=True)
 
-if IS_CLIENT_VIEW:
+if str(st.query_params.get("view", "")) == "client":
     st.markdown("""
     <div class="client-cta-box" style="border:1px solid #d6e0eb; border-radius:14px; padding:18px 20px; margin:24px 0 16px 0; background:#f8fafc; text-align:center;">
         <div style="font-size:20px; font-weight:900; line-height:1.35; color:#0f172a;">혼자 비교하기 복잡했다면, 언제든 카프리오에 물어보세요 🙂</div>
