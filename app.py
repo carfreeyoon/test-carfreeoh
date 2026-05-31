@@ -336,7 +336,7 @@ def render_share_section_selector(current_sections):
 
     st.markdown('<div class="share-selector-anchor"></div>', unsafe_allow_html=True)
 
-    group_cols = st.columns([0.78, 0.82, 1, 1, 1, 1, 1, 0.82], gap="small")
+    group_cols = st.columns([0.78, 0.8, 1, 1, 1, 1, 1, 0.8], gap="small")
 
     with group_cols[0]:
         if st.button("전체 선택 / 해제", use_container_width=True):
@@ -391,7 +391,7 @@ def render_share_section_selector(current_sections):
 
     return collect_visible_sections_from_state()
 
-def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url_func, visible_sections, has_active_quote=True, customer_name=""):
+def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url_func, visible_sections, customer_name="", has_active_quote=True):
     st.markdown('<div class="quote-history-panel">', unsafe_allow_html=True)
     st.markdown('<div class="quote-history-title">🕘 견적 저장 / 이력</div>', unsafe_allow_html=True)
 
@@ -2276,6 +2276,7 @@ passenger_count = 7
 car_shape = "하이브리드"
 installment_resale_pct = 50 # 할부 잔존가치(매각율) 기본값
 rent_resale_pct = 58       # 렌트 고정 잔존가치(기본값 58%)
+customer_name = ""
 
 # 공유 링크로 접속한 경우 기본값 반영
 shared_quote_data = {}
@@ -2284,8 +2285,6 @@ if st.query_params.get("q"):
 
 if not IS_CLIENT_VIEW and isinstance(st.session_state.get("loaded_share_data"), dict):
     shared_quote_data = st.session_state.loaded_share_data
-
-customer_name = ""
 
 if shared_quote_data:
     car_name = shared_quote_data.get("car_name", car_name)
@@ -2302,8 +2301,7 @@ if shared_quote_data:
     car_shape = shared_quote_data.get("car_shape", car_shape)
     installment_resale_pct = int(shared_quote_data.get("installment_resale_pct", installment_resale_pct))
     rent_resale_pct = float(shared_quote_data.get("rent_resale_pct", rent_resale_pct))
-
-customer_name = str(shared_quote_data.get("customer_name", "")).strip() if isinstance(shared_quote_data, dict) else ""
+    customer_name = str(shared_quote_data.get("customer_name", customer_name)).strip()
 
 visible_sections = normalize_visible_sections(shared_quote_data.get("visible_sections") if IS_CLIENT_VIEW else None)
 
@@ -2327,7 +2325,7 @@ def make_share_url():
         "installment_prepaid": installment_prepaid if "installment_prepaid" in globals() else 0,
         "is_corporate": is_corporate if "is_corporate" in globals() else False,
         "rent_resale_pct": rent_resale_pct,
-        "customer_name": str(st.session_state.get("customer_name", customer_name)).strip() if not IS_CLIENT_VIEW else str(customer_name).strip(),
+        "customer_name": str(st.session_state.get("customer_name", customer_name)).strip() if not IS_CLIENT_VIEW else str(customer_name or "").strip(),
         "visible_sections": collect_visible_sections_from_state() if not IS_CLIENT_VIEW else normalize_visible_sections(visible_sections)
     }
     short_code = save_share_data(share_data)
@@ -2576,9 +2574,9 @@ if not IS_CLIENT_VIEW:
                 "rent_resale_pct": float(loaded_share_data.get("rent_resale_pct", rent_resale_pct)),
                 "customer_name": str(loaded_share_data.get("customer_name", "")).strip(),
             }
-            st.session_state.customer_name = str(loaded_share_data.get("customer_name", "")).strip()
             st.session_state.active_quote_raw = ""
             st.session_state.raw_quote_input = ""
+            st.session_state.customer_name = str(loaded_share_data.get("customer_name", "")).strip()
             st.session_state.pending_quick_edit = {
                 "rent_monthly_pay": int(loaded_share_data.get("rent_monthly_pay", rent_monthly_pay)),
                 "rent_resale_pct": float(loaded_share_data.get("rent_resale_pct", rent_resale_pct)),
@@ -2639,7 +2637,6 @@ if not IS_CLIENT_VIEW:
             "passenger_count": passenger_count,
             "car_shape": car_shape,
             "rent_resale_pct": rent_resale_pct,
-            "customer_name": str(st.session_state.get("customer_name", "")).strip(),
         }
         st.session_state.active_quote_raw = pre_raw_data
     elif st.session_state.active_quote_data:
@@ -2692,7 +2689,6 @@ if not IS_CLIENT_VIEW:
             "passenger_count": passenger_count,
             "car_shape": car_shape,
             "rent_resale_pct": rent_resale_pct,
-            "customer_name": str(st.session_state.get("customer_name", "")).strip(),
         }
 
     history_raw_data = st.session_state.get("active_quote_raw", pre_raw_data) if st.session_state.active_quote_data else pre_raw_data
@@ -2701,8 +2697,12 @@ if not IS_CLIENT_VIEW:
     with control_col:
         visible_sections = render_share_section_selector(visible_sections)
     with history_col:
-        customer_name = st.text_input("고객명", key="customer_name")
-        render_quote_history_area(history_raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url, visible_sections, st.session_state.active_quote_data is not None, customer_name)
+        customer_name = st.text_input(
+            "고객명",
+            key="customer_name",
+            placeholder="고객명 입력",
+        ).strip()
+        render_quote_history_area(history_raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url, visible_sections, customer_name, st.session_state.active_quote_data is not None)
 
     # ==========================================
     # [TOP MAIN] 타사 견적 파싱 구역
@@ -3080,22 +3080,16 @@ tax_type_text = "승합차(9인승 이상)" if e15 != "" else car_shape
 
 car_option_display = format_option_html(car_option)
 
-def render_customer_message_card(message_html):
-    st.markdown(f"""
-    <div class="common-info-box">
-        <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#0b3873;">{message_html}</div>
-    </div>
-    """, unsafe_allow_html=True)
-
-visible_sections = normalize_visible_sections(visible_sections)
+customer_name_display = str(customer_name or st.session_state.get("customer_name", "") if not IS_CLIENT_VIEW else customer_name or "").strip()
+customer_label = f"{html.escape(customer_name_display)}님" if customer_name_display else "고객님"
 
 if visible_sections.get("intro", True):
-    display_customer_name = str(customer_name or "").strip()
-    customer_label = f"{html.escape(display_customer_name)}님" if display_customer_name else "고객님"
-    render_customer_message_card(
-        f"{customer_label}, 더 합리적인 선택을 위해 비교 준비했어요 🙂<br>"
-        "복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요."
-    )
+    st.markdown(f"""
+    <div class="common-info-box">
+        <div style="font-size:15px; font-weight:bold; margin-bottom:8px; color:#0b3873;">{customer_label}, 더 합리적인 선택을 위해 비교 준비했어요 🙂</div>
+        <div style="font-size:14px; line-height:1.55; color:#333333;">복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.</div>
+    </div>
+    """, unsafe_allow_html=True)
 
 if visible_sections.get("common", True):
     # ==========================================
@@ -3723,11 +3717,24 @@ if visible_sections.get("guide", True):
         st.markdown(guide_html, unsafe_allow_html=True)
 
 if visible_sections.get("outro", True):
-    render_output_section_gap()
-    render_customer_message_card(
-        "혼자 비교하기 복잡했다면, 언제든 카프리오에 물어보세요 🙂<br>"
-        "할부·렌트·리스까지 고객님께 더 유리한 방향으로 도와드릴게요."
-    )
+    if (
+        visible_sections.get("intro", True)
+        or visible_sections.get("common", True)
+        or visible_sections.get("installment_condition", True)
+        or selected_summary_views
+        or visible_sections.get("rate_table", True)
+        or (visible_sections.get("compare", True) and len(selected_compare_methods) >= 2)
+        or (visible_sections.get("guide", True) and bool(selected_guide_cards))
+    ):
+        render_output_section_gap()
+
+    st.markdown("""
+    <div class="common-info-box">
+        <div style="font-size:15px; font-weight:bold; margin-bottom:8px; color:#0b3873;">혼자 비교하기 복잡했다면, 언제든 카프리오에 물어보세요 🙂</div>
+        <div style="font-size:14px; line-height:1.55; color:#333333;">할부·렌트·리스까지 고객님께 더 유리한 방향으로 도와드릴게요.</div>
+    </div>
+    """, unsafe_allow_html=True)
+
 
 st.markdown("""
 <div class="caprio-footer-note">
