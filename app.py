@@ -1797,6 +1797,44 @@ st.markdown("""
         -webkit-text-fill-color: #111827 !important;
     }
 
+    /* [PATCH] 화이트모드 사이드바 입력/구분선 시인성 보완 */
+    html.caprio-light [data-testid="stSidebar"] input,
+    html.caprio-light [data-testid="stSidebar"] textarea,
+    html.caprio-light [data-testid="stSidebar"] select,
+    html.caprio-light [data-testid="stSidebar"] div[data-baseweb="input"],
+    html.caprio-light [data-testid="stSidebar"] div[data-baseweb="input"] > div,
+    html.caprio-light [data-testid="stSidebar"] div[data-baseweb="base-input"],
+    html.caprio-light [data-testid="stSidebar"] div[data-testid="stTextInput"] input,
+    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] input,
+    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div,
+    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div > div,
+    html:not(.caprio-dark) [data-testid="stSidebar"] input,
+    html:not(.caprio-dark) [data-testid="stSidebar"] textarea,
+    html:not(.caprio-dark) [data-testid="stSidebar"] select,
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-baseweb="input"],
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-baseweb="input"] > div,
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-baseweb="base-input"],
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stTextInput"] input,
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] input,
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div,
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div > div {
+        border-color: #94a3b8 !important;
+        outline-color: #94a3b8 !important;
+        box-shadow: none !important;
+    }
+
+    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] button,
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] button {
+        border-color: #94a3b8 !important;
+    }
+
+    html.caprio-light [data-testid="stSidebar"] hr,
+    html:not(.caprio-dark) [data-testid="stSidebar"] hr {
+        border-color: #cbd5e1 !important;
+        background-color: #cbd5e1 !important;
+        opacity: 1 !important;
+    }
+
     html.caprio-light div[data-baseweb="tooltip"],
     html:not(.caprio-dark) div[data-baseweb="tooltip"] {
         background-color: #0b0f17 !important;
@@ -3082,11 +3120,13 @@ def render_customer_intro_card(customer_name_value):
     customer_label = f"{safe_name}님" if safe_name else "고객님"
     st.markdown(f"""
     <div class="common-info-box customer-message-box">
-        <div style="font-size:15px; font-weight:bold; margin-bottom:7px; color:#0b3873;">
-            {customer_label}, 더 합리적인 선택을 위해 비교 준비했어요 🙂
+        <div style="font-size:15px; font-weight:bold; margin-bottom:9px; line-height:1.45; color:#0b3873;">
+            {customer_label},<br>
+            더 합리적인 선택을 위해 준비했어요 🙂
         </div>
-        <div style="font-size:13px; line-height:1.55; color:#333333;">
-            복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.
+        <div style="font-size:13px; line-height:1.6; color:#333333;">
+            복잡한 조건은 대신 정리하고,<br>
+            편하게 선택하실 수 있게 만들었어요.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -3095,11 +3135,13 @@ def render_customer_intro_card(customer_name_value):
 def render_customer_outro_card():
     st.markdown("""
     <div class="common-info-box customer-message-box">
-        <div style="font-size:15px; font-weight:bold; margin-bottom:7px; color:#0b3873;">
-            혼자 비교하기 복잡했다면, 언제든 카프리오에 물어보세요 🙂
+        <div style="font-size:15px; font-weight:bold; margin-bottom:9px; line-height:1.45; color:#0b3873;">
+            혼자 비교하기 복잡했다면<br>
+            언제든 카프리오에 물어보세요 🙂
         </div>
-        <div style="font-size:13px; line-height:1.55; color:#333333;">
-            할부·렌트·리스까지 고객님께 더 유리한 방향으로 도와드릴게요.
+        <div style="font-size:13px; line-height:1.6; color:#333333;">
+            할부·렌트·리스까지<br>
+            더 유리한 방향으로 도와드릴게요.
         </div>
     </div>
     """, unsafe_allow_html=True)
