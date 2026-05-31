@@ -342,10 +342,11 @@ def render_share_section_selector(current_sections):
         if st.button("전체 선택 / 해제", use_container_width=True):
             set_all_sections(not all_selected_now)
             st.rerun()
+        st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
+        st.checkbox("인삿말", key="share_intro")
+        st.checkbox("마무리말", key="share_outro")
 
     with group_cols[1]:
-        st.checkbox("인삿말", key="share_intro")
-        st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
         st.checkbox("조건설정", key="share_conditions", on_change=sync_parent_to_children, args=("conditions",))
         st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
         st.checkbox("공통조건", key="share_common", disabled=not st.session_state.get("share_conditions", True), on_change=sync_children_to_parent, args=("conditions",))
@@ -375,8 +376,6 @@ def render_share_section_selector(current_sections):
         st.checkbox("할부", key="share_guide_installment", disabled=not st.session_state.get("share_guide", True), on_change=sync_children_to_parent, args=("guide",))
         st.checkbox("렌트", key="share_guide_rent", disabled=not st.session_state.get("share_guide", True), on_change=sync_children_to_parent, args=("guide",))
         st.checkbox("리스", key="share_guide_lease", disabled=not st.session_state.get("share_guide", True), on_change=sync_children_to_parent, args=("guide",))
-        st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
-        st.checkbox("마무리말", key="share_outro")
 
     selected_compare_count = sum(
         bool(st.session_state.get(f"share_{key}", False))
@@ -442,7 +441,6 @@ def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mile
                     use_container_width=True,
                 ):
                     st.session_state.pending_quote_input = item["raw"]
-                    st.session_state.customer_name = item.get("customer_name", st.session_state.get("customer_name", ""))
                     st.session_state.pending_quick_edit = item.get("quick_edit")
                     st.session_state.pending_visible_sections = item.get("visible_sections")
                     st.rerun()
@@ -2295,12 +2293,12 @@ if shared_quote_data:
     installment_resale_pct = int(shared_quote_data.get("installment_resale_pct", installment_resale_pct))
     rent_resale_pct = float(shared_quote_data.get("rent_resale_pct", rent_resale_pct))
 
+customer_name = str(shared_quote_data.get("customer_name", "")).strip()
+
 visible_sections = normalize_visible_sections(shared_quote_data.get("visible_sections") if IS_CLIENT_VIEW else None)
-customer_name = str(shared_quote_data.get("customer_name", "") or "").strip()
 
 def make_share_url():
     share_data = {
-        "customer_name": st.session_state.get("customer_name", customer_name).strip() if not IS_CLIENT_VIEW else customer_name,
         "car_name": car_name,
         "car_option": car_option,
         "car_price": car_price,
@@ -2319,6 +2317,7 @@ def make_share_url():
         "installment_prepaid": installment_prepaid if "installment_prepaid" in globals() else 0,
         "is_corporate": is_corporate if "is_corporate" in globals() else False,
         "rent_resale_pct": rent_resale_pct,
+        "customer_name": str(st.session_state.get("customer_name", customer_name)).strip() if not IS_CLIENT_VIEW else customer_name,
         "visible_sections": collect_visible_sections_from_state() if not IS_CLIENT_VIEW else normalize_visible_sections(visible_sections)
     }
     short_code = save_share_data(share_data)
@@ -2558,7 +2557,6 @@ if not IS_CLIENT_VIEW:
             }
             st.session_state.active_quote_raw = ""
             st.session_state.raw_quote_input = ""
-            st.session_state.customer_name = str(loaded_share_data.get("customer_name", "") or "").strip()
             st.session_state.pending_quick_edit = {
                 "rent_monthly_pay": int(loaded_share_data.get("rent_monthly_pay", rent_monthly_pay)),
                 "rent_resale_pct": float(loaded_share_data.get("rent_resale_pct", rent_resale_pct)),
@@ -2575,12 +2573,6 @@ if not IS_CLIENT_VIEW:
             st.rerun()
         else:
             st.warning("유효한 고객 공유 URL 또는 코드가 아닙니다.")
-
-    # ==========================================
-    # [TOP MAIN] 고객명 입력
-    # ==========================================
-    st.session_state.setdefault("customer_name", customer_name)
-    st.text_input("고객명", key="customer_name", placeholder="고객명을 입력하세요")
 
     # ==========================================
     # [TOP MAIN] 고객 공유 선택 / 견적 저장 이력
@@ -2685,7 +2677,11 @@ if not IS_CLIENT_VIEW:
     control_col, history_col = st.columns([0.68, 0.32], gap="medium")
     with control_col:
         visible_sections = render_share_section_selector(visible_sections)
-    history_area_placeholder = history_col.container()
+    with history_col:
+        st.session_state.setdefault("customer_name", customer_name)
+        st.text_input("고객명", key="customer_name", placeholder="고객명 입력")
+        customer_name = str(st.session_state.get("customer_name", "")).strip()
+        history_area_placeholder = st.container()
 
     # ==========================================
     # [TOP MAIN] 타사 견적 파싱 구역
@@ -3078,12 +3074,31 @@ tax_type_text = "승합차(9인승 이상)" if e15 != "" else car_shape
 
 car_option_display = format_option_html(car_option)
 
+customer_name_display = str(customer_name or "").strip()
+customer_label = f"{html.escape(customer_name_display)}님" if customer_name_display else "고객님"
+intro_message_html = f'''
+        <div style="font-size:16px; font-weight:800; line-height:1.65; color:#0b3873; margin-bottom:14px;">
+            {customer_label}, 더 합리적인 선택을 위해 비교 준비했어요 🙂<br>
+            <span style="font-size:14px; font-weight:600; color:#334155;">복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.</span>
+        </div>
+        <div style="height:1px; background:#d9e2ec; margin:0 0 14px 0;"></div>
+''' if visible_sections.get("intro", True) else ""
+
+outro_message_html = '''
+    <div style="font-size:16px; font-weight:800; line-height:1.65; color:#0b3873; margin-bottom:14px;">
+        혼자 비교하기 복잡했다면, 언제든 카프리오에 물어보세요 🙂<br>
+        <span style="font-size:14px; font-weight:600; color:#334155;">할부·렌트·리스까지 고객님께 더 유리한 방향으로 도와드릴게요.</span>
+    </div>
+    <div style="height:1px; background:#d9e2ec; margin:0 0 14px 0;"></div>
+''' if visible_sections.get("outro", True) else ""
+
 if visible_sections.get("common", True):
     # ==========================================
     # [공통 조건 구역]
     # ==========================================
     st.markdown(f"""
     <div class="common-info-box">
+        {intro_message_html}
         <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#0b3873;">🚘 비교 차량 공통 조건</div>
         <table class="vehicle-table-mobile-primary">
             <tbody>
@@ -3122,6 +3137,7 @@ if visible_sections.get("common", True):
 if visible_sections.get("installment_condition", True):
     st.markdown(f"""
         <div class="common-info-box">
+            {intro_message_html if (visible_sections.get("intro", True) and not visible_sections.get("common", True)) else ""}
             <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#0b3873;">
                 📋 할부 조건 설정
             </div>
@@ -3703,132 +3719,9 @@ if visible_sections.get("guide", True):
 
         st.markdown(guide_html, unsafe_allow_html=True)
 
-
-# ==========================================
-# [고객 인삿말/마무리말 DOM 삽입]
-# - Streamlit 독립 markdown 블록이 고객용에서 누락되는 문제를 피하기 위해
-#   실제 표시된 기존 섹션 DOM 앞/푸터 앞에 직접 삽입
-# ==========================================
-customer_label = f"{customer_name}님" if customer_name else "고객님"
-intro_enabled = bool(visible_sections.get("intro", True))
-outro_enabled = bool(visible_sections.get("outro", True))
-intro_html_for_dom = html.escape(f"""
-<div id="caprio-intro-card" class="common-info-box caprio-message-card">
-    <div class="caprio-message-main">{customer_label}, 더 합리적인 선택을 위해 비교 준비했어요 🙂</div>
-    <div class="caprio-message-sub">복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.</div>
-</div>
-""")
-outro_html_for_dom = html.escape("""
-<div id="caprio-outro-card" class="common-info-box caprio-message-card">
-    <div class="caprio-message-main">혼자 비교하기 복잡했다면, 언제든 카프리오에 물어보세요 🙂</div>
-    <div class="caprio-message-sub">할부·렌트·리스까지 고객님께 더 유리한 방향으로 도와드릴게요.</div>
-</div>
-""")
-components.html(f"""
-<script>
-(function(){{
-    const doc = window.parent.document;
-    const introEnabled = {str(intro_enabled).lower()};
-    const outroEnabled = {str(outro_enabled).lower()};
-    const introHtml = `{intro_html_for_dom}`;
-    const outroHtml = `{outro_html_for_dom}`;
-
-    function decodeHtml(s){{
-        const t = doc.createElement('textarea');
-        t.innerHTML = s;
-        return t.value;
-    }}
-
-    function removeOld(){{
-        ['caprio-intro-card','caprio-outro-card'].forEach(id => {{
-            const old = doc.getElementById(id);
-            if(old) old.remove();
-        }});
-    }}
-
-    function makeNode(html){{
-        const wrap = doc.createElement('div');
-        wrap.innerHTML = decodeHtml(html).trim();
-        return wrap.firstElementChild;
-    }}
-
-    function findFirstVisibleSection(){{
-        const selectors = [
-            '.common-info-box',
-            '.excel-header-blue',
-            '.excel-header-gray',
-            '.pure-table',
-            '.matrix-table',
-            '.guide-wrap',
-            '.caprio-footer-note'
-        ];
-        for(const sel of selectors){{
-            const nodes = Array.from(doc.querySelectorAll(sel)).filter(el => {{
-                if(el.id === 'caprio-intro-card' || el.id === 'caprio-outro-card') return false;
-                const rect = el.getBoundingClientRect();
-                const style = window.parent.getComputedStyle(el);
-                return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
-            }});
-            if(nodes.length) return nodes[0];
-        }}
-        return null;
-    }}
-
-    function apply(){{
-        removeOld();
-        const first = findFirstVisibleSection();
-        if(introEnabled && first && first.parentNode){{
-            first.parentNode.insertBefore(makeNode(introHtml), first);
-        }}
-        const footer = doc.querySelector('.caprio-footer-note');
-        if(outroEnabled && footer && footer.parentNode){{
-            footer.parentNode.insertBefore(makeNode(outroHtml), footer);
-        }}
-    }}
-
-    const styleId = 'caprio-message-card-style';
-    if(!doc.getElementById(styleId)){{
-        const style = doc.createElement('style');
-        style.id = styleId;
-        style.textContent = `
-            .caprio-message-card{{
-                width:55%;
-                box-sizing:border-box;
-                margin-bottom:20px;
-            }}
-            .caprio-message-main{{
-                font-size:15px;
-                font-weight:900;
-                line-height:1.65;
-                color:#0b3873;
-                margin-bottom:4px;
-            }}
-            .caprio-message-sub{{
-                font-size:13px;
-                line-height:1.65;
-                color:#334155;
-                font-weight:650;
-            }}
-            html.caprio-dark .caprio-message-main{{color:#9fc7ff !important;}}
-            html.caprio-dark .caprio-message-sub{{color:#f3f6fb !important;}}
-            @media(max-width:768px){{
-                .caprio-message-card{{width:100% !important;}}
-                .caprio-message-main{{font-size:14px !important;}}
-                .caprio-message-sub{{font-size:12.5px !important;}}
-            }}
-        `;
-        doc.head.appendChild(style);
-    }}
-
-    setTimeout(apply, 80);
-    setTimeout(apply, 350);
-    setTimeout(apply, 900);
-}})();
-</script>
-""", height=0, width=0)
-
-st.markdown("""
+st.markdown(f"""
 <div class="caprio-footer-note">
+    {outro_message_html}
     <div class="caprio-footer-guide">
         ※ 본 비교 결과는 입력 조건 및 금융사 기준에 따른 참고용 자료이며, 실제 승인·금리·잔존가치·보험조건 등에 따라 최종 견적은 달라질 수 있습니다.
     </div>
