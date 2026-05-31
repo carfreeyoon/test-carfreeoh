@@ -37,6 +37,8 @@ DEFAULT_VISIBLE_SECTIONS = {
     "guide_installment": True,
     "guide_rent": True,
     "guide_lease": True,
+    "client_intro": True,
+    "client_cta": True,
 }
 
 SHARE_SECTION_GROUPS = {
@@ -80,6 +82,9 @@ def normalize_visible_sections(data=None):
         sections["guide_installment"] = False
         sections["guide_rent"] = False
         sections["guide_lease"] = False
+
+    sections["client_intro"] = True
+    sections["client_cta"] = True
 
     return sections
 
@@ -2275,7 +2280,6 @@ if not IS_CLIENT_VIEW and isinstance(st.session_state.get("loaded_share_data"), 
     shared_quote_data = st.session_state.loaded_share_data
 
 if shared_quote_data:
-    customer_name = shared_quote_data.get("customer_name", customer_name)
     car_name = shared_quote_data.get("car_name", car_name)
     car_option = shared_quote_data.get("car_option", car_option)
     car_price = int(shared_quote_data.get("car_price", car_price))
@@ -2291,11 +2295,12 @@ if shared_quote_data:
     installment_resale_pct = int(shared_quote_data.get("installment_resale_pct", installment_resale_pct))
     rent_resale_pct = float(shared_quote_data.get("rent_resale_pct", rent_resale_pct))
 
+customer_name = str(shared_quote_data.get("customer_name", "")).strip()
+
 visible_sections = normalize_visible_sections(shared_quote_data.get("visible_sections") if IS_CLIENT_VIEW else None)
 
 def make_share_url():
     share_data = {
-        "customer_name": st.session_state.get("customer_name_input", customer_name) if not IS_CLIENT_VIEW else customer_name,
         "car_name": car_name,
         "car_option": car_option,
         "car_price": car_price,
@@ -2314,6 +2319,7 @@ def make_share_url():
         "installment_prepaid": installment_prepaid if "installment_prepaid" in globals() else 0,
         "is_corporate": is_corporate if "is_corporate" in globals() else False,
         "rent_resale_pct": rent_resale_pct,
+        "customer_name": st.session_state.get("customer_name_input", customer_name).strip() if not IS_CLIENT_VIEW else customer_name,
         "visible_sections": collect_visible_sections_from_state() if not IS_CLIENT_VIEW else normalize_visible_sections(visible_sections)
     }
     short_code = save_share_data(share_data)
@@ -2562,12 +2568,10 @@ if not IS_CLIENT_VIEW:
                 "prepayment_mode": "원" if int(loaded_share_data.get("rent_deposit", rent_deposit)) else "%",
                 "prepayment_value": f"{int(loaded_share_data.get('rent_deposit', rent_deposit)):,}" if int(loaded_share_data.get("rent_deposit", rent_deposit)) else "",
             }
-            if loaded_share_data.get("customer_name") is not None:
-                st.session_state.customer_name_input = str(loaded_share_data.get("customer_name", ""))
-
             loaded_visible_sections = normalize_visible_sections(loaded_share_data.get("visible_sections"))
             apply_visible_sections_to_state(loaded_visible_sections)
             st.session_state.pending_visible_sections = loaded_visible_sections
+            st.session_state.customer_name_input = str(loaded_share_data.get("customer_name", "")).strip()
             st.success("공유 견적을 불러왔습니다.")
             st.rerun()
         else:
@@ -2676,9 +2680,12 @@ if not IS_CLIENT_VIEW:
     with control_col:
         visible_sections = render_share_section_selector(visible_sections)
     with history_col:
-        if "customer_name_input" not in st.session_state:
-            st.session_state.customer_name_input = customer_name
-        customer_name = st.text_input("👤 고객명", key="customer_name_input")
+        st.text_input(
+            "고객명",
+            placeholder="고객명을 입력하세요.",
+            key="customer_name_input",
+            label_visibility="collapsed"
+        )
         render_quote_history_area(history_raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url, visible_sections, st.session_state.active_quote_data is not None)
 
     # ==========================================
@@ -3057,19 +3064,18 @@ tax_type_text = "승합차(9인승 이상)" if e15 != "" else car_shape
 
 car_option_display = format_option_html(car_option)
 
-customer_display_name = str(customer_name or "").strip()
-customer_display_label = f"{customer_display_name}님" if customer_display_name else "고객님"
-
-st.markdown(f"""
-<div class="common-info-box">
-    <div style="font-size:20px; font-weight:900; margin-bottom:8px; color:#0b3873;">
-        {customer_display_label}, 더 합리적인 선택을 위해 비교 준비했어요 🙂
+customer_label = f"{customer_name}님" if str(customer_name or "").strip() else "고객님"
+if visible_sections.get("client_intro", True):
+    st.markdown(f"""
+    <div class="common-info-box">
+        <div style="font-size:18px; font-weight:900; margin-bottom:7px; color:#0b3873;">
+            {customer_label}, 더 합리적인 선택을 위해 비교 준비했어요 🙂
+        </div>
+        <div style="font-size:14px; font-weight:600; line-height:1.5; color:#475569;">
+            복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.
+        </div>
     </div>
-    <div style="font-size:14px; line-height:1.55; color:#334155;">
-        복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.
-    </div>
-</div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 if visible_sections.get("common", True):
     # ==========================================
@@ -3696,19 +3702,20 @@ if visible_sections.get("guide", True):
 
         st.markdown(guide_html, unsafe_allow_html=True)
 
-st.markdown("""
-<div class="common-info-box">
-    <div style="font-size:18px; font-weight:900; margin-bottom:8px; color:#0b3873;">
-        혼자 비교하기 복잡했다면, 언제든 카프리오에 물어보세요 🙂
+if visible_sections.get("client_cta", True):
+    st.markdown("""
+    <div class="common-info-box">
+        <div style="font-size:17px; font-weight:900; margin-bottom:7px; color:#0b3873;">
+            혼자 비교하기 복잡했다면, 언제든 카프리오에 물어보세요 🙂
+        </div>
+        <div style="font-size:14px; font-weight:600; line-height:1.5; color:#475569;">
+            할부·렌트·리스까지 고객님께 더 유리한 방향으로 도와드릴게요.
+        </div>
+        <div style="font-size:12px; font-weight:600; margin-top:9px; color:#64748b;">
+            렌트·리스는 국내 33개 금융사 조건까지 함께 비교해드리고 있어요.
+        </div>
     </div>
-    <div style="font-size:14px; line-height:1.55; color:#334155; margin-bottom:8px;">
-        할부·렌트·리스까지 고객님께 더 유리한 방향으로 도와드릴게요.
-    </div>
-    <div style="font-size:12px; color:#64748b;">
-        렌트·리스는 국내 33개 금융사 조건까지 함께 비교해드리고 있어요.
-    </div>
-</div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
 st.markdown("""
 <div class="caprio-footer-note">
