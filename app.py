@@ -22,6 +22,7 @@ APP_BASE_URL = "https://carfreeoh-rentcalculator.streamlit.app"
 # [고객 공유 항목 선택 기본값/유틸]
 # ==========================================
 DEFAULT_VISIBLE_SECTIONS = {
+    "intro": True,
     "conditions": True,
     "common": True,
     "installment_condition": True,
@@ -37,6 +38,7 @@ DEFAULT_VISIBLE_SECTIONS = {
     "guide_installment": True,
     "guide_rent": True,
     "guide_lease": True,
+    "outro": True,
 }
 
 SHARE_SECTION_GROUPS = {
@@ -334,7 +336,7 @@ def render_share_section_selector(current_sections):
 
     st.markdown('<div class="share-selector-anchor"></div>', unsafe_allow_html=True)
 
-    group_cols = st.columns([0.78, 1, 1, 1, 1, 1], gap="small")
+    group_cols = st.columns([0.78, 0.85, 1, 1, 1, 1, 1, 0.85], gap="small")
 
     with group_cols[0]:
         if st.button("전체 선택 / 해제", use_container_width=True):
@@ -342,22 +344,26 @@ def render_share_section_selector(current_sections):
             st.rerun()
 
     with group_cols[1]:
+        st.checkbox("인삿말", key="share_intro")
+        st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
+
+    with group_cols[2]:
         st.checkbox("조건설정", key="share_conditions", on_change=sync_parent_to_children, args=("conditions",))
         st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
         st.checkbox("공통조건", key="share_common", disabled=not st.session_state.get("share_conditions", True), on_change=sync_children_to_parent, args=("conditions",))
         st.checkbox("할부조건", key="share_installment_condition", disabled=not st.session_state.get("share_conditions", True), on_change=sync_children_to_parent, args=("conditions",))
 
-    with group_cols[2]:
+    with group_cols[3]:
         st.checkbox("비교 계산기", key="share_summary", on_change=sync_parent_to_children, args=("summary",))
         st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
         st.checkbox("반납형", key="share_summary_return", disabled=not st.session_state.get("share_summary", True), on_change=sync_children_to_parent, args=("summary",))
         st.checkbox("인수형", key="share_summary_takeover", disabled=not st.session_state.get("share_summary", True), on_change=sync_children_to_parent, args=("summary",))
 
-    with group_cols[3]:
+    with group_cols[4]:
         st.checkbox("검증 요율표", key="share_rate_table")
         st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
 
-    with group_cols[4]:
+    with group_cols[5]:
         st.checkbox("비교표", key="share_compare", on_change=sync_parent_to_children, args=("compare",))
         st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
         st.checkbox("할부", key="share_compare_installment", disabled=not st.session_state.get("share_compare", True), on_change=sync_children_to_parent, args=("compare",))
@@ -365,12 +371,16 @@ def render_share_section_selector(current_sections):
         st.checkbox("리스", key="share_compare_lease", disabled=not st.session_state.get("share_compare", True), on_change=sync_children_to_parent, args=("compare",))
         st.markdown('<div class="share-mini-note">최소 2개 선택</div>', unsafe_allow_html=True)
 
-    with group_cols[5]:
+    with group_cols[6]:
         st.checkbox("선택 가이드", key="share_guide", on_change=sync_parent_to_children, args=("guide",))
         st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
         st.checkbox("할부", key="share_guide_installment", disabled=not st.session_state.get("share_guide", True), on_change=sync_children_to_parent, args=("guide",))
         st.checkbox("렌트", key="share_guide_rent", disabled=not st.session_state.get("share_guide", True), on_change=sync_children_to_parent, args=("guide",))
         st.checkbox("리스", key="share_guide_lease", disabled=not st.session_state.get("share_guide", True), on_change=sync_children_to_parent, args=("guide",))
+
+    with group_cols[7]:
+        st.checkbox("마무리말", key="share_outro")
+        st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
 
     selected_compare_count = sum(
         bool(st.session_state.get(f"share_{key}", False))
@@ -418,6 +428,7 @@ def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mile
                         "prepayment_value": st.session_state.get("quick_prepayment_value", f"{rent_deposit:,}" if rent_deposit else ""),
                     },
                     "visible_sections": normalize_visible_sections(visible_sections),
+                    "customer_name": st.session_state.get("customer_name_input", "").strip(),
                 }
             )
             st.session_state.quote_history = st.session_state.quote_history[:5]
@@ -438,6 +449,7 @@ def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mile
                     st.session_state.pending_quote_input = item["raw"]
                     st.session_state.pending_quick_edit = item.get("quick_edit")
                     st.session_state.pending_visible_sections = item.get("visible_sections")
+                    st.session_state.pending_customer_name = item.get("customer_name", "")
                     st.rerun()
             with history_col2:
                 components.html(
@@ -2288,6 +2300,8 @@ if shared_quote_data:
     installment_resale_pct = int(shared_quote_data.get("installment_resale_pct", installment_resale_pct))
     rent_resale_pct = float(shared_quote_data.get("rent_resale_pct", rent_resale_pct))
 
+customer_name = str(shared_quote_data.get("customer_name", "")).strip()
+
 visible_sections = normalize_visible_sections(shared_quote_data.get("visible_sections") if IS_CLIENT_VIEW else None)
 
 def make_share_url():
@@ -2310,6 +2324,7 @@ def make_share_url():
         "installment_prepaid": installment_prepaid if "installment_prepaid" in globals() else 0,
         "is_corporate": is_corporate if "is_corporate" in globals() else False,
         "rent_resale_pct": rent_resale_pct,
+        "customer_name": st.session_state.get("customer_name_input", customer_name).strip() if not IS_CLIENT_VIEW else customer_name,
         "visible_sections": collect_visible_sections_from_state() if not IS_CLIENT_VIEW else normalize_visible_sections(visible_sections)
     }
     short_code = save_share_data(share_data)
@@ -2499,6 +2514,9 @@ if not IS_CLIENT_VIEW:
     if "pending_visible_sections" not in st.session_state:
         st.session_state.pending_visible_sections = None
 
+    if "pending_customer_name" not in st.session_state:
+        st.session_state.pending_customer_name = None
+
     if "active_quote_data" not in st.session_state:
         st.session_state.active_quote_data = None
 
@@ -2509,6 +2527,12 @@ if not IS_CLIENT_VIEW:
         apply_visible_sections_to_state(st.session_state.pending_visible_sections)
         visible_sections = normalize_visible_sections(st.session_state.pending_visible_sections)
         st.session_state.pending_visible_sections = None
+
+    if st.session_state.pending_customer_name is not None:
+        st.session_state.customer_name_input = st.session_state.pending_customer_name
+        st.session_state.pending_customer_name = None
+
+    st.session_state.setdefault("customer_name_input", customer_name)
 
     visible_sections = normalize_visible_sections(visible_sections)
     for section_key, section_value in visible_sections.items():
@@ -2558,6 +2582,7 @@ if not IS_CLIENT_VIEW:
                 "prepayment_mode": "원" if int(loaded_share_data.get("rent_deposit", rent_deposit)) else "%",
                 "prepayment_value": f"{int(loaded_share_data.get('rent_deposit', rent_deposit)):,}" if int(loaded_share_data.get("rent_deposit", rent_deposit)) else "",
             }
+            st.session_state.pending_customer_name = str(loaded_share_data.get("customer_name", "")).strip()
             loaded_visible_sections = normalize_visible_sections(loaded_share_data.get("visible_sections"))
             apply_visible_sections_to_state(loaded_visible_sections)
             st.session_state.pending_visible_sections = loaded_visible_sections
@@ -2669,7 +2694,9 @@ if not IS_CLIENT_VIEW:
     control_col, history_col = st.columns([0.68, 0.32], gap="medium")
     with control_col:
         visible_sections = render_share_section_selector(visible_sections)
-    history_area_placeholder = history_col.container()
+    with history_col:
+        st.text_input("고객명", key="customer_name_input")
+        history_area_placeholder = st.container()
 
     # ==========================================
     # [TOP MAIN] 타사 견적 파싱 구역
@@ -3062,17 +3089,19 @@ tax_type_text = "승합차(9인승 이상)" if e15 != "" else car_shape
 
 car_option_display = format_option_html(car_option)
 
-if visible_sections.get("common", True):
-    # ==========================================
-    # [공통 조건 구역 - 고객용/영업자용 조건 경로 테스트]
-    # ==========================================
-    common_test_label = "🔥 CLIENT COMMON TEST" if IS_CLIENT_VIEW else "🔥 STAFF COMMON TEST"
+if visible_sections.get("intro", True):
+    intro_customer_name = customer_name if IS_CLIENT_VIEW else st.session_state.get("customer_name_input", "").strip()
+    intro_name_label = f"{html.escape(intro_customer_name)}님" if intro_customer_name else "고객님"
     st.markdown(f"""
     <div class="common-info-box">
-        <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#d00000;">{common_test_label}</div>
+        <div style="font-size:15px; font-weight:bold; line-height:1.75; color:#0b3873;">
+            {intro_name_label}, 더 합리적인 선택을 위해 비교 준비했어요 🙂<br>
+            복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
+if visible_sections.get("common", True):
     # ==========================================
     # [공통 조건 구역]
     # ==========================================
@@ -3696,6 +3725,30 @@ if visible_sections.get("guide", True):
         )
 
         st.markdown(guide_html, unsafe_allow_html=True)
+
+
+if visible_sections.get("outro", True):
+    if (
+        visible_sections.get("common", True)
+        or visible_sections.get("installment_condition", True)
+        or selected_summary_views
+        or visible_sections.get("rate_table", True)
+        or (
+            visible_sections.get("compare", True)
+            and len(selected_compare_methods) >= 2
+        )
+        or visible_sections.get("guide", True)
+    ):
+        render_output_section_gap()
+
+    st.markdown("""
+    <div class="common-info-box">
+        <div style="font-size:15px; font-weight:bold; line-height:1.75; color:#0b3873;">
+            혼자 비교하기 복잡했다면, 언제든 카프리오에 물어보세요 🙂<br>
+            할부·렌트·리스까지 고객님께 더 유리한 방향으로 도와드릴게요.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
 st.markdown("""
 <div class="caprio-footer-note">
