@@ -83,11 +83,6 @@ def normalize_visible_sections(data=None):
         sections["guide_rent"] = False
         sections["guide_lease"] = False
 
-    # 인삿말/마무리말은 고객 공유 항목 체크 UI에는 노출하지 않지만,
-    # 기존 섹션과 동일하게 항상 선택된 값으로 저장/공유/불러오기 처리합니다.
-    sections["intro"] = True
-    sections["outro"] = True
-
     return sections
 
 
@@ -341,7 +336,7 @@ def render_share_section_selector(current_sections):
 
     st.markdown('<div class="share-selector-anchor"></div>', unsafe_allow_html=True)
 
-    group_cols = st.columns([0.78, 1, 1, 1, 1, 1], gap="small")
+    group_cols = st.columns([0.78, 0.82, 1, 1, 1, 1, 1, 0.82], gap="small")
 
     with group_cols[0]:
         if st.button("전체 선택 / 해제", use_container_width=True):
@@ -349,22 +344,26 @@ def render_share_section_selector(current_sections):
             st.rerun()
 
     with group_cols[1]:
+        st.checkbox("인삿말", key="share_intro")
+        st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
+
+    with group_cols[2]:
         st.checkbox("조건설정", key="share_conditions", on_change=sync_parent_to_children, args=("conditions",))
         st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
         st.checkbox("공통조건", key="share_common", disabled=not st.session_state.get("share_conditions", True), on_change=sync_children_to_parent, args=("conditions",))
         st.checkbox("할부조건", key="share_installment_condition", disabled=not st.session_state.get("share_conditions", True), on_change=sync_children_to_parent, args=("conditions",))
 
-    with group_cols[2]:
+    with group_cols[3]:
         st.checkbox("비교 계산기", key="share_summary", on_change=sync_parent_to_children, args=("summary",))
         st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
         st.checkbox("반납형", key="share_summary_return", disabled=not st.session_state.get("share_summary", True), on_change=sync_children_to_parent, args=("summary",))
         st.checkbox("인수형", key="share_summary_takeover", disabled=not st.session_state.get("share_summary", True), on_change=sync_children_to_parent, args=("summary",))
 
-    with group_cols[3]:
+    with group_cols[4]:
         st.checkbox("검증 요율표", key="share_rate_table")
         st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
 
-    with group_cols[4]:
+    with group_cols[5]:
         st.checkbox("비교표", key="share_compare", on_change=sync_parent_to_children, args=("compare",))
         st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
         st.checkbox("할부", key="share_compare_installment", disabled=not st.session_state.get("share_compare", True), on_change=sync_children_to_parent, args=("compare",))
@@ -372,12 +371,16 @@ def render_share_section_selector(current_sections):
         st.checkbox("리스", key="share_compare_lease", disabled=not st.session_state.get("share_compare", True), on_change=sync_children_to_parent, args=("compare",))
         st.markdown('<div class="share-mini-note">최소 2개 선택</div>', unsafe_allow_html=True)
 
-    with group_cols[5]:
+    with group_cols[6]:
         st.checkbox("선택 가이드", key="share_guide", on_change=sync_parent_to_children, args=("guide",))
         st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
         st.checkbox("할부", key="share_guide_installment", disabled=not st.session_state.get("share_guide", True), on_change=sync_children_to_parent, args=("guide",))
         st.checkbox("렌트", key="share_guide_rent", disabled=not st.session_state.get("share_guide", True), on_change=sync_children_to_parent, args=("guide",))
         st.checkbox("리스", key="share_guide_lease", disabled=not st.session_state.get("share_guide", True), on_change=sync_children_to_parent, args=("guide",))
+
+    with group_cols[7]:
+        st.checkbox("마무리말", key="share_outro")
+        st.markdown('<div class="share-group-divider"></div>', unsafe_allow_html=True)
 
     selected_compare_count = sum(
         bool(st.session_state.get(f"share_{key}", False))
