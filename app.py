@@ -383,7 +383,11 @@ def render_share_section_selector(current_sections):
 
 def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url_func, visible_sections, has_active_quote=True):
     st.markdown('<div class="quote-history-panel">', unsafe_allow_html=True)
-    st.markdown('<div class="quote-history-title">🕘 견적 저장 / 이력</div>', unsafe_allow_html=True)
+    history_title_col, customer_name_col = st.columns([0.54, 0.46], gap="small")
+    with history_title_col:
+        st.markdown('<div class="quote-history-title">🕘 견적 저장 / 이력</div>', unsafe_allow_html=True)
+    with customer_name_col:
+        st.text_input("고객명", key="customer_name", placeholder="고객명", label_visibility="collapsed")
 
     save_col1, save_col2 = st.columns([1, 1], gap="small")
     with save_col1:
@@ -409,6 +413,7 @@ def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mile
                     "title": history_title,
                     "raw": raw_data,
                     "share_url": make_share_url_func(),
+                    "customer_name": str(st.session_state.get("customer_name", "")).strip(),
                     "quick_edit": {
                         "rent_monthly_pay": rent_monthly_pay,
                         "rent_resale_pct": rent_resale_pct,
@@ -439,6 +444,7 @@ def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mile
                     st.session_state.pending_quote_input = item["raw"]
                     st.session_state.pending_quick_edit = item.get("quick_edit")
                     st.session_state.pending_visible_sections = item.get("visible_sections")
+                    st.session_state.customer_name = item.get("customer_name", st.session_state.get("customer_name", ""))
                     st.rerun()
             with history_col2:
                 components.html(
@@ -2289,6 +2295,8 @@ if shared_quote_data:
     installment_resale_pct = int(shared_quote_data.get("installment_resale_pct", installment_resale_pct))
     rent_resale_pct = float(shared_quote_data.get("rent_resale_pct", rent_resale_pct))
 
+customer_name = str(shared_quote_data.get("customer_name", "")).strip()
+
 visible_sections = normalize_visible_sections(shared_quote_data.get("visible_sections") if IS_CLIENT_VIEW else None)
 
 def make_share_url():
@@ -2311,6 +2319,7 @@ def make_share_url():
         "installment_prepaid": installment_prepaid if "installment_prepaid" in globals() else 0,
         "is_corporate": is_corporate if "is_corporate" in globals() else False,
         "rent_resale_pct": rent_resale_pct,
+        "customer_name": str(st.session_state.get("customer_name", customer_name)).strip() if not IS_CLIENT_VIEW else customer_name,
         "visible_sections": collect_visible_sections_from_state() if not IS_CLIENT_VIEW else normalize_visible_sections(visible_sections)
     }
     short_code = save_share_data(share_data)
@@ -2506,6 +2515,9 @@ if not IS_CLIENT_VIEW:
     if "active_quote_raw" not in st.session_state:
         st.session_state.active_quote_raw = ""
 
+    if "customer_name" not in st.session_state:
+        st.session_state.customer_name = customer_name
+
     if st.session_state.pending_visible_sections is not None:
         apply_visible_sections_to_state(st.session_state.pending_visible_sections)
         visible_sections = normalize_visible_sections(st.session_state.pending_visible_sections)
@@ -2533,6 +2545,7 @@ if not IS_CLIENT_VIEW:
         if loaded_share_data:
             st.session_state.loaded_share_data = loaded_share_data
             st.session_state.loaded_share_query_value = share_query_value
+            st.session_state.customer_name = str(loaded_share_data.get("customer_name", "")).strip()
             st.session_state.active_quote_data = {
                 "car_name": loaded_share_data.get("car_name", car_name),
                 "car_option": loaded_share_data.get("car_option", car_option),
@@ -3049,6 +3062,28 @@ tax_type_text = "승합차(9인승 이상)" if e15 != "" else car_shape
 car_option_display = format_option_html(car_option)
 
 if visible_sections.get("common", True):
+    customer_name_display = str(st.session_state.get("customer_name", customer_name) if not IS_CLIENT_VIEW else customer_name).strip()
+    customer_title_name = f"{html.escape(customer_name_display)}님" if customer_name_display else "고객님"
+
+    st.markdown(f"""
+    <div class="client-welcome-box" style="border:1px solid #d6e0eb; border-radius:14px; padding:18px 20px; margin:0 0 18px 0; background:#f8fafc;">
+        <div style="font-size:22px; font-weight:900; line-height:1.35; color:#0f172a;">{customer_title_name}, 더 합리적인 선택을 위해 비교 준비했어요 🙂</div>
+        <div style="font-size:15px; font-weight:650; line-height:1.55; color:#526174; margin-top:6px;">복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.</div>
+    </div>
+    <style>
+    html.caprio-dark .client-welcome-box {{
+        background:#0d141e !important;
+        border-color:#334155 !important;
+    }}
+    html.caprio-dark .client-welcome-box div:first-child {{
+        color:#f8fafc !important;
+    }}
+    html.caprio-dark .client-welcome-box div:last-child {{
+        color:#cbd5e1 !important;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
     # ==========================================
     # [공통 조건 구역]
     # ==========================================
@@ -3672,6 +3707,29 @@ if visible_sections.get("guide", True):
         )
 
         st.markdown(guide_html, unsafe_allow_html=True)
+
+st.markdown("""
+<div class="client-cta-box" style="border:1px solid #d6e0eb; border-radius:14px; padding:18px 20px; margin:24px 0 16px 0; background:#f8fafc; text-align:center;">
+    <div style="font-size:20px; font-weight:900; line-height:1.35; color:#0f172a;">혼자 비교하기 복잡했다면, 언제든 카프리오에 물어보세요 🙂</div>
+    <div style="font-size:15px; font-weight:650; line-height:1.55; color:#526174; margin-top:6px;">할부·렌트·리스까지 고객님께 더 유리한 방향으로 도와드릴게요.</div>
+    <div style="font-size:12px; font-weight:600; line-height:1.45; color:#7b8798; margin-top:10px;">렌트·리스는 국내 33개 금융사 조건까지 함께 비교해드리고 있어요.</div>
+</div>
+<style>
+html.caprio-dark .client-cta-box {
+    background:#0d141e !important;
+    border-color:#334155 !important;
+}
+html.caprio-dark .client-cta-box div:first-child {
+    color:#f8fafc !important;
+}
+html.caprio-dark .client-cta-box div:nth-child(2) {
+    color:#cbd5e1 !important;
+}
+html.caprio-dark .client-cta-box div:nth-child(3) {
+    color:#94a3b8 !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 st.markdown("""
 <div class="caprio-footer-note">
