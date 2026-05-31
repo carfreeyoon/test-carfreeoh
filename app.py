@@ -3062,13 +3062,44 @@ tax_type_text = "승합차(9인승 이상)" if e15 != "" else car_shape
 
 car_option_display = format_option_html(car_option)
 
+# ==========================================
+# [상단 공통 안내문]
+# ==========================================
+st.markdown("""
+<style>
+.caprio-top-note{
+    width:100%;
+    max-width:1734px;
+    margin:18px auto 18px auto;
+    padding:14px 18px;
+    border-radius:10px;
+    background:#111827;
+    border:1px solid #334155;
+    color:#ffffff;
+    font-size:18px;
+    font-weight:800;
+    line-height:1.5;
+    text-align:center;
+    box-sizing:border-box;
+}
+html.caprio-dark .caprio-top-note{
+    background:#111827;
+    border-color:#334155;
+    color:#ffffff;
+}
+</style>
+<div class="caprio-top-note">
+    안녕하세요
+</div>
+""", unsafe_allow_html=True)
+
 if visible_sections.get("common", True):
     # ==========================================
     # [공통 조건 구역]
     # ==========================================
     st.markdown(f"""
     <div class="common-info-box">
-        <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#0b3873;">🚘 비교 차량 공통 조건 REAL-CLIENT-TEST</div>
+        <div style="font-size:15px; font-weight:bold; margin-bottom:10px; color:#0b3873;">🚘 비교 차량 공통 조건</div>
         <table class="vehicle-table-mobile-primary">
             <tbody>
                 <tr>
