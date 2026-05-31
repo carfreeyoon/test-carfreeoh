@@ -2664,13 +2664,13 @@ if not IS_CLIENT_VIEW:
             "rent_resale_pct": rent_resale_pct,
         }
 
-    history_raw_data = st.session_state.get("active_quote_raw", pre_raw_data) if st.session_state.active_quote_data else pre_raw_data
-
+    # 저장/이력 영역은 화면상으로는 우측 상단에 두되,
+    # 실제 렌더링은 견적 원문 확정/빠른수정 적용값이 모두 반영된 뒤에 실행한다.
+    # 이렇게 해야 2번째 저장부터 이전 스냅샷이 저장되는 문제를 막을 수 있다.
     control_col, history_col = st.columns([0.68, 0.32], gap="medium")
     with control_col:
         visible_sections = render_share_section_selector(visible_sections)
-    with history_col:
-        render_quote_history_area(history_raw_data, car_name, rent_monthly_pay, months, mileage, rent_resale_pct, rent_deposit, make_share_url, visible_sections, st.session_state.active_quote_data is not None)
+    history_area_placeholder = history_col.container()
 
     # ==========================================
     # [TOP MAIN] 타사 견적 파싱 구역
@@ -2770,11 +2770,6 @@ if not IS_CLIENT_VIEW:
             st.session_state.get("quick_prepayment_value", "")
         )
         st.session_state.quick_prepayment_mode = "원" if current_mode == "%" else "%"
-
-    def mark_quick_edit_applied():
-        # 빠른수정은 적용 버튼을 누른 값만 확정값으로 사용한다.
-        # 콜백으로 먼저 확정해야 상단 저장/이력 영역도 같은 rerun에서 최신 적용값을 본다.
-        st.session_state.quick_edit_applied = True
 
     if st.session_state.get("quick_edit_source_signature") != quick_edit_source_signature:
         st.session_state.quick_rent_monthly_pay = f"{rent_monthly_pay:,}"
@@ -2904,7 +2899,7 @@ if not IS_CLIENT_VIEW:
 
         with quick_col7:
             st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
-            quick_edit_submitted = st.form_submit_button("적용", use_container_width=True, on_click=mark_quick_edit_applied)
+            quick_edit_submitted = st.form_submit_button("적용", use_container_width=True)
 
     st.markdown('</div>', unsafe_allow_html=True)
 
@@ -2937,6 +2932,21 @@ if not IS_CLIENT_VIEW:
             "car_shape": car_shape,
             "rent_resale_pct": rent_resale_pct,
         }
+
+    history_raw_data = st.session_state.get("active_quote_raw", pre_raw_data) if st.session_state.active_quote_data else pre_raw_data
+    with history_area_placeholder:
+        render_quote_history_area(
+            history_raw_data,
+            car_name,
+            rent_monthly_pay,
+            months,
+            mileage,
+            rent_resale_pct,
+            rent_deposit,
+            make_share_url,
+            visible_sections,
+            st.session_state.active_quote_data is not None,
+        )
 
     st.sidebar.markdown(
         '<div class="rent-fixed-resale-label" style="font-size:14px; font-weight:400;">📉 렌트 고정 잔존가치 (%)</div>',
