@@ -3684,3 +3684,12 @@ st.markdown("""
     </div>
 </div>
 """, unsafe_allow_html=True)
+
+# ===== DEBUG visible_sections =====
+st.markdown("---")
+st.write("DEBUG 현재 화면 visible_sections", collect_visible_sections_from_state())
+try:
+    _dbg_payload = {"visible_sections": collect_visible_sections_from_state()}
+    st.write("DEBUG 저장 payload visible_sections", _dbg_payload.get("visible_sections"))
+except Exception as e:
+    st.write("DEBUG payload error", str(e))
