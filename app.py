@@ -2006,6 +2006,34 @@ st.markdown("""
         color: #8b98aa !important;
         -webkit-text-fill-color: #8b98aa !important;
     }
+
+
+    /* 라이트모드: 사이드바 number_input 입력칸과 +/- 버튼 외곽선 통합 */
+    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"],
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"] {
+        background-color: #ffffff !important;
+        border: 1px solid #d8dee8 !important;
+        border-radius: 8px !important;
+        box-shadow: none !important;
+        overflow: hidden !important;
+    }
+
+    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"] input,
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"] input {
+        background-color: #ffffff !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        outline: none !important;
+    }
+
+    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"] button,
+    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] div[data-baseweb="input"] button {
+        background-color: #ffffff !important;
+        border: 0 !important;
+        border-left: 1px solid #d8dee8 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
     html.caprio-dark .share-selector-anchor + div[data-testid="stHorizontalBlock"],
     html.caprio-dark .share-selector-anchor + div[data-testid="stHorizontalBlock"] *,
     html.caprio-dark .share-selector-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stCheckbox"],
@@ -3068,30 +3096,30 @@ tax_type_text = "승합차(9인승 이상)" if e15 != "" else car_shape
 
 car_option_display = format_option_html(car_option)
 
+if IS_CLIENT_VIEW:
+    customer_name_display = str(customer_name).strip()
+    customer_title_name = f"{html.escape(customer_name_display)}님" if customer_name_display else "고객님"
+
+    st.markdown(f"""
+    <div class="client-welcome-box" style="border:1px solid #d6e0eb; border-radius:14px; padding:18px 20px; margin:0 0 18px 0; background:#f8fafc;">
+        <div style="font-size:22px; font-weight:900; line-height:1.35; color:#0f172a;">{customer_title_name}, 더 합리적인 선택을 위해 비교 준비했어요 🙂</div>
+        <div style="font-size:15px; font-weight:650; line-height:1.55; color:#526174; margin-top:6px;">복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.</div>
+    </div>
+    <style>
+    html.caprio-dark .client-welcome-box {{
+        background:#0d141e !important;
+        border-color:#334155 !important;
+    }}
+    html.caprio-dark .client-welcome-box div:first-child {{
+        color:#f8fafc !important;
+    }}
+    html.caprio-dark .client-welcome-box div:last-child {{
+        color:#cbd5e1 !important;
+    }}
+    </style>
+    """, unsafe_allow_html=True)
+
 if visible_sections.get("common", True):
-    if IS_CLIENT_VIEW:
-        customer_name_display = str(customer_name).strip()
-        customer_title_name = f"{html.escape(customer_name_display)}님" if customer_name_display else "고객님"
-
-        st.markdown(f"""
-        <div class="client-welcome-box" style="border:1px solid #d6e0eb; border-radius:14px; padding:18px 20px; margin:0 0 18px 0; background:#f8fafc;">
-            <div style="font-size:22px; font-weight:900; line-height:1.35; color:#0f172a;">{customer_title_name}, 더 합리적인 선택을 위해 비교 준비했어요 🙂</div>
-            <div style="font-size:15px; font-weight:650; line-height:1.55; color:#526174; margin-top:6px;">복잡한 조건은 대신 정리해드리고, 편하게 선택하실 수 있게 만들었어요.</div>
-        </div>
-        <style>
-        html.caprio-dark .client-welcome-box {{
-            background:#0d141e !important;
-            border-color:#334155 !important;
-        }}
-        html.caprio-dark .client-welcome-box div:first-child {{
-            color:#f8fafc !important;
-        }}
-        html.caprio-dark .client-welcome-box div:last-child {{
-            color:#cbd5e1 !important;
-        }}
-        </style>
-        """, unsafe_allow_html=True)
-
     # ==========================================
     # [공통 조건 구역]
     # ==========================================
