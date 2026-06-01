@@ -3104,11 +3104,23 @@ if not IS_CLIENT_VIEW:
         quick_mileage_options.append(st.session_state.get("quick_mileage", mileage))
 
     st.markdown('<div class="quick-rent-condition">', unsafe_allow_html=True)
+    st.markdown('<div class="quick-rent-condition-title">🔧 렌트/리스 조건 빠른 수정</div>', unsafe_allow_html=True)
 
     quick_edit_submitted = False
 
     st.markdown("""
     <style>
+    .quick-rent-condition-title {
+        font-size: 26px;
+        font-weight: 900;
+        line-height: 1.15;
+        color: #0f172a;
+        margin: 0 0 14px 0;
+        padding: 0;
+    }
+    html.caprio-dark .quick-rent-condition-title {
+        color: #f8fafc !important;
+    }
     .quick-prepayment-label {
         min-height: 22px;
         display: flex;
@@ -3195,7 +3207,8 @@ if not IS_CLIENT_VIEW:
         padding: 0 !important;
         margin: 0 !important;
     }}
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button {{
+    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button,
+    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stFormSubmitButton"] button {{
         height: 36px !important;
         min-height: 36px !important;
         padding: 0 18px !important;
@@ -3207,24 +3220,26 @@ if not IS_CLIENT_VIEW:
         white-space: nowrap !important;
     }}
     /* 비선택 기본 */
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button {{
+    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button,
+    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stFormSubmitButton"] button {{
         background: #f8fafc !important;
         border: 1px solid #cbd5e1 !important;
         color: #475569 !important;
         -webkit-text-fill-color: #475569 !important;
     }}
-    html.caprio-dark .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button {{
+    html.caprio-dark .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button,
+    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stFormSubmitButton"] button {{
         background: #101826 !important;
         border-color: #46566d !important;
         color: #c8d4e6 !important;
         -webkit-text-fill-color: #c8d4e6 !important;
     }}
     /* 렌트 선택 */
-    {'.finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stButton"] button { background:#16a34a !important; border-color:#22c55e !important; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; box-shadow:0 0 0 1px rgba(34,197,94,.32), 0 4px 13px rgba(22,163,74,.24) !important; }' if rent_active else ''}
-    {'.finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stButton"] button:hover { background:#15803d !important; border-color:#22c55e !important; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; }' if rent_active else ''}
+    {'.finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stButton"] button, .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stFormSubmitButton"] button { background:#16a34a !important; border-color:#22c55e !important; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; box-shadow:0 0 0 1px rgba(34,197,94,.32), 0 4px 13px rgba(22,163,74,.24) !important; }' if rent_active else ''}
+    {'.finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stButton"] button:hover, .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stFormSubmitButton"] button:hover { background:#15803d !important; border-color:#22c55e !important; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; }' if rent_active else ''}
     /* 리스 선택 */
-    {'.finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stButton"] button { background:#7c3aed !important; border-color:#a78bfa !important; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; box-shadow:0 0 0 1px rgba(167,139,250,.35), 0 4px 13px rgba(124,58,237,.28) !important; }' if lease_active else ''}
-    {'.finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stButton"] button:hover { background:#6d28d9 !important; border-color:#a78bfa !important; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; }' if lease_active else ''}
+    {'.finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stButton"] button, .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stFormSubmitButton"] button { background:#7c3aed !important; border-color:#a78bfa !important; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; box-shadow:0 0 0 1px rgba(167,139,250,.35), 0 4px 13px rgba(124,58,237,.28) !important; }' if lease_active else ''}
+    {'.finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stButton"] button:hover, .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stFormSubmitButton"] button:hover { background:#6d28d9 !important; border-color:#a78bfa !important; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; }' if lease_active else ''}
 
     .lease-tax-inline-empty {{ min-height: 38px; }}
     .finance-mode-toolbar-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stCheckbox"] label {{
