@@ -3302,7 +3302,7 @@ if not IS_CLIENT_VIEW:
         .finance-toolbar-title {{ font-size:24px !important; margin-bottom:10px !important; white-space:normal !important; }}
         .finance-mode-toolbar-anchor + div[data-testid="stHorizontalBlock"] > div {{ width:100% !important; padding:0 !important; margin:0 0 7px 0 !important; }}
         .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1),
-        .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) { max-width: 78px !important; flex: 0 0 78px !important; }
+        
     }}
     </style>
     """, unsafe_allow_html=True)
