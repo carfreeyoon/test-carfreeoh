@@ -9,6 +9,7 @@ import urllib.request
 import urllib.parse
 import urllib.error
 import html
+import textwrap
 
 st.set_page_config(page_title="카프리오 비교 프로그램", layout="wide")
 
@@ -2841,6 +2842,7 @@ if not IS_CLIENT_VIEW:
     # Streamlit의 session_state 위젯 잠금 오류가 발생하지 않는다.
     def apply_finance_mode_defaults(mode):
         st.session_state.finance_mode = mode
+        st.session_state.finance_mode_segmented = "리스" if mode == "lease" else "렌트"
         st.session_state.share_compare = True
         st.session_state.share_compare_installment = True
         st.session_state.share_guide = True
@@ -3068,105 +3070,85 @@ if not IS_CLIENT_VIEW:
     """, unsafe_allow_html=True)
 
     st.markdown("#### 🛠️ 렌트/리스 조건 빠른 수정")
+
     current_finance_mode = st.session_state.get("finance_mode", "rent")
-    rent_bg = "#1456a3" if current_finance_mode == "rent" else "transparent"
-    lease_bg = "#1456a3" if current_finance_mode == "lease" else "transparent"
-    rent_color = "#ffffff" if current_finance_mode == "rent" else "#64748b"
-    lease_color = "#ffffff" if current_finance_mode == "lease" else "#64748b"
-    dark_rent_color = "#ffffff" if current_finance_mode == "rent" else "#9fb0c8"
-    dark_lease_color = "#ffffff" if current_finance_mode == "lease" else "#9fb0c8"
-    st.markdown(f"""
+    st.session_state.setdefault(
+        "finance_mode_segmented",
+        "리스" if current_finance_mode == "lease" else "렌트"
+    )
+
+    st.markdown("""
     <style>
-    /* 렌트/리스: 실제 동작은 버튼, 화면은 하나의 캡슐형 스위치처럼 보이게 처리 */
-    div[data-testid="stMarkdownContainer"]:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"],
-    div.element-container:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"],
-    div:has(> div[data-testid="stMarkdownContainer"] .finance-switch-anchor) + div[data-testid="stHorizontalBlock"] {{
-        width: 292px !important;
+    /* 렌트/리스 모드 선택: 클릭 동작은 Streamlit segmented control, 보기는 캡슐형 스위치 */
+    div[data-testid="stSegmentedControl"] {
+        max-width: 320px !important;
+        margin: 0 0 12px 0 !important;
+    }
+    div[data-testid="stSegmentedControl"] [role="radiogroup"] {
+        display: inline-flex !important;
+        width: 320px !important;
         max-width: 100% !important;
-        gap: 0 !important;
         padding: 4px !important;
-        margin: 0 0 10px 0 !important;
-        border: 1px solid #b8c6d9 !important;
         border-radius: 999px !important;
+        border: 1px solid #b8c6d9 !important;
         background: #f8fafc !important;
         box-sizing: border-box !important;
-    }}
-    html.caprio-dark div[data-testid="stMarkdownContainer"]:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"],
-    html.caprio-dark div.element-container:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"],
-    html.caprio-dark div:has(> div[data-testid="stMarkdownContainer"] .finance-switch-anchor) + div[data-testid="stHorizontalBlock"] {{
+        gap: 0 !important;
+    }
+    div[data-testid="stSegmentedControl"] label {
+        flex: 1 1 0 !important;
+        justify-content: center !important;
+        min-height: 36px !important;
+        border-radius: 999px !important;
+        font-weight: 900 !important;
+        font-size: 14px !important;
+    }
+    html.caprio-dark div[data-testid="stSegmentedControl"] [role="radiogroup"] {
         background: #0f1722 !important;
         border-color: #46566d !important;
-    }}
-    div[data-testid="stMarkdownContainer"]:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"] > div,
-    div.element-container:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"] > div,
-    div:has(> div[data-testid="stMarkdownContainer"] .finance-switch-anchor) + div[data-testid="stHorizontalBlock"] > div {{
-        padding: 0 !important;
-        margin: 0 !important;
-    }}
-    div[data-testid="stMarkdownContainer"]:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button,
-    div.element-container:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button,
-    div:has(> div[data-testid="stMarkdownContainer"] .finance-switch-anchor) + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button {{
-        min-height: 38px !important;
-        height: 38px !important;
-        border-radius: 999px !important;
-        border: 0 !important;
-        box-shadow: none !important;
-        font-weight: 900 !important;
-        font-size: 15px !important;
-    }}
-    div[data-testid="stMarkdownContainer"]:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"] > div:nth-child(1) button,
-    div.element-container:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"] > div:nth-child(1) button,
-    div:has(> div[data-testid="stMarkdownContainer"] .finance-switch-anchor) + div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {{
-        background: {rent_bg} !important;
-        color: {rent_color} !important;
-    }}
-    div[data-testid="stMarkdownContainer"]:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"] > div:nth-child(2) button,
-    div.element-container:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"] > div:nth-child(2) button,
-    div:has(> div[data-testid="stMarkdownContainer"] .finance-switch-anchor) + div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {{
-        background: {lease_bg} !important;
-        color: {lease_color} !important;
-    }}
-    html.caprio-dark div[data-testid="stMarkdownContainer"]:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"] > div:nth-child(1) button,
-    html.caprio-dark div.element-container:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"] > div:nth-child(1) button,
-    html.caprio-dark div:has(> div[data-testid="stMarkdownContainer"] .finance-switch-anchor) + div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {{
-        color: {dark_rent_color} !important;
-    }}
-    html.caprio-dark div[data-testid="stMarkdownContainer"]:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"] > div:nth-child(2) button,
-    html.caprio-dark div.element-container:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"] > div:nth-child(2) button,
-    html.caprio-dark div:has(> div[data-testid="stMarkdownContainer"] .finance-switch-anchor) + div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {{
-        color: {dark_lease_color} !important;
-    }}
-    .finance-switch-caption {{
+    }
+    .finance-mode-note {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin: 0 0 8px 0;
+        padding: 5px 10px;
+        border-radius: 999px;
+        border: 1px solid #d4dfec;
+        background: #f8fafc;
+        color: #475569;
         font-size: 12px;
         font-weight: 900;
-        color: #2f6fb8;
-        margin: 0 0 4px 2px;
         line-height: 1.1;
-    }}
-    html.caprio-dark .finance-switch-caption {{ color: #9ec7ff !important; }}
-    @media (max-width: 768px) {{
-        div[data-testid="stMarkdownContainer"]:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"],
-        div.element-container:has(.finance-switch-anchor) + div[data-testid="stHorizontalBlock"],
-        div:has(> div[data-testid="stMarkdownContainer"] .finance-switch-anchor) + div[data-testid="stHorizontalBlock"] {{
+    }
+    html.caprio-dark .finance-mode-note {
+        background:#131a24 !important;
+        border-color:#46566d !important;
+        color:#c8d4e6 !important;
+    }
+    @media (max-width: 768px) {
+        div[data-testid="stSegmentedControl"],
+        div[data-testid="stSegmentedControl"] [role="radiogroup"] {
             width: 100% !important;
-        }}
-    }}
+            max-width: 100% !important;
+        }
+    }
     </style>
-    <div class="finance-switch-caption">렌트 / 리스</div>
-    <div class="finance-switch-anchor"></div>
     """, unsafe_allow_html=True)
-    mode_col1, mode_col2 = st.columns([1, 1], gap="small")
-    with mode_col1:
-        if st.button("렌트", key="finance_mode_rent_btn", use_container_width=True):
-            set_finance_mode("rent")
-            st.rerun()
-    with mode_col2:
-        if st.button("리스", key="finance_mode_lease_btn", use_container_width=True):
-            set_finance_mode("lease")
-            st.rerun()
+
+    finance_choice = st.segmented_control(
+        "렌트 / 리스",
+        options=["렌트", "리스"],
+        key="finance_mode_segmented",
+        label_visibility="collapsed"
+    )
+    selected_finance_mode = "lease" if finance_choice == "리스" else "rent"
+    if selected_finance_mode != st.session_state.get("finance_mode", "rent"):
+        st.session_state.pending_finance_mode = selected_finance_mode
+        st.rerun()
 
     if st.session_state.get("finance_mode", "rent") == "lease":
-        st.markdown('<div class="lease-tax-option-note">리스 조건 추가 옵션 · 기본값: 자동차세 미포함</div>', unsafe_allow_html=True)
+        st.markdown('<div class="finance-mode-note">리스 조건 추가 옵션 · 기본값: 자동차세 미포함</div>', unsafe_allow_html=True)
         st.checkbox("리스 월이용료에 자동차세 포함", key="lease_tax_included")
 
     with st.form("quick_rent_edit_form"):
@@ -3530,6 +3512,7 @@ if selected_summary_views:
                 <tr><td class="font-bold">만기 차량 매각</td><td>-{car_sell_value:,} 원</td><td>-</td></tr>
                 <tr><td class="font-bold">-</td><td>-</td><td>-</td></tr>
                 """
+                ret_product_rows = textwrap.dedent(ret_product_rows).strip()
             else:
                 rent_total_cost_ret = (rent_monthly_pay * months) + rent_deposit
                 ret_product_rows = f"""
@@ -3539,6 +3522,7 @@ if selected_summary_views:
                 <tr><td class="font-bold">만기 차량 매각</td><td>-{car_sell_value:,} 원</td></tr>
                 <tr><td class="font-bold">-</td><td>-</td></tr>
                 """
+                ret_product_rows = textwrap.dedent(ret_product_rows).strip()
             diff_ret = inst_total_cost_ret - rent_total_cost_ret
             
             html_ret = f"""
@@ -3552,7 +3536,7 @@ if selected_summary_views:
                 <tr class="bg-light font-bold" style="background-color:#e9ecef;"><td>💰 총 투입 비용</td><td>{inst_total_cost_ret:,} 원</td><td>{rent_total_cost_ret:,} 원</td></tr>
             </table>
             """
-            st.markdown(html_ret, unsafe_allow_html=True)
+            st.markdown(textwrap.dedent(html_ret).strip(), unsafe_allow_html=True)
             
             if diff_ret > 0:
                 st.markdown(f'<div class="excel-green">🏆 {finance_product_label} 선택 시 할부 대비 {diff_ret:,}원 절감!</div>', unsafe_allow_html=True)
@@ -3575,6 +3559,7 @@ if selected_summary_views:
                 <tr><td class="font-bold">자동차세</td><td>{total_tax:,} 원</td><td>{lease_extra_tax_display}</td></tr>
                 <tr><td class="font-bold">보험료</td><td>{total_ins:,} 원</td><td>{total_ins:,} 원</td></tr>
                 """
+                ins_product_rows = textwrap.dedent(ins_product_rows).strip()
             else:
                 rent_total_cost_ins = (rent_monthly_pay * months) + rent_takeover_price + rent_takeover_tax + rent_deposit
                 ins_tax_row_value = f"{rent_takeover_tax:,} 원"
@@ -3583,6 +3568,7 @@ if selected_summary_views:
                 <tr><td class="font-bold">자동차세</td><td>{total_tax:,} 원</td></tr>
                 <tr><td class="font-bold">보험료</td><td>{total_ins:,} 원</td></tr>
                 """
+                ins_product_rows = textwrap.dedent(ins_product_rows).strip()
             diff_ins = inst_total_cost_ins - rent_total_cost_ins
 
             html_ins = f"""
@@ -3598,7 +3584,7 @@ if selected_summary_views:
                 <tr class="bg-light font-bold" style="background-color:#e9ecef;"><td>💰 총 투입 비용</td><td>{inst_total_cost_ins:,} 원</td><td>{rent_total_cost_ins:,} 원</td></tr>
             </table>
             """
-            st.markdown(html_ins, unsafe_allow_html=True)
+            st.markdown(textwrap.dedent(html_ins).strip(), unsafe_allow_html=True)
             
             if diff_ins > 0:
                 st.markdown(f'<div class="excel-green">🏆 {finance_product_label} 선택 시 할부 대비 {diff_ins:,}원 절감!</div>', unsafe_allow_html=True)
