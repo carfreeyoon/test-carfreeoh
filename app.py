@@ -3283,35 +3283,26 @@ if not IS_CLIENT_VIEW:
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="finance-mode-toolbar-anchor"></div>', unsafe_allow_html=True)
-    mode_cols = st.columns([0.36, 0.16, 0.34, 0.14], gap="small")
-    with mode_cols[0]:
-        st.markdown('<div class="finance-toolbar-title">🛠️ 렌트/리스 조건 빠른 수정</div>', unsafe_allow_html=True)
-    with mode_cols[1]:
-        st.markdown('<div class="finance-switch-button-anchor"></div>', unsafe_allow_html=True)
-        rent_btn_col, lease_btn_col = st.columns(2, gap="small")
-        with rent_btn_col:
-            if st.button("렌트", key="finance_mode_rent_btn", use_container_width=True):
-                set_finance_mode("rent")
-                st.rerun()
-        with lease_btn_col:
-            if st.button("리스", key="finance_mode_lease_btn", use_container_width=True):
-                set_finance_mode("lease")
-                st.rerun()
-    with mode_cols[2]:
-        if st.session_state.get("finance_mode", "rent") == "lease":
-            st.checkbox("리스 월이용료에 자동차세 포함", key="lease_tax_included")
-        else:
-            st.markdown('<div class="lease-tax-inline-empty"></div>', unsafe_allow_html=True)
-    with mode_cols[3]:
-        st.markdown('<div class="lease-tax-inline-empty"></div>', unsafe_allow_html=True)
-
-
     if isinstance(st.session_state.get("active_quote_data"), dict):
         st.session_state.active_quote_data["finance_mode"] = st.session_state.get("finance_mode", "rent")
         st.session_state.active_quote_data["lease_tax_included"] = bool(st.session_state.get("lease_tax_included", False))
 
     with st.form("quick_rent_edit_form"):
+
+        
+        finance_row1, finance_row2, finance_row3 = st.columns([0.18,0.18,0.64], gap="small")
+        with finance_row1:
+            if st.form_submit_button("렌트", use_container_width=True):
+                set_finance_mode("rent")
+                st.rerun()
+        with finance_row2:
+            if st.form_submit_button("리스", use_container_width=True):
+                set_finance_mode("lease")
+                st.rerun()
+        with finance_row3:
+            if st.session_state.get("finance_mode","rent")=="lease":
+                st.checkbox("리스 월이용료에 자동차세 포함", key="lease_tax_included")
+        st.markdown("<div style='height:6px;'></div>", unsafe_allow_html=True)
 
         quick_col1, quick_col2, quick_col3, quick_col4, quick_col5, quick_col6, quick_col7 = st.columns([1.18, 1.08, 0.88, 1.02, 0.62, 1.02, 0.72])
 
