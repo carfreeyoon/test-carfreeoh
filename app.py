@@ -3185,31 +3185,54 @@ if not IS_CLIENT_VIEW:
     html.caprio-dark .finance-toolbar-title {{ color: #f8fafc !important; }}
 
     .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] {{
-        gap: 6px !important;
-        margin: 0 !important;
-        padding: 0 !important;
         align-items: center !important;
-        max-width: 184px !important;
+        gap: 0 !important;
+        margin: 0 0 12px 0 !important;
+        padding: 0 !important;
     }}
     .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div {{
         padding: 0 !important;
         margin: 0 !important;
+        box-sizing: border-box !important;
+    }}
+    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1),
+    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) {{
+        max-width: 78px !important;
+        flex: 0 0 78px !important;
+    }}
+    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(3) {{
+        padding-left: 12px !important;
+    }}
+    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] {{
+        margin: 0 !important;
+        padding: 0 !important;
     }}
     .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button {{
-        height: 36px !important;
-        min-height: 36px !important;
-        padding: 0 18px !important;
-        border-radius: 999px !important;
-        font-size: 13px !important;
+        width: 78px !important;
+        height: 38px !important;
+        min-height: 38px !important;
+        padding: 0 !important;
+        border-radius: 0 !important;
+        font-size: 14px !important;
         font-weight: 950 !important;
         box-shadow: none !important;
         transition: background-color .12s ease, color .12s ease, border-color .12s ease, box-shadow .12s ease;
         white-space: nowrap !important;
+        line-height: 38px !important;
+    }}
+    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stButton"] button {{
+        border-top-left-radius: 999px !important;
+        border-bottom-left-radius: 999px !important;
+        border-right-width: 0 !important;
+    }}
+    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stButton"] button {{
+        border-top-right-radius: 999px !important;
+        border-bottom-right-radius: 999px !important;
     }}
     /* 비선택 기본 */
     .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button {{
         background: #f8fafc !important;
-        border: 1px solid #cbd5e1 !important;
+        border: 1px solid #b6c3d1 !important;
         color: #475569 !important;
         -webkit-text-fill-color: #475569 !important;
     }}
@@ -3278,7 +3301,8 @@ if not IS_CLIENT_VIEW:
         .finance-mode-toolbar-anchor + div[data-testid="stHorizontalBlock"] {{ display:block !important; }}
         .finance-toolbar-title {{ font-size:24px !important; margin-bottom:10px !important; white-space:normal !important; }}
         .finance-mode-toolbar-anchor + div[data-testid="stHorizontalBlock"] > div {{ width:100% !important; padding:0 !important; margin:0 0 7px 0 !important; }}
-        .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] {{ max-width: 190px !important; }}
+        .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1),
+        .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) { max-width: 78px !important; flex: 0 0 78px !important; }
     }}
     </style>
     """, unsafe_allow_html=True)
@@ -3289,8 +3313,8 @@ if not IS_CLIENT_VIEW:
 
     with st.form("quick_rent_edit_form"):
 
-        
-        finance_row1, finance_row2, finance_row3 = st.columns([0.18,0.18,0.64], gap="small")
+        st.markdown('<div class="finance-switch-button-anchor"></div>', unsafe_allow_html=True)
+        finance_row1, finance_row2, finance_row3 = st.columns([0.13, 0.13, 0.74], gap="small")
         with finance_row1:
             if st.form_submit_button("렌트", use_container_width=True):
                 set_finance_mode("rent")
