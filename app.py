@@ -2471,6 +2471,7 @@ if finance_mode not in ["rent", "lease"]:
 lease_tax_included = bool(shared_quote_data.get("lease_tax_included", st.session_state.get("lease_tax_included", False)))
 if not IS_CLIENT_VIEW:
     st.session_state.setdefault("finance_mode", finance_mode)
+    st.session_state.setdefault("finance_mode_choice", "리스" if st.session_state.get("finance_mode", finance_mode) == "lease" else "렌트")
     st.session_state.setdefault("lease_tax_included", lease_tax_included)
 
 visible_sections = normalize_visible_sections(shared_quote_data.get("visible_sections") if IS_CLIENT_VIEW else None)
@@ -2722,7 +2723,10 @@ if not IS_CLIENT_VIEW:
             st.session_state.loaded_share_query_value = share_query_value
             st.session_state.customer_name = str(loaded_share_data.get("customer_name", "") or "").strip()
             loaded_finance_mode = loaded_share_data.get("finance_mode", "rent")
-            st.session_state.finance_mode = loaded_finance_mode if loaded_finance_mode in ["rent", "lease"] else "rent"
+            loaded_finance_mode = loaded_finance_mode if loaded_finance_mode in ["rent", "lease"] else "rent"
+            st.session_state.finance_mode = loaded_finance_mode
+            st.session_state.finance_mode_choice = "리스" if loaded_finance_mode == "lease" else "렌트"
+            st.session_state.finance_mode_user_override = False
             st.session_state.lease_tax_included = bool(loaded_share_data.get("lease_tax_included", False))
             st.session_state.active_quote_data = {
                 "car_name": loaded_share_data.get("car_name", car_name),
@@ -2868,6 +2872,7 @@ if not IS_CLIENT_VIEW:
     # Streamlit의 session_state 위젯 잠금 오류가 발생하지 않는다.
     def apply_finance_mode_defaults(mode):
         st.session_state.finance_mode = mode
+        st.session_state.finance_mode_choice = "리스" if mode == "lease" else "렌트"
         if isinstance(st.session_state.get("active_quote_data"), dict):
             st.session_state.active_quote_data["finance_mode"] = mode
         st.session_state.share_compare = True
@@ -2959,11 +2964,18 @@ if not IS_CLIENT_VIEW:
     # ==========================================
     def set_finance_mode(mode):
         # share_compare_* / share_guide_* 는 이미 체크박스 위젯으로 렌더된 뒤에는
-        # 즉시 수정할 수 없으므로 pending 값만 남기고 rerun 초반에 적용한다.
+        # 즉시 수정할 수 없으므로 pending 값만 남기고 다음 rerun 초반에 적용한다.
+        mode = mode if mode in ["rent", "lease"] else "rent"
         st.session_state.finance_mode = mode
+        st.session_state.finance_mode_choice = "리스" if mode == "lease" else "렌트"
+        st.session_state.finance_mode_user_override = True
         st.session_state.pending_finance_mode = mode
         if isinstance(st.session_state.get("active_quote_data"), dict):
             st.session_state.active_quote_data["finance_mode"] = mode
+
+    def on_finance_mode_choice_change():
+        selected_label = st.session_state.get("finance_mode_choice", "렌트")
+        set_finance_mode("lease" if selected_label == "리스" else "rent")
 
     st.session_state.setdefault("finance_mode", finance_mode)
     st.session_state.setdefault("lease_tax_included", lease_tax_included)
@@ -3028,6 +3040,7 @@ if not IS_CLIENT_VIEW:
         st.session_state.quick_prepayment_value = pending_quick_edit.get("prepayment_value", st.session_state.get("quick_prepayment_value", f"{rent_deposit:,}" if rent_deposit else ""))
         if pending_quick_edit.get("finance_mode") in ["rent", "lease"]:
             st.session_state.finance_mode = pending_quick_edit.get("finance_mode")
+            st.session_state.finance_mode_choice = "리스" if st.session_state.finance_mode == "lease" else "렌트"
         if "lease_tax_included" in pending_quick_edit:
             st.session_state.lease_tax_included = bool(pending_quick_edit.get("lease_tax_included", False))
         st.session_state.quick_edit_applied = True
@@ -3131,55 +3144,80 @@ if not IS_CLIENT_VIEW:
     }}
     html.caprio-dark .finance-toolbar-title {{ color: #f8fafc !important; }}
 
-    .finance-pill-anchor + div[data-testid="stHorizontalBlock"] {{
-        display: inline-flex !important;
-        width: 154px !important;
-        height: 38px !important;
+    /* radio 1개 위젯을 캡슐형 segmented control처럼 보이게 처리 */
+    .finance-radio-anchor + div[data-testid="stRadio"] {{
+        width: 170px !important;
+        min-width: 170px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }}
+    .finance-radio-anchor + div[data-testid="stRadio"] > label {{ display:none !important; }}
+    .finance-radio-anchor + div[data-testid="stRadio"] div[role="radiogroup"] {{
+        display: flex !important;
+        flex-direction: row !important;
         gap: 0 !important;
+        width: 170px !important;
+        min-height: 38px !important;
         padding: 3px !important;
         border-radius: 999px !important;
         background: #f8fafc !important;
         border: 1px solid #cbd5e1 !important;
         box-sizing: border-box !important;
     }}
-    html.caprio-dark .finance-pill-anchor + div[data-testid="stHorizontalBlock"] {{
+    html.caprio-dark .finance-radio-anchor + div[data-testid="stRadio"] div[role="radiogroup"] {{
         background: #101826 !important;
         border-color: #46566d !important;
     }}
-    .finance-pill-anchor + div[data-testid="stHorizontalBlock"] > div {{
-        padding: 0 !important;
-        width: 50% !important;
-        min-width: 0 !important;
+    .finance-radio-anchor + div[data-testid="stRadio"] div[role="radiogroup"] label {{
         flex: 1 1 0 !important;
-    }}
-    .finance-pill-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] {{
-        height: 30px !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }}
-    .finance-pill-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button {{
-        width: 100% !important;
-        min-width: 0 !important;
         height: 30px !important;
         min-height: 30px !important;
+        margin: 0 !important;
         padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
         border-radius: 999px !important;
-        border: 0 !important;
-        background: transparent !important;
         color: #64748b !important;
         font-size: 13px !important;
         font-weight: 900 !important;
-        box-shadow: none !important;
+        line-height: 1 !important;
+        cursor: pointer !important;
+        transition: background-color .12s ease, color .12s ease, box-shadow .12s ease;
     }}
-    html.caprio-dark .finance-pill-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button {{
+    html.caprio-dark .finance-radio-anchor + div[data-testid="stRadio"] div[role="radiogroup"] label {{
         color: #9ca3af !important;
     }}
-    .finance-pill-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child({'1' if rent_active else '2'}) div[data-testid="stButton"] button {{
-        background: {'#16a34a' if rent_active else '#7c3aed'} !important;
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-        box-shadow: {'0 0 0 1px rgba(34,197,94,.35), 0 5px 14px rgba(22,163,74,.22)' if rent_active else '0 0 0 1px rgba(139,92,246,.38), 0 5px 14px rgba(124,58,237,.25)'} !important;
+    .finance-radio-anchor + div[data-testid="stRadio"] div[role="radiogroup"] label > div:first-child,
+    .finance-radio-anchor + div[data-testid="stRadio"] div[role="radiogroup"] label span:first-child,
+    .finance-radio-anchor + div[data-testid="stRadio"] div[role="radiogroup"] label svg {{
+        display: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }}
+    .finance-radio-anchor + div[data-testid="stRadio"] div[role="radiogroup"] label [data-testid="stMarkdownContainer"] p {{
+        margin: 0 !important;
+        font-size: 13px !important;
+        font-weight: 900 !important;
+        line-height: 1 !important;
+        color: inherit !important;
+        -webkit-text-fill-color: inherit !important;
+    }}
+    .finance-radio-anchor + div[data-testid="stRadio"] div[role="radiogroup"] label:nth-of-type(1):has(input:checked),
+    .finance-radio-anchor + div[data-testid="stRadio"] div[role="radiogroup"] label:nth-of-type(1)[aria-checked="true"] {{
+        background: #16a34a !important;
+        color: #ffffff !important;
+        box-shadow: 0 0 0 1px rgba(34,197,94,.35), 0 5px 14px rgba(22,163,74,.22) !important;
+    }}
+    .finance-radio-anchor + div[data-testid="stRadio"] div[role="radiogroup"] label:nth-of-type(2):has(input:checked),
+    .finance-radio-anchor + div[data-testid="stRadio"] div[role="radiogroup"] label:nth-of-type(2)[aria-checked="true"] {{
+        background: #7c3aed !important;
+        color: #ffffff !important;
+        box-shadow: 0 0 0 1px rgba(139,92,246,.38), 0 5px 14px rgba(124,58,237,.25) !important;
+    }}
+    .finance-radio-anchor + div[data-testid="stRadio"] input {{ display:none !important; }}
     .lease-tax-inline-empty {{ min-height: 38px; }}
     .finance-mode-toolbar-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stCheckbox"] label {{
         min-height: 38px !important;
@@ -3201,27 +3239,26 @@ if not IS_CLIENT_VIEW:
         .finance-mode-toolbar-anchor + div[data-testid="stHorizontalBlock"] {{ display:block !important; }}
         .finance-toolbar-title {{ font-size:24px !important; margin-bottom:10px !important; white-space:normal !important; }}
         .finance-mode-toolbar-anchor + div[data-testid="stHorizontalBlock"] > div {{ width:100% !important; padding:0 !important; margin:0 0 7px 0 !important; }}
+        .finance-radio-anchor + div[data-testid="stRadio"],
+        .finance-radio-anchor + div[data-testid="stRadio"] div[role="radiogroup"] {{ width: 170px !important; }}
     }}
     </style>
     """, unsafe_allow_html=True)
 
     st.markdown('<div class="finance-mode-toolbar-anchor"></div>', unsafe_allow_html=True)
-    mode_cols = st.columns([0.34, 0.14, 0.34, 0.18], gap="small")
+    mode_cols = st.columns([0.36, 0.13, 0.32, 0.19], gap="small")
     with mode_cols[0]:
         st.markdown('<div class="finance-toolbar-title">🛠️ 렌트/리스 조건 빠른 수정</div>', unsafe_allow_html=True)
     with mode_cols[1]:
-        st.markdown('<div class="finance-pill-anchor"></div>', unsafe_allow_html=True)
-        pill_cols = st.columns([1, 1], gap="small")
-        with pill_cols[0]:
-            if st.button("렌트", key="finance_rent_button", use_container_width=True):
-                if st.session_state.get("finance_mode", "rent") != "rent":
-                    set_finance_mode("rent")
-                    st.rerun()
-        with pill_cols[1]:
-            if st.button("리스", key="finance_lease_button", use_container_width=True):
-                if st.session_state.get("finance_mode", "rent") != "lease":
-                    set_finance_mode("lease")
-                    st.rerun()
+        st.markdown('<div class="finance-radio-anchor"></div>', unsafe_allow_html=True)
+        st.radio(
+            "렌트/리스",
+            ["렌트", "리스"],
+            key="finance_mode_choice",
+            horizontal=True,
+            label_visibility="collapsed",
+            on_change=on_finance_mode_choice_change,
+        )
     with mode_cols[2]:
         if st.session_state.get("finance_mode", "rent") == "lease":
             st.checkbox("리스 월이용료에 자동차세 포함", key="lease_tax_included")
