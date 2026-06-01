@@ -498,7 +498,7 @@ def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mile
                     if history_quick_edit.get("finance_mode") in ["rent", "lease"]:
                         st.session_state.pending_finance_mode = history_quick_edit.get("finance_mode")
                     if "lease_tax_included" in history_quick_edit:
-                        st.session_state.lease_tax_included = bool(history_quick_edit.get("lease_tax_included", False))
+                        st.session_state.pending_lease_tax_included = bool(history_quick_edit.get("lease_tax_included", False))
                     st.rerun()
             with history_col2:
                 components.html(
@@ -2759,6 +2759,9 @@ if not IS_CLIENT_VIEW:
     if "pending_visible_sections" not in st.session_state:
         st.session_state.pending_visible_sections = None
 
+    if "pending_lease_tax_included" not in st.session_state:
+        st.session_state.pending_lease_tax_included = None
+
     if "active_quote_data" not in st.session_state:
         st.session_state.active_quote_data = None
 
@@ -2945,6 +2948,11 @@ if not IS_CLIENT_VIEW:
     if pending_finance_mode in ["rent", "lease"]:
         apply_finance_mode_defaults(pending_finance_mode)
 
+    pending_lease_tax_included = st.session_state.pop("pending_lease_tax_included", None)
+    if pending_lease_tax_included is not None:
+        st.session_state.lease_tax_included = bool(pending_lease_tax_included)
+        if isinstance(st.session_state.get("active_quote_data"), dict):
+            st.session_state.active_quote_data["lease_tax_included"] = bool(pending_lease_tax_included)
 
     # 금융방식 섹션 선렌더링용 콜백/상태 보장
     st.session_state.setdefault("finance_mode", finance_mode)
@@ -3220,7 +3228,7 @@ if not IS_CLIENT_VIEW:
             # 불러오기 값은 pending으로 넘기고, 다음 rerun 초반(UI 렌더 전)에 반영합니다.
             st.session_state.pending_finance_mode = loaded_finance_mode
             st.session_state.finance_mode_user_override = False
-            st.session_state.lease_tax_included = bool(loaded_share_data.get("lease_tax_included", False))
+            st.session_state.pending_lease_tax_included = bool(loaded_share_data.get("lease_tax_included", False))
             st.session_state.active_quote_data = {
                 "car_name": loaded_share_data.get("car_name", car_name),
                 "car_option": loaded_share_data.get("car_option", car_option),
@@ -3432,7 +3440,7 @@ if not IS_CLIENT_VIEW:
             # 다음 rerun 초반에 pending_finance_mode를 통해 안전하게 동기화합니다.
             st.session_state.pending_finance_mode = st.session_state.finance_mode
         if "lease_tax_included" in pending_quick_edit:
-            st.session_state.lease_tax_included = bool(pending_quick_edit.get("lease_tax_included", False))
+            st.session_state.pending_lease_tax_included = bool(pending_quick_edit.get("lease_tax_included", False))
         st.session_state.quick_edit_applied = True
         st.session_state.pending_quick_edit = None
 
@@ -3809,7 +3817,7 @@ if int(installment_car_price or car_price) == int(finance_car_price or car_price
     car_price_display_html = f"{int(finance_car_price or car_price):,} 원"
 else:
     car_price_display_html = (
-        f'<div class="vehicle-price-split"><div><span style="color:#ef4444; font-weight:900;">할부</span> {int(installment_car_price):,} 원</div>'
+        f'<div class="vehicle-price-split"><div><span style="font-weight:900;">할부</span> {int(installment_car_price):,} 원</div>'
         f'<div><span style="font-weight:900;">렌트·리스</span> {int(finance_car_price):,} 원</div></div>'
     )
 
