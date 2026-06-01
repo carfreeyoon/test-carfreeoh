@@ -335,30 +335,6 @@ def render_share_section_selector(current_sections):
     .quick-rent-condition {
         margin-top: 4px !important;
     }
-
-    /* ===== 렌트/리스 active fill 버튼 ===== */
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) button{
-        background:#16a34a !important;
-        color:#fff !important;
-        border:1px solid #16a34a !important;
-        -webkit-text-fill-color:#fff !important;
-        font-weight:900 !important;
-    }
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) button{
-        background:#7c3aed !important;
-        color:#fff !important;
-        border:1px solid #7c3aed !important;
-        -webkit-text-fill-color:#fff !important;
-        font-weight:900 !important;
-    }
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover{
-        background:#15803d !important;
-        color:#fff !important;
-    }
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover{
-        background:#6d28d9 !important;
-        color:#fff !important;
-    }
 </style>
     """, unsafe_allow_html=True)
 
@@ -3138,14 +3114,7 @@ if not IS_CLIENT_VIEW:
 
     st.markdown("""
     <style>
-    .quick-rent-condition-title {
-        font-size: 26px;
-        font-weight: 900;
-        line-height: 1.2;
-        color: #0f172a;
-        margin: 18px 0 8px 0;
-        padding: 0;
-    }
+    .quick-rent-condition-title { font-size:22px; font-weight:800; line-height:1.25; color:inherit; margin:8px 0 6px 0; padding:0; }
     html.caprio-dark .quick-rent-condition-title {
         color: #f8fafc !important;
     }
@@ -3389,6 +3358,29 @@ if not IS_CLIENT_VIEW:
 
         
         st.markdown('<div class="finance-switch-button-anchor"></div>', unsafe_allow_html=True)
+
+        current_finance_mode = st.session_state.get("finance_mode","rent")
+        st.markdown(f"""
+        <style>
+        .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {{
+            border-radius:10px !important;
+            font-weight:900 !important;
+            border:1px solid #22c55e !important;
+            background: {"#16a34a" if current_finance_mode=="rent" else "#ffffff"} !important;
+            color: {"#ffffff" if current_finance_mode=="rent" else "#16a34a"} !important;
+            -webkit-text-fill-color: {"#ffffff" if current_finance_mode=="rent" else "#16a34a"} !important;
+        }}
+        .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {{
+            border-radius:10px !important;
+            font-weight:900 !important;
+            border:1px solid #7c3aed !important;
+            background: {"#7c3aed" if current_finance_mode=="lease" else "#ffffff"} !important;
+            color: {"#ffffff" if current_finance_mode=="lease" else "#7c3aed"} !important;
+            -webkit-text-fill-color: {"#ffffff" if current_finance_mode=="lease" else "#7c3aed"} !important;
+        }}
+        </style>
+        """, unsafe_allow_html=True)
+
         finance_row1, finance_row2, finance_row3 = st.columns([0.18,0.18,0.64], gap="small")
         with finance_row1:
             if st.form_submit_button("렌트", use_container_width=True):
@@ -3758,7 +3750,7 @@ if selected_summary_views:
             if finance_mode == "lease":
                 rent_total_cost_ret = (rent_monthly_pay * months) + rent_deposit + total_ins + lease_extra_tax_total
                 ret_product_rows = f"""
-                {"<tr><td class=\"font-bold\">취등록세</td><td>{reg_tax:,} 원</td><td rowspan=\"2\">월 리스료 포함</td></tr><tr><td class=\"font-bold\">자동차세</td><td>{total_tax:,} 원</td></tr>" if lease_tax_included else f"<tr><td class=\"font-bold\">취등록세</td><td>{reg_tax:,} 원</td><td>월 리스료 포함</td></tr><tr><td class=\"font-bold\">자동차세</td><td>{total_tax:,} 원</td><td>{lease_extra_tax_display}</td></tr>"}
+                {"<tr><td class='font-bold'>취등록세</td><td>"+format(reg_tax,",")+" 원</td><td rowspan='2' class='bg-light text-blue' style='vertical-align:middle;'>월 리스료 포함</td></tr><tr><td class='font-bold'>자동차세</td><td>"+format(total_tax,",")+" 원</td></tr>" if lease_tax_included else f"<tr><td class='font-bold'>취등록세</td><td>{reg_tax:,} 원</td><td>월 리스료 포함</td></tr><tr><td class='font-bold'>자동차세</td><td>{total_tax:,} 원</td><td>{lease_extra_tax_display}</td></tr>"}
                 <tr><td class="font-bold">보험료</td><td>{total_ins:,} 원</td><td>{total_ins:,} 원</td></tr>
                 <tr><td class="font-bold">만기 차량 매각</td><td>-{car_sell_value:,} 원</td><td>-</td></tr>
                 <tr><td class="font-bold">-</td><td>-</td><td>-</td></tr>
@@ -3806,7 +3798,7 @@ if selected_summary_views:
                 rent_total_cost_ins = (rent_monthly_pay * months) + rent_takeover_price + rent_takeover_tax + rent_deposit + total_ins + lease_extra_tax_total
                 ins_tax_row_value = f"{rent_takeover_tax:,} 원"
                 ins_product_rows = f"""
-                {"<tr><td class=\"font-bold\">취등록세</td><td>{reg_tax:,} 원</td><td rowspan=\"2\">월 리스료 포함</td></tr><tr><td class=\"font-bold\">자동차세</td><td>{total_tax:,} 원</td></tr>" if lease_tax_included else f"<tr><td class=\"font-bold\">취등록세</td><td>{reg_tax:,} 원</td><td>월 리스료 포함</td></tr><tr><td class=\"font-bold\">자동차세</td><td>{total_tax:,} 원</td><td>{lease_extra_tax_display}</td></tr>"}
+                {"<tr><td class='font-bold'>취등록세</td><td>"+format(reg_tax,",")+" 원</td><td rowspan='2' class='bg-light text-blue' style='vertical-align:middle;'>월 리스료 포함</td></tr><tr><td class='font-bold'>자동차세</td><td>"+format(total_tax,",")+" 원</td></tr>" if lease_tax_included else f"<tr><td class='font-bold'>취등록세</td><td>{reg_tax:,} 원</td><td>월 리스료 포함</td></tr><tr><td class='font-bold'>자동차세</td><td>{total_tax:,} 원</td><td>{lease_extra_tax_display}</td></tr>"}
                 <tr><td class="font-bold">보험료</td><td>{total_ins:,} 원</td><td>{total_ins:,} 원</td></tr>
                 """
                 ins_product_rows = textwrap.dedent(ins_product_rows).strip()
