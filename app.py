@@ -3993,8 +3993,8 @@ if selected_summary_views:
                 ret_product_rows = f"""
                 {"<tr><td class='font-bold'>취등록세</td><td>"+format(reg_tax,",")+" 원</td><td rowspan='2' class='bg-light text-blue' style='vertical-align:middle;'>월 리스료 포함</td></tr><tr><td class='font-bold'>자동차세</td><td>"+format(total_tax,",")+" 원</td></tr>" if lease_tax_included else f"<tr><td class='font-bold'>취등록세</td><td>{reg_tax:,} 원</td><td>월 리스료 포함</td></tr><tr><td class='font-bold'>자동차세</td><td>{total_tax:,} 원</td><td>{lease_extra_tax_display}</td></tr>"}
                 <tr><td class="font-bold">보험료</td><td>{total_ins:,} 원</td><td>{total_ins:,} 원</td></tr>
-                <tr class="maturity-section-start"><td class="maturity-sale-label">만기 차량 매각</td><td class="maturity-sale-value">-{car_sell_value:,} 원</td><td rowspan="2" class="bg-light text-blue" style="vertical-align:middle;">반납 처리</td></tr>
-                <tr><td class="font-bold">-</td><td>-</td></tr>
+                <tr class="maturity-section-start"><td class="maturity-sale-label">만기 차량 매각</td><td class="maturity-sale-value">-{car_sell_value:,} 원</td><td>-</td></tr>
+                <tr><td class="font-bold">-</td><td>-</td><td>-</td></tr>
                 """
                 ret_product_rows = textwrap.dedent(ret_product_rows).strip()
             else:
@@ -4003,8 +4003,8 @@ if selected_summary_views:
                 <tr><td class="font-bold">취등록세</td><td>{reg_tax:,} 원</td><td rowspan="3" class="bg-light text-blue" style="vertical-align:middle;">월 렌트료<br>포함</td></tr>
                 <tr><td class="font-bold">자동차세</td><td>{total_tax:,} 원</td></tr>
                 <tr><td class="font-bold">보험료</td><td>{total_ins:,} 원</td></tr>
-                <tr class="maturity-section-start"><td class="maturity-sale-label">만기 차량 매각</td><td class="maturity-sale-value">-{car_sell_value:,} 원</td><td rowspan="2" class="bg-light text-blue" style="vertical-align:middle;">반납 처리</td></tr>
-                <tr><td class="font-bold">-</td><td>-</td></tr>
+                <tr class="maturity-section-start"><td class="maturity-sale-label">만기 차량 매각</td><td class="maturity-sale-value">-{car_sell_value:,} 원</td><td>-</td></tr>
+                <tr><td class="font-bold">-</td><td>-</td><td>-</td></tr>
                 """
                 ret_product_rows = textwrap.dedent(ret_product_rows).strip()
             diff_ret = inst_total_cost_ret - rent_total_cost_ret
@@ -4061,8 +4061,7 @@ if selected_summary_views:
                 <tr><td class="font-bold">(월)납입금<br><span style="color:red; font-size:10px; display:block; margin-top:-2px; line-height:1;">(선납금 제외)</span></td><td>{inst_monthly_pay:,} 원</td><td>{rent_monthly_pay:,} 원</td></tr>
                 <tr><td class="font-bold">할부이자</td><td>{installment_interest:,} 원</td><td>-</td></tr>
                 {ins_product_rows}
-                <tr class="maturity-section-header"><td colspan="3">인수 처리</td></tr>
-                <tr><td class="font-bold">만기 인수금</td><td>-</td><td>{rent_takeover_price:,} 원</td></tr>
+                <tr class="maturity-section-start"><td class="font-bold">만기 인수금</td><td>-</td><td>{rent_takeover_price:,} 원</td></tr>
                 <tr><td class="font-bold">인수 시 취등록세</td><td>-</td><td>{ins_tax_row_value}</td></tr>
                 <tr class="bg-light font-bold"><td>📊 월 평균 환산 비용</td><td>{int(inst_total_cost_ins/months):,} 원</td><td>{int(rent_total_cost_ins/months):,} 원</td></tr>
                 <tr class="bg-light font-bold" style="background-color:#e9ecef;"><td>💰 총 투입 비용</td><td>{inst_total_cost_ins:,} 원</td><td>{rent_total_cost_ins:,} 원</td></tr>
