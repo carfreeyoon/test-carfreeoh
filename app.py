@@ -335,6 +335,30 @@ def render_share_section_selector(current_sections):
     .quick-rent-condition {
         margin-top: 4px !important;
     }
+
+    /* ===== 렌트/리스 active fill 버튼 ===== */
+    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) button{
+        background:#16a34a !important;
+        color:#fff !important;
+        border:1px solid #16a34a !important;
+        -webkit-text-fill-color:#fff !important;
+        font-weight:900 !important;
+    }
+    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) button{
+        background:#7c3aed !important;
+        color:#fff !important;
+        border:1px solid #7c3aed !important;
+        -webkit-text-fill-color:#fff !important;
+        font-weight:900 !important;
+    }
+    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover{
+        background:#15803d !important;
+        color:#fff !important;
+    }
+    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover{
+        background:#6d28d9 !important;
+        color:#fff !important;
+    }
 </style>
     """, unsafe_allow_html=True)
 
@@ -3734,8 +3758,7 @@ if selected_summary_views:
             if finance_mode == "lease":
                 rent_total_cost_ret = (rent_monthly_pay * months) + rent_deposit + total_ins + lease_extra_tax_total
                 ret_product_rows = f"""
-                <tr><td class="font-bold">취등록세</td><td>{reg_tax:,} 원</td><td>월 리스료 포함</td></tr>
-                <tr><td class="font-bold">자동차세</td><td>{total_tax:,} 원</td><td>{lease_extra_tax_display}</td></tr>
+                {"<tr><td class=\"font-bold\">취등록세</td><td>{reg_tax:,} 원</td><td rowspan=\"2\">월 리스료 포함</td></tr><tr><td class=\"font-bold\">자동차세</td><td>{total_tax:,} 원</td></tr>" if lease_tax_included else f"<tr><td class=\"font-bold\">취등록세</td><td>{reg_tax:,} 원</td><td>월 리스료 포함</td></tr><tr><td class=\"font-bold\">자동차세</td><td>{total_tax:,} 원</td><td>{lease_extra_tax_display}</td></tr>"}
                 <tr><td class="font-bold">보험료</td><td>{total_ins:,} 원</td><td>{total_ins:,} 원</td></tr>
                 <tr><td class="font-bold">만기 차량 매각</td><td>-{car_sell_value:,} 원</td><td>-</td></tr>
                 <tr><td class="font-bold">-</td><td>-</td><td>-</td></tr>
@@ -3783,8 +3806,7 @@ if selected_summary_views:
                 rent_total_cost_ins = (rent_monthly_pay * months) + rent_takeover_price + rent_takeover_tax + rent_deposit + total_ins + lease_extra_tax_total
                 ins_tax_row_value = f"{rent_takeover_tax:,} 원"
                 ins_product_rows = f"""
-                <tr><td class="font-bold">취등록세</td><td>{reg_tax:,} 원</td><td>월 리스료 포함</td></tr>
-                <tr><td class="font-bold">자동차세</td><td>{total_tax:,} 원</td><td>{lease_extra_tax_display}</td></tr>
+                {"<tr><td class=\"font-bold\">취등록세</td><td>{reg_tax:,} 원</td><td rowspan=\"2\">월 리스료 포함</td></tr><tr><td class=\"font-bold\">자동차세</td><td>{total_tax:,} 원</td></tr>" if lease_tax_included else f"<tr><td class=\"font-bold\">취등록세</td><td>{reg_tax:,} 원</td><td>월 리스료 포함</td></tr><tr><td class=\"font-bold\">자동차세</td><td>{total_tax:,} 원</td><td>{lease_extra_tax_display}</td></tr>"}
                 <tr><td class="font-bold">보험료</td><td>{total_ins:,} 원</td><td>{total_ins:,} 원</td></tr>
                 """
                 ins_product_rows = textwrap.dedent(ins_product_rows).strip()
