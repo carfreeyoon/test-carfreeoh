@@ -1120,7 +1120,11 @@ st.markdown("""
     }
 
 
-    .maturity-sale-label,
+    .maturity-sale-label {
+        color: #ef4444 !important;
+        font-weight: 800 !important;
+    }
+
     .maturity-sale-value {
         color: #ef4444 !important;
         font-weight: 400 !important;
@@ -1138,7 +1142,11 @@ st.markdown("""
         text-align: center !important;
     }
 
-    html.caprio-dark .maturity-sale-label,
+    html.caprio-dark .maturity-sale-label {
+        color: #ff7777 !important;
+        font-weight: 800 !important;
+    }
+
     html.caprio-dark .maturity-sale-value {
         color: #ff7777 !important;
         font-weight: 400 !important;
