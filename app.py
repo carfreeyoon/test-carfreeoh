@@ -2447,11 +2447,21 @@ customer_name = str(shared_quote_data.get("customer_name", st.session_state.get(
 if not IS_CLIENT_VIEW:
     st.session_state.setdefault("customer_name", customer_name)
 
+finance_mode = str(shared_quote_data.get("finance_mode", st.session_state.get("finance_mode", "rent")) or "rent")
+if finance_mode not in ["rent", "lease"]:
+    finance_mode = "rent"
+lease_tax_included = bool(shared_quote_data.get("lease_tax_included", st.session_state.get("lease_tax_included", False)))
+if not IS_CLIENT_VIEW:
+    st.session_state.setdefault("finance_mode", finance_mode)
+    st.session_state.setdefault("lease_tax_included", lease_tax_included)
+
 visible_sections = normalize_visible_sections(shared_quote_data.get("visible_sections") if IS_CLIENT_VIEW else None)
 
 def make_share_url():
     share_data = {
         "customer_name": str(st.session_state.get("customer_name", customer_name) or "").strip(),
+        "finance_mode": st.session_state.get("finance_mode", finance_mode) if not IS_CLIENT_VIEW else finance_mode,
+        "lease_tax_included": bool(st.session_state.get("lease_tax_included", lease_tax_included)) if not IS_CLIENT_VIEW else bool(lease_tax_included),
         "car_name": car_name,
         "car_option": car_option,
         "car_price": car_price,
@@ -2770,6 +2780,8 @@ if not IS_CLIENT_VIEW:
             "passenger_count": passenger_count,
             "car_shape": car_shape,
             "rent_resale_pct": rent_resale_pct,
+            "finance_mode": st.session_state.get("finance_mode", finance_mode),
+            "lease_tax_included": bool(st.session_state.get("lease_tax_included", lease_tax_included)),
         }
         st.session_state.active_quote_raw = pre_raw_data
     elif st.session_state.active_quote_data:
@@ -2890,8 +2902,32 @@ if not IS_CLIENT_VIEW:
         st.session_state.active_quote_raw = raw_data
 
     # ==========================================
-    # [렌트 조건 빠른 수정]
+    # [렌트/리스 조건 빠른 수정]
     # ==========================================
+    def set_finance_mode(mode):
+        st.session_state.finance_mode = mode
+        if mode == "rent":
+            st.session_state.share_compare = True
+            st.session_state.share_compare_installment = True
+            st.session_state.share_compare_rent = True
+            st.session_state.share_compare_lease = False
+            st.session_state.share_guide = True
+            st.session_state.share_guide_installment = True
+            st.session_state.share_guide_rent = True
+            st.session_state.share_guide_lease = False
+        else:
+            st.session_state.share_compare = True
+            st.session_state.share_compare_installment = True
+            st.session_state.share_compare_rent = False
+            st.session_state.share_compare_lease = True
+            st.session_state.share_guide = True
+            st.session_state.share_guide_installment = True
+            st.session_state.share_guide_rent = False
+            st.session_state.share_guide_lease = True
+
+    st.session_state.setdefault("finance_mode", finance_mode)
+    st.session_state.setdefault("lease_tax_included", lease_tax_included)
+
     quick_edit_source_signature = raw_data.strip() if raw_data.strip() else f"{car_name}|{car_price}|{months}|{mileage}|{rent_monthly_pay}|{rent_resale_pct}|{rent_deposit}"
 
     def quick_money_to_int(value):
@@ -3002,11 +3038,42 @@ if not IS_CLIENT_VIEW:
     html.caprio-dark .quick-prepayment-helper {
         color: #ff8da1 !important;
     }
+    .finance-mode-switch-wrap { display:flex; align-items:center; gap:8px; margin:0 0 12px 0; }
+    .finance-mode-label { font-size:13px; font-weight:900; color:#64748b; white-space:nowrap; }
+    .finance-mode-label.active { color:#0b5ed7; }
+    html.caprio-dark .finance-mode-label { color:#9fb0c8 !important; }
+    html.caprio-dark .finance-mode-label.active { color:#9ec5ff !important; }
+    .lease-tax-option-wrap { margin:-2px 0 12px 0; padding:9px 12px; border:1px solid #b8c6d9; border-radius:10px; background:#f8fafc; }
+    html.caprio-dark .lease-tax-option-wrap { background:#131a24 !important; border-color:#46566d !important; }
+    @media (max-width:768px) { .finance-mode-switch-wrap { margin-bottom:10px; } .lease-tax-option-wrap { margin-bottom:10px; } }
     </style>
     """, unsafe_allow_html=True)
 
+    st.markdown("#### 🛠️ 렌트/리스 조건 빠른 수정")
+    switch_label_left = "active" if st.session_state.get("finance_mode", "rent") == "rent" else ""
+    switch_label_right = "active" if st.session_state.get("finance_mode", "rent") == "lease" else ""
+    st.markdown(f"""
+    <div class="finance-mode-switch-wrap">
+        <span class="finance-mode-label {switch_label_left}">렌트</span>
+        <span class="finance-mode-label {switch_label_right}">리스</span>
+    </div>
+    """, unsafe_allow_html=True)
+    mode_col1, mode_col2, mode_spacer = st.columns([0.64, 0.64, 5.0], gap="small")
+    with mode_col1:
+        if st.button("렌트", key="finance_mode_rent_btn", use_container_width=True):
+            set_finance_mode("rent")
+            st.rerun()
+    with mode_col2:
+        if st.button("리스", key="finance_mode_lease_btn", use_container_width=True):
+            set_finance_mode("lease")
+            st.rerun()
+
+    if st.session_state.get("finance_mode", "rent") == "lease":
+        st.markdown('<div class="lease-tax-option-wrap">', unsafe_allow_html=True)
+        st.checkbox("리스 월이용료에 자동차세 포함", key="lease_tax_included")
+        st.markdown('</div>', unsafe_allow_html=True)
+
     with st.form("quick_rent_edit_form"):
-        st.markdown("#### 🛠️ 렌트 조건 빠른 수정")
 
         quick_col1, quick_col2, quick_col3, quick_col4, quick_col5, quick_col6, quick_col7 = st.columns([1.18, 1.08, 0.88, 1.02, 0.62, 1.02, 0.72])
 
@@ -3183,6 +3250,12 @@ else:
 
 rent_takeover_tax = max(0, int(rent_takeover_tax_raw))
 
+finance_mode = st.session_state.get("finance_mode", finance_mode) if not IS_CLIENT_VIEW else finance_mode
+lease_tax_included = bool(st.session_state.get("lease_tax_included", lease_tax_included)) if not IS_CLIENT_VIEW else bool(lease_tax_included)
+finance_product_label = "리스" if finance_mode == "lease" else "장기렌트"
+lease_extra_tax_total = 0 if lease_tax_included else total_tax
+lease_extra_tax_display = "월 리스료 포함" if lease_tax_included else f"{total_tax:,} 원"
+
 resale_24_1 = "td-highlight" if mileage == "1만KM" and months == 24 else ""
 resale_36_1 = "td-highlight" if mileage == "1만KM" and months == 36 else ""
 resale_48_1 = "td-highlight" if mileage == "1만KM" and months == 48 else ""
@@ -3245,7 +3318,7 @@ def render_customer_outro_card():
     st.markdown("""
     <div class="common-info-box customer-message-box">
         <div style="font-size:15px; font-weight:bold; margin-bottom:9px; line-height:1.45; color:#0b3873;">
-            혼자 비교하기 복잡하다면<br>
+            혼자 비교하기 복잡했다면<br>
             언제든 카프리오에 물어보세요 🙂
         </div>
         <div style="font-size:13px; line-height:1.6; color:#333333;">
@@ -3352,20 +3425,33 @@ if selected_summary_views:
             st.markdown('<div class="excel-header-blue">카프리오 비교 프로그램 (반납형)</div>', unsafe_allow_html=True)
             
             inst_total_cost_ret = installment_prepaid + (inst_monthly_pay * months) + installment_interest + reg_tax + total_tax + total_ins - car_sell_value
-            rent_total_cost_ret = (rent_monthly_pay * months) + rent_deposit
-            diff_ret = inst_total_cost_ret - rent_total_cost_ret
-            
-            html_ret = f"""
-            <table class="pure-table">
-                <tr><th style="width:34%;">세부 항목</th><th style="width:33%;">일반 할부</th><th style="width:33%;">장기렌트(반납형)</th></tr>
-                <tr><td class="font-bold">선납금</td><td>{installment_prepaid:,} 원</td><td>{rent_deposit:,} 원</td></tr>
-                <tr><td class="font-bold">(월)납입금<br><span style="color:red; font-size:10px; display:block; margin-top:-2px; line-height:1;">(선납금 제외)</span></td><td>{inst_monthly_pay:,} 원</td><td>{rent_monthly_pay:,} 원</td></tr>
-                <tr><td class="font-bold">할부이자</td><td>{installment_interest:,} 원</td><td>-</td></tr>
+            if finance_mode == "lease":
+                rent_total_cost_ret = (rent_monthly_pay * months) + rent_deposit + total_ins + lease_extra_tax_total
+                ret_product_rows = f"""
+                <tr><td class="font-bold">취등록세</td><td>{reg_tax:,} 원</td><td>월 리스료 포함</td></tr>
+                <tr><td class="font-bold">자동차세</td><td>{total_tax:,} 원</td><td>{lease_extra_tax_display}</td></tr>
+                <tr><td class="font-bold">보험료</td><td>{total_ins:,} 원</td><td>{total_ins:,} 원</td></tr>
+                <tr><td class="font-bold">만기 차량 매각</td><td>-{car_sell_value:,} 원</td><td>-</td></tr>
+                <tr><td class="font-bold">-</td><td>-</td><td>-</td></tr>
+                """
+            else:
+                rent_total_cost_ret = (rent_monthly_pay * months) + rent_deposit
+                ret_product_rows = f"""
                 <tr><td class="font-bold">취등록세</td><td>{reg_tax:,} 원</td><td rowspan="5" class="bg-light text-blue" style="vertical-align:middle;">월 렌트료에<br>전부 포함</td></tr>
                 <tr><td class="font-bold">자동차세</td><td>{total_tax:,} 원</td></tr>
                 <tr><td class="font-bold">보험료</td><td>{total_ins:,} 원</td></tr>
                 <tr><td class="font-bold">만기 차량 매각</td><td>-{car_sell_value:,} 원</td></tr>
                 <tr><td class="font-bold">-</td><td>-</td></tr>
+                """
+            diff_ret = inst_total_cost_ret - rent_total_cost_ret
+            
+            html_ret = f"""
+            <table class="pure-table">
+                <tr><th style="width:34%;">세부 항목</th><th style="width:33%;">일반 할부</th><th style="width:33%;">{finance_product_label}(반납형)</th></tr>
+                <tr><td class="font-bold">선납금</td><td>{installment_prepaid:,} 원</td><td>{rent_deposit:,} 원</td></tr>
+                <tr><td class="font-bold">(월)납입금<br><span style="color:red; font-size:10px; display:block; margin-top:-2px; line-height:1;">(선납금 제외)</span></td><td>{inst_monthly_pay:,} 원</td><td>{rent_monthly_pay:,} 원</td></tr>
+                <tr><td class="font-bold">할부이자</td><td>{installment_interest:,} 원</td><td>-</td></tr>
+                {ret_product_rows}
                 <tr class="bg-light font-bold"><td>📊 월 평균 환산 비용</td><td>{int(inst_total_cost_ret/months):,} 원</td><td>{int(rent_total_cost_ret/months):,} 원</td></tr>
                 <tr class="bg-light font-bold" style="background-color:#e9ecef;"><td>💰 총 투입 비용</td><td>{inst_total_cost_ret:,} 원</td><td>{rent_total_cost_ret:,} 원</td></tr>
             </table>
@@ -3373,7 +3459,7 @@ if selected_summary_views:
             st.markdown(html_ret, unsafe_allow_html=True)
             
             if diff_ret > 0:
-                st.markdown(f'<div class="excel-green">🏆 장기렌트 선택 시 할부 대비 {diff_ret:,}원 절감!</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="excel-green">🏆 {finance_product_label} 선택 시 할부 대비 {diff_ret:,}원 절감!</div>', unsafe_allow_html=True)
             else:
                 st.markdown(f'<div class="excel-red">할부 이용이 {abs(diff_ret):,}원 더 유리합니다.</div>', unsafe_allow_html=True)
 
@@ -3385,20 +3471,33 @@ if selected_summary_views:
             st.markdown('<div class="excel-header-blue">카프리오 비교 프로그램 (인수형)</div>', unsafe_allow_html=True)
             
             inst_total_cost_ins = installment_prepaid + (inst_monthly_pay * months) + installment_interest + reg_tax + total_tax + total_ins
-            rent_total_cost_ins = (rent_monthly_pay * months) + rent_takeover_price + rent_takeover_tax + rent_deposit
+            if finance_mode == "lease":
+                rent_total_cost_ins = (rent_monthly_pay * months) + rent_takeover_price + rent_deposit + total_ins + lease_extra_tax_total
+                ins_tax_row_value = "월 리스료 포함"
+                ins_product_rows = f"""
+                <tr><td class="font-bold">취등록세</td><td>{reg_tax:,} 원</td><td>월 리스료 포함</td></tr>
+                <tr><td class="font-bold">자동차세</td><td>{total_tax:,} 원</td><td>{lease_extra_tax_display}</td></tr>
+                <tr><td class="font-bold">보험료</td><td>{total_ins:,} 원</td><td>{total_ins:,} 원</td></tr>
+                """
+            else:
+                rent_total_cost_ins = (rent_monthly_pay * months) + rent_takeover_price + rent_takeover_tax + rent_deposit
+                ins_tax_row_value = f"{rent_takeover_tax:,} 원"
+                ins_product_rows = f"""
+                <tr><td class="font-bold">취등록세</td><td>{reg_tax:,} 원</td><td rowspan="3" class="bg-light text-blue" style="vertical-align:middle;">월 렌트료에<br>전부 포함</td></tr>
+                <tr><td class="font-bold">자동차세</td><td>{total_tax:,} 원</td></tr>
+                <tr><td class="font-bold">보험료</td><td>{total_ins:,} 원</td></tr>
+                """
             diff_ins = inst_total_cost_ins - rent_total_cost_ins
 
             html_ins = f"""
             <table class="pure-table">
-                <tr><th style="width:34%;">세부 항목</th><th style="width:33%;">일반 할부</th><th style="width:33%;">장기렌트(인수형)</th></tr>
+                <tr><th style="width:34%;">세부 항목</th><th style="width:33%;">일반 할부</th><th style="width:33%;">{finance_product_label}(인수형)</th></tr>
                 <tr><td class="font-bold">선납금</td><td>{installment_prepaid:,} 원</td><td>{rent_deposit:,} 원</td></tr>
                 <tr><td class="font-bold">(월)납입금<br><span style="color:red; font-size:10px; display:block; margin-top:-2px; line-height:1;">(선납금 제외)</span></td><td>{inst_monthly_pay:,} 원</td><td>{rent_monthly_pay:,} 원</td></tr>
                 <tr><td class="font-bold">할부이자</td><td>{installment_interest:,} 원</td><td>-</td></tr>
-                <tr><td class="font-bold">취등록세</td><td>{reg_tax:,} 원</td><td rowspan="3" class="bg-light text-blue" style="vertical-align:middle;">월 렌트료에<br>전부 포함</td></tr>
-                <tr><td class="font-bold">자동차세</td><td>{total_tax:,} 원</td></tr>
-                <tr><td class="font-bold">보험료</td><td>{total_ins:,} 원</td></tr>
+                {ins_product_rows}
                 <tr><td class="font-bold">만기 인수금</td><td>-</td><td>{rent_takeover_price:,} 원</td></tr>
-                <tr><td class="font-bold">인수 시 취등록세</td><td>-</td><td>{rent_takeover_tax:,} 원</td></tr>
+                <tr><td class="font-bold">인수 시 취등록세</td><td>-</td><td>{ins_tax_row_value}</td></tr>
                 <tr class="bg-light font-bold"><td>📊 월 평균 환산 비용</td><td>{int(inst_total_cost_ins/months):,} 원</td><td>{int(rent_total_cost_ins/months):,} 원</td></tr>
                 <tr class="bg-light font-bold" style="background-color:#e9ecef;"><td>💰 총 투입 비용</td><td>{inst_total_cost_ins:,} 원</td><td>{rent_total_cost_ins:,} 원</td></tr>
             </table>
@@ -3406,7 +3505,7 @@ if selected_summary_views:
             st.markdown(html_ins, unsafe_allow_html=True)
             
             if diff_ins > 0:
-                st.markdown(f'<div class="excel-green">🏆 장기렌트 선택 시 할부 대비 {diff_ins:,}원 절감!</div>', unsafe_allow_html=True)
+                st.markdown(f'<div class="excel-green">🏆 {finance_product_label} 선택 시 할부 대비 {diff_ins:,}원 절감!</div>', unsafe_allow_html=True)
             else:
                 st.markdown(f'<div class="excel-red">할부 인수가 총 {abs(diff_ins):,}원 더 유리합니다.</div>', unsafe_allow_html=True)
 
