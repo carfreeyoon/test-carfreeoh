@@ -3164,20 +3164,20 @@ if not IS_CLIENT_VIEW:
     # [TOP MAIN] 고객 공유 URL 불러오기
     # ==========================================
     st.markdown("#### 🔗 고객 공유 URL 불러오기")
-    share_url_input = st.text_area(
-        "고객 공유 URL 불러오기",
-        placeholder="고객 공유 링크를 붙여넣고 Ctrl+Enter를 누르세요.",
-        height=68,
-        key="share_url_input",
-        label_visibility="collapsed"
-    )
+    with st.form("share_url_load_form", clear_on_submit=False):
+        share_url_input = st.text_area(
+            "고객 공유 URL 불러오기",
+            placeholder="고객 공유 링크를 붙여넣고 Ctrl+Enter를 누르세요.",
+            height=68,
+            key="share_url_input",
+            label_visibility="collapsed"
+        )
+        share_url_submitted = st.form_submit_button("불러오기", use_container_width=True)
 
     share_query_value = extract_share_query_value(share_url_input)
-    has_local_quote_context = bool(str(st.session_state.get("raw_quote_input", "") or "").strip()) or bool(str(st.session_state.get("active_quote_raw", "") or "").strip())
-    should_load_share_url = bool(share_query_value) and (
-        share_query_value != st.session_state.get("loaded_share_query_value")
-        or has_local_quote_context
-    )
+    # 사용자가 Ctrl+Enter/불러오기 버튼으로 명시 실행한 경우에만 불러온다.
+    # 같은 URL이어도 직접 실행이면 현재 수정값을 버리고 저장된 URL 데이터로 강제 덮어쓴다.
+    should_load_share_url = bool(share_query_value) and bool(share_url_submitted)
     if should_load_share_url:
         loaded_share_data = decode_share_data(share_query_value)
         if loaded_share_data:
