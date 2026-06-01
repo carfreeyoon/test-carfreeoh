@@ -2764,82 +2764,6 @@ if not IS_CLIENT_VIEW:
         st.session_state.setdefault(f"share_{section_key}", section_value)
 
     # ==========================================
-    # [TOP MAIN] 고객 공유 URL 불러오기
-    # ==========================================
-    st.markdown("#### 🔗 고객 공유 URL 불러오기")
-    share_url_input = st.text_area(
-        "고객 공유 URL 불러오기",
-        placeholder="고객 공유 링크를 붙여넣고 Ctrl+Enter를 누르세요.",
-        height=68,
-        key="share_url_input",
-        label_visibility="collapsed"
-    )
-
-    share_query_value = extract_share_query_value(share_url_input)
-    if share_query_value and share_query_value != st.session_state.get("loaded_share_query_value"):
-        loaded_share_data = decode_share_data(share_query_value)
-        if loaded_share_data:
-            st.session_state.loaded_share_data = loaded_share_data
-            st.session_state.loaded_share_query_value = share_query_value
-            st.session_state.customer_name = str(loaded_share_data.get("customer_name", "") or "").strip()
-            loaded_finance_mode = loaded_share_data.get("finance_mode", "rent")
-            loaded_finance_mode = loaded_finance_mode if loaded_finance_mode in ["rent", "lease"] else "rent"
-            st.session_state.finance_mode = loaded_finance_mode
-            st.session_state.finance_mode_choice = "리스" if loaded_finance_mode == "lease" else "렌트"
-            st.session_state.finance_mode_user_override = False
-            st.session_state.lease_tax_included = bool(loaded_share_data.get("lease_tax_included", False))
-            st.session_state.active_quote_data = {
-                "car_name": loaded_share_data.get("car_name", car_name),
-                "car_option": loaded_share_data.get("car_option", car_option),
-                "car_price": int(loaded_share_data.get("car_price", car_price)),
-                "months": int(loaded_share_data.get("months", months)),
-                "mileage": loaded_share_data.get("mileage", mileage),
-                "rent_monthly_pay": int(loaded_share_data.get("rent_monthly_pay", rent_monthly_pay)),
-                "rent_deposit": int(loaded_share_data.get("rent_deposit", rent_deposit)),
-                "cc_text": loaded_share_data.get("cc_text", cc_text),
-                "cc_raw_text": loaded_share_data.get("cc_raw_text", cc_raw_text),
-                "fuel_text": loaded_share_data.get("fuel_text", fuel_text),
-                "passenger_count": int(loaded_share_data.get("passenger_count", passenger_count)),
-                "car_shape": loaded_share_data.get("car_shape", car_shape),
-                "rent_resale_pct": float(loaded_share_data.get("rent_resale_pct", rent_resale_pct)),
-                "finance_mode": loaded_share_data.get("finance_mode", "rent"),
-                "lease_tax_included": bool(loaded_share_data.get("lease_tax_included", False)),
-            }
-            st.session_state.active_quote_raw = ""
-            st.session_state.raw_quote_input = ""
-            st.session_state.pending_quick_edit = {
-                "rent_monthly_pay": int(loaded_share_data.get("rent_monthly_pay", rent_monthly_pay)),
-                "rent_resale_pct": float(loaded_share_data.get("rent_resale_pct", rent_resale_pct)),
-                "months": int(loaded_share_data.get("months", months)),
-                "mileage": loaded_share_data.get("mileage", mileage),
-                "rent_deposit": int(loaded_share_data.get("rent_deposit", rent_deposit)),
-                "prepayment_mode": "원" if int(loaded_share_data.get("rent_deposit", rent_deposit)) else "%",
-                "prepayment_value": f"{int(loaded_share_data.get('rent_deposit', rent_deposit)):,}" if int(loaded_share_data.get("rent_deposit", rent_deposit)) else "",
-                "finance_mode": loaded_share_data.get("finance_mode", "rent"),
-                "lease_tax_included": bool(loaded_share_data.get("lease_tax_included", False)),
-            }
-            loaded_visible_sections = normalize_visible_sections(loaded_share_data.get("visible_sections"))
-            apply_visible_sections_to_state(loaded_visible_sections)
-            st.session_state.pending_visible_sections = loaded_visible_sections
-            st.success("공유 견적을 불러왔습니다.")
-            st.rerun()
-        else:
-            st.warning("유효한 고객 공유 URL 또는 코드가 아닙니다.")
-
-    if st.session_state.get("quote_parse_error"):
-        st.warning(st.session_state.quote_parse_error)
-        st.markdown("#### 📋 렌트 견적 다시 붙여넣기")
-        st.text_area(
-            "렌트 견적 다시 붙여넣기",
-            placeholder="견적 텍스트를 수정해서 다시 붙여넣고 Ctrl+Enter를 누르세요.",
-            height=110,
-            key="raw_quote_input",
-            label_visibility="collapsed",
-            on_change=clear_quote_parse_error,
-        )
-        st.stop()
-
-    # ==========================================
     # [TOP MAIN] 고객 공유 선택 / 견적 저장 이력
     # ==========================================
     # 견적 입력칸보다 위에 배치하기 위해 현재 세션 입력값을 먼저 한 번 반영
@@ -2969,79 +2893,12 @@ if not IS_CLIENT_VIEW:
     if pending_finance_mode in ["rent", "lease"]:
         apply_finance_mode_defaults(pending_finance_mode)
 
-    # 저장/이력 영역은 화면상으로는 우측 상단에 두되,
-    # 실제 렌더링은 견적 원문 확정/빠른수정 적용값이 모두 반영된 뒤에 실행한다.
-    # 이렇게 해야 2번째 저장부터 이전 스냅샷이 저장되는 문제를 막을 수 있다.
-    control_col, history_col = st.columns([0.68, 0.32], gap="medium")
-    with control_col:
-        visible_sections = render_share_section_selector(visible_sections)
-    history_area_placeholder = history_col.container()
 
-    # ==========================================
-    # [TOP MAIN] 타사 견적 파싱 구역
-    # ==========================================
-    if st.session_state.pending_quote_input is not None:
-        st.session_state.raw_quote_input = st.session_state.pending_quote_input
-        st.session_state.pending_quote_input = None
+    # 금융방식 섹션 선렌더링용 콜백/상태 보장
+    st.session_state.setdefault("finance_mode", finance_mode)
+    st.session_state.setdefault("lease_tax_included", lease_tax_included)
 
-    st.markdown("#### 📋 렌트 견적 붙여넣기")
-    raw_data = st.text_area(
-        "렌트 견적 붙여넣기",
-        placeholder="견적 텍스트를 입력하세요.",
-        height=80,
-        key="raw_quote_input",
-        label_visibility="collapsed"
-    )
-
-    if raw_data:
-        parsed_data = auto_convert_quote(raw_data)
-        lines = parsed_data.strip().split('\n')
-        for line in lines:
-            parts = line.split('	') if '	' in line else (line.split(':') if ':' in line else line.split())
-            if len(parts) >= 2:
-                key = parts[0].strip()
-                val = "".join(parts[1:]).strip()
-                def clean_num(v): return int("".join(filter(str.isdigit, v))) if any(char.isdigit() for char in v) else 0
-                
-                if "차량명" in key: car_name = val
-                elif "옵션" in key: car_option = val
-                elif "차량가" in key: car_price = clean_num(val)
-                elif "개월수" in key: months = clean_num(val)
-                elif "약정거리" in key: mileage = val.replace(" ", "")
-                elif "월납입" in key: rent_monthly_pay = clean_num(val)
-                elif "선납금" in key or "보증금" in key: rent_deposit = clean_num(val)
-                elif "잔존" in key: rent_resale_pct = safe_quote_pct_to_float(val, rent_resale_pct)
-                elif key == "CC원문": cc_raw_text = val.replace(" ", "")
-                elif key == "유종": fuel_text = val.replace(" ", "")
-                elif key == "인승": passenger_count = clean_num(val)
-                elif "CC" in key: cc_text = val.replace(" ", "")
-                elif "형태" in key: car_shape = val.replace(" ", "")
-
-        st.session_state.active_quote_data = {
-            "car_name": car_name,
-            "car_option": car_option,
-            "car_price": car_price,
-            "months": months,
-            "mileage": mileage,
-            "rent_monthly_pay": rent_monthly_pay,
-            "rent_deposit": rent_deposit,
-            "cc_text": cc_text,
-            "cc_raw_text": cc_raw_text,
-            "fuel_text": fuel_text,
-            "passenger_count": passenger_count,
-            "car_shape": car_shape,
-            "rent_resale_pct": rent_resale_pct,
-            "finance_mode": st.session_state.get("finance_mode", finance_mode),
-            "lease_tax_included": bool(st.session_state.get("lease_tax_included", lease_tax_included)),
-        }
-        st.session_state.active_quote_raw = raw_data
-
-    # ==========================================
-    # [렌트/리스 조건 빠른 수정]
-    # ==========================================
     def set_finance_mode(mode):
-        # share_compare_* / share_guide_* 는 이미 체크박스 위젯으로 렌더된 뒤에는
-        # 즉시 수정할 수 없으므로 pending 값만 남기고 다음 rerun 초반에 적용한다.
         mode = mode if mode in ["rent", "lease"] else "rent"
         st.session_state.finance_mode = mode
         st.session_state.finance_mode_choice = "리스" if mode == "lease" else "렌트"
@@ -3054,102 +2911,10 @@ if not IS_CLIENT_VIEW:
         selected_label = st.session_state.get("finance_mode_choice", "렌트")
         set_finance_mode("lease" if selected_label == "리스" else "rent")
 
-    st.session_state.setdefault("finance_mode", finance_mode)
-    st.session_state.setdefault("lease_tax_included", lease_tax_included)
-
-    quick_edit_source_signature = raw_data.strip() if raw_data.strip() else f"{car_name}|{car_price}|{months}|{mileage}|{rent_monthly_pay}|{rent_resale_pct}|{rent_deposit}"
-
-    def quick_money_to_int(value):
-        value_text = str(value).replace(",", "").strip()
-        return int("".join(filter(str.isdigit, value_text))) if any(ch.isdigit() for ch in value_text) else 0
-
-    def quick_pct_to_float(value, default_value):
-        try:
-            return float(str(value).replace("%", "").replace(",", "").strip())
-        except Exception:
-            return float(default_value)
-
-    def quick_prepayment_display_value(mode, value):
-        amount = quick_money_to_int(value)
-        if not amount or not car_price:
-            return ""
-        if mode == "%":
-            prepayment_amount = int(car_price * (quick_pct_to_float(value, 0) / 100))
-            return f"{prepayment_amount:,}원" if prepayment_amount else ""
-        prepayment_pct = (amount / car_price) * 100
-        return f"{prepayment_pct:.1f}%" if prepayment_pct else ""
-
-    def convert_quick_prepayment_value(mode, value):
-        if not car_price:
-            return ""
-        if mode == "%":
-            converted_amount = int(car_price * (quick_pct_to_float(value, 0) / 100))
-            return f"{converted_amount:,}" if converted_amount else ""
-        converted_pct = (quick_money_to_int(value) / car_price) * 100
-        return f"{converted_pct:.1f}" if converted_pct else ""
-
-    def toggle_quick_prepayment_mode():
-        current_mode = st.session_state.get("quick_prepayment_mode", "%")
-        st.session_state.quick_prepayment_value = convert_quick_prepayment_value(
-            current_mode,
-            st.session_state.get("quick_prepayment_value", "")
-        )
-        st.session_state.quick_prepayment_mode = "원" if current_mode == "%" else "%"
-
-    if st.session_state.get("quick_edit_source_signature") != quick_edit_source_signature:
-        st.session_state.quick_rent_monthly_pay = f"{rent_monthly_pay:,}"
-        st.session_state.quick_rent_resale_pct = f"{rent_resale_pct:g}"
-        st.session_state.quick_months = int(months)
-        st.session_state.quick_mileage = mileage
-        st.session_state.quick_prepayment_mode = "원" if rent_deposit else "%"
-        st.session_state.quick_prepayment_value = f"{rent_deposit:,}" if rent_deposit else ""
-        st.session_state.quick_edit_applied = False
-        st.session_state.quick_edit_source_signature = quick_edit_source_signature
-
-    if st.session_state.pending_quick_edit is not None:
-        pending_quick_edit = st.session_state.pending_quick_edit
-        st.session_state.quick_rent_monthly_pay = f"{int(pending_quick_edit.get('rent_monthly_pay', rent_monthly_pay)):,}"
-        st.session_state.quick_rent_resale_pct = f"{float(pending_quick_edit.get('rent_resale_pct', rent_resale_pct)):g}"
-        st.session_state.quick_months = int(pending_quick_edit.get("months", months))
-        st.session_state.quick_mileage = pending_quick_edit.get("mileage", mileage)
-        rent_deposit = int(pending_quick_edit.get("rent_deposit", rent_deposit))
-        st.session_state.quick_prepayment_mode = pending_quick_edit.get("prepayment_mode", st.session_state.get("quick_prepayment_mode", "원" if rent_deposit else "%"))
-        st.session_state.quick_prepayment_value = pending_quick_edit.get("prepayment_value", st.session_state.get("quick_prepayment_value", f"{rent_deposit:,}" if rent_deposit else ""))
-        if pending_quick_edit.get("finance_mode") in ["rent", "lease"]:
-            st.session_state.finance_mode = pending_quick_edit.get("finance_mode")
-            st.session_state.finance_mode_choice = "리스" if st.session_state.finance_mode == "lease" else "렌트"
-        if "lease_tax_included" in pending_quick_edit:
-            st.session_state.lease_tax_included = bool(pending_quick_edit.get("lease_tax_included", False))
-        st.session_state.quick_edit_applied = True
-        st.session_state.pending_quick_edit = None
-
-    # quick edit state 보장 (텍스트 공백/active 유지 대응)
-    st.session_state.setdefault("quick_months", int(months))
-    st.session_state.setdefault("quick_mileage", mileage)
-    st.session_state.setdefault("quick_rent_monthly_pay", f"{rent_monthly_pay:,}")
-    st.session_state.setdefault("quick_rent_resale_pct", f"{rent_resale_pct:g}")
-    st.session_state.setdefault("quick_prepayment_mode", "원" if rent_deposit else "%")
-    st.session_state.setdefault("quick_prepayment_value", f"{rent_deposit:,}" if rent_deposit else "")
-
-    quick_month_options = [24, 36, 48, 60]
-    if int(st.session_state.get("quick_months", months)) not in quick_month_options:
-        quick_month_options.append(int(st.session_state.get("quick_months", months)))
-        quick_month_options = sorted(quick_month_options)
-
-    quick_mileage_options = ["1만KM", "1.5만KM", "2만Km", "3만KM"]
-    if st.session_state.get("quick_mileage", mileage) not in quick_mileage_options:
-        quick_mileage_options.append(st.session_state.get("quick_mileage", mileage))
-
     def sync_finance_option_to_active_quote():
         if isinstance(st.session_state.get("active_quote_data"), dict):
             st.session_state.active_quote_data["finance_mode"] = st.session_state.get("finance_mode", "rent")
             st.session_state.active_quote_data["lease_tax_included"] = bool(st.session_state.get("lease_tax_included", False))
-
-    sync_finance_option_to_active_quote()
-
-    current_finance_mode = st.session_state.get("finance_mode", "rent")
-    finance_rent_active = current_finance_mode == "rent"
-    finance_lease_active = current_finance_mode == "lease"
 
     # 금융방식은 빠른수정 form 밖에서 즉시 반영되도록 독립 섹션으로 렌더링한다.
     # URL/query 이동 방식 제거: 로그인 화면 재진입 없이 session_state/on_change 흐름만 사용한다.
@@ -3346,6 +3111,264 @@ if not IS_CLIENT_VIEW:
                     st.checkbox("리스 월이용료에 자동차세 포함", key="lease_tax_included", on_change=sync_finance_option_to_active_quote)
                 else:
                     st.markdown('<div class="finance-lease-tax-empty"></div>', unsafe_allow_html=True)
+
+    # 저장/이력 영역은 화면상으로는 우측 상단에 두되,
+    # 실제 렌더링은 견적 원문 확정/빠른수정 적용값이 모두 반영된 뒤에 실행한다.
+    # 이렇게 해야 2번째 저장부터 이전 스냅샷이 저장되는 문제를 막을 수 있다.
+    control_col, history_col = st.columns([0.68, 0.32], gap="medium")
+    with control_col:
+        visible_sections = render_share_section_selector(visible_sections)
+    history_area_placeholder = history_col.container()
+
+    # ==========================================
+    # [TOP MAIN] 고객 공유 URL 불러오기
+    # ==========================================
+    st.markdown("#### 🔗 고객 공유 URL 불러오기")
+    share_url_input = st.text_area(
+        "고객 공유 URL 불러오기",
+        placeholder="고객 공유 링크를 붙여넣고 Ctrl+Enter를 누르세요.",
+        height=68,
+        key="share_url_input",
+        label_visibility="collapsed"
+    )
+
+    share_query_value = extract_share_query_value(share_url_input)
+    if share_query_value and share_query_value != st.session_state.get("loaded_share_query_value"):
+        loaded_share_data = decode_share_data(share_query_value)
+        if loaded_share_data:
+            st.session_state.loaded_share_data = loaded_share_data
+            st.session_state.loaded_share_query_value = share_query_value
+            st.session_state.customer_name = str(loaded_share_data.get("customer_name", "") or "").strip()
+            loaded_finance_mode = loaded_share_data.get("finance_mode", "rent")
+            loaded_finance_mode = loaded_finance_mode if loaded_finance_mode in ["rent", "lease"] else "rent"
+            st.session_state.finance_mode = loaded_finance_mode
+            st.session_state.finance_mode_choice = "리스" if loaded_finance_mode == "lease" else "렌트"
+            st.session_state.finance_mode_user_override = False
+            st.session_state.lease_tax_included = bool(loaded_share_data.get("lease_tax_included", False))
+            st.session_state.active_quote_data = {
+                "car_name": loaded_share_data.get("car_name", car_name),
+                "car_option": loaded_share_data.get("car_option", car_option),
+                "car_price": int(loaded_share_data.get("car_price", car_price)),
+                "months": int(loaded_share_data.get("months", months)),
+                "mileage": loaded_share_data.get("mileage", mileage),
+                "rent_monthly_pay": int(loaded_share_data.get("rent_monthly_pay", rent_monthly_pay)),
+                "rent_deposit": int(loaded_share_data.get("rent_deposit", rent_deposit)),
+                "cc_text": loaded_share_data.get("cc_text", cc_text),
+                "cc_raw_text": loaded_share_data.get("cc_raw_text", cc_raw_text),
+                "fuel_text": loaded_share_data.get("fuel_text", fuel_text),
+                "passenger_count": int(loaded_share_data.get("passenger_count", passenger_count)),
+                "car_shape": loaded_share_data.get("car_shape", car_shape),
+                "rent_resale_pct": float(loaded_share_data.get("rent_resale_pct", rent_resale_pct)),
+                "finance_mode": loaded_share_data.get("finance_mode", "rent"),
+                "lease_tax_included": bool(loaded_share_data.get("lease_tax_included", False)),
+            }
+            st.session_state.active_quote_raw = ""
+            st.session_state.raw_quote_input = ""
+            st.session_state.pending_quick_edit = {
+                "rent_monthly_pay": int(loaded_share_data.get("rent_monthly_pay", rent_monthly_pay)),
+                "rent_resale_pct": float(loaded_share_data.get("rent_resale_pct", rent_resale_pct)),
+                "months": int(loaded_share_data.get("months", months)),
+                "mileage": loaded_share_data.get("mileage", mileage),
+                "rent_deposit": int(loaded_share_data.get("rent_deposit", rent_deposit)),
+                "prepayment_mode": "원" if int(loaded_share_data.get("rent_deposit", rent_deposit)) else "%",
+                "prepayment_value": f"{int(loaded_share_data.get('rent_deposit', rent_deposit)):,}" if int(loaded_share_data.get("rent_deposit", rent_deposit)) else "",
+                "finance_mode": loaded_share_data.get("finance_mode", "rent"),
+                "lease_tax_included": bool(loaded_share_data.get("lease_tax_included", False)),
+            }
+            loaded_visible_sections = normalize_visible_sections(loaded_share_data.get("visible_sections"))
+            apply_visible_sections_to_state(loaded_visible_sections)
+            st.session_state.pending_visible_sections = loaded_visible_sections
+            st.success("공유 견적을 불러왔습니다.")
+            st.rerun()
+        else:
+            st.warning("유효한 고객 공유 URL 또는 코드가 아닙니다.")
+
+    if st.session_state.get("quote_parse_error"):
+        st.warning(st.session_state.quote_parse_error)
+        st.markdown("#### 📋 렌트 견적 다시 붙여넣기")
+        st.text_area(
+            "렌트 견적 다시 붙여넣기",
+            placeholder="견적 텍스트를 수정해서 다시 붙여넣고 Ctrl+Enter를 누르세요.",
+            height=110,
+            key="raw_quote_input",
+            label_visibility="collapsed",
+            on_change=clear_quote_parse_error,
+        )
+        st.stop()
+
+    # ==========================================
+    # [TOP MAIN] 타사 견적 파싱 구역
+    # ==========================================
+    if st.session_state.pending_quote_input is not None:
+        st.session_state.raw_quote_input = st.session_state.pending_quote_input
+        st.session_state.pending_quote_input = None
+
+    st.markdown("#### 📋 렌트 견적 붙여넣기")
+    raw_data = st.text_area(
+        "렌트 견적 붙여넣기",
+        placeholder="견적 텍스트를 입력하세요.",
+        height=80,
+        key="raw_quote_input",
+        label_visibility="collapsed"
+    )
+
+    if raw_data:
+        parsed_data = auto_convert_quote(raw_data)
+        lines = parsed_data.strip().split('\n')
+        for line in lines:
+            parts = line.split('	') if '	' in line else (line.split(':') if ':' in line else line.split())
+            if len(parts) >= 2:
+                key = parts[0].strip()
+                val = "".join(parts[1:]).strip()
+                def clean_num(v): return int("".join(filter(str.isdigit, v))) if any(char.isdigit() for char in v) else 0
+                
+                if "차량명" in key: car_name = val
+                elif "옵션" in key: car_option = val
+                elif "차량가" in key: car_price = clean_num(val)
+                elif "개월수" in key: months = clean_num(val)
+                elif "약정거리" in key: mileage = val.replace(" ", "")
+                elif "월납입" in key: rent_monthly_pay = clean_num(val)
+                elif "선납금" in key or "보증금" in key: rent_deposit = clean_num(val)
+                elif "잔존" in key: rent_resale_pct = safe_quote_pct_to_float(val, rent_resale_pct)
+                elif key == "CC원문": cc_raw_text = val.replace(" ", "")
+                elif key == "유종": fuel_text = val.replace(" ", "")
+                elif key == "인승": passenger_count = clean_num(val)
+                elif "CC" in key: cc_text = val.replace(" ", "")
+                elif "형태" in key: car_shape = val.replace(" ", "")
+
+        st.session_state.active_quote_data = {
+            "car_name": car_name,
+            "car_option": car_option,
+            "car_price": car_price,
+            "months": months,
+            "mileage": mileage,
+            "rent_monthly_pay": rent_monthly_pay,
+            "rent_deposit": rent_deposit,
+            "cc_text": cc_text,
+            "cc_raw_text": cc_raw_text,
+            "fuel_text": fuel_text,
+            "passenger_count": passenger_count,
+            "car_shape": car_shape,
+            "rent_resale_pct": rent_resale_pct,
+            "finance_mode": st.session_state.get("finance_mode", finance_mode),
+            "lease_tax_included": bool(st.session_state.get("lease_tax_included", lease_tax_included)),
+        }
+        st.session_state.active_quote_raw = raw_data
+
+    # ==========================================
+    # [렌트/리스 조건 빠른 수정]
+    # ==========================================
+    def set_finance_mode(mode):
+        # share_compare_* / share_guide_* 는 이미 체크박스 위젯으로 렌더된 뒤에는
+        # 즉시 수정할 수 없으므로 pending 값만 남기고 다음 rerun 초반에 적용한다.
+        mode = mode if mode in ["rent", "lease"] else "rent"
+        st.session_state.finance_mode = mode
+        st.session_state.finance_mode_choice = "리스" if mode == "lease" else "렌트"
+        st.session_state.finance_mode_user_override = True
+        st.session_state.pending_finance_mode = mode
+        if isinstance(st.session_state.get("active_quote_data"), dict):
+            st.session_state.active_quote_data["finance_mode"] = mode
+
+    def on_finance_mode_choice_change():
+        selected_label = st.session_state.get("finance_mode_choice", "렌트")
+        set_finance_mode("lease" if selected_label == "리스" else "rent")
+
+    st.session_state.setdefault("finance_mode", finance_mode)
+    st.session_state.setdefault("lease_tax_included", lease_tax_included)
+
+    quick_edit_source_signature = raw_data.strip() if raw_data.strip() else f"{car_name}|{car_price}|{months}|{mileage}|{rent_monthly_pay}|{rent_resale_pct}|{rent_deposit}"
+
+    def quick_money_to_int(value):
+        value_text = str(value).replace(",", "").strip()
+        return int("".join(filter(str.isdigit, value_text))) if any(ch.isdigit() for ch in value_text) else 0
+
+    def quick_pct_to_float(value, default_value):
+        try:
+            return float(str(value).replace("%", "").replace(",", "").strip())
+        except Exception:
+            return float(default_value)
+
+    def quick_prepayment_display_value(mode, value):
+        amount = quick_money_to_int(value)
+        if not amount or not car_price:
+            return ""
+        if mode == "%":
+            prepayment_amount = int(car_price * (quick_pct_to_float(value, 0) / 100))
+            return f"{prepayment_amount:,}원" if prepayment_amount else ""
+        prepayment_pct = (amount / car_price) * 100
+        return f"{prepayment_pct:.1f}%" if prepayment_pct else ""
+
+    def convert_quick_prepayment_value(mode, value):
+        if not car_price:
+            return ""
+        if mode == "%":
+            converted_amount = int(car_price * (quick_pct_to_float(value, 0) / 100))
+            return f"{converted_amount:,}" if converted_amount else ""
+        converted_pct = (quick_money_to_int(value) / car_price) * 100
+        return f"{converted_pct:.1f}" if converted_pct else ""
+
+    def toggle_quick_prepayment_mode():
+        current_mode = st.session_state.get("quick_prepayment_mode", "%")
+        st.session_state.quick_prepayment_value = convert_quick_prepayment_value(
+            current_mode,
+            st.session_state.get("quick_prepayment_value", "")
+        )
+        st.session_state.quick_prepayment_mode = "원" if current_mode == "%" else "%"
+
+    if st.session_state.get("quick_edit_source_signature") != quick_edit_source_signature:
+        st.session_state.quick_rent_monthly_pay = f"{rent_monthly_pay:,}"
+        st.session_state.quick_rent_resale_pct = f"{rent_resale_pct:g}"
+        st.session_state.quick_months = int(months)
+        st.session_state.quick_mileage = mileage
+        st.session_state.quick_prepayment_mode = "원" if rent_deposit else "%"
+        st.session_state.quick_prepayment_value = f"{rent_deposit:,}" if rent_deposit else ""
+        st.session_state.quick_edit_applied = False
+        st.session_state.quick_edit_source_signature = quick_edit_source_signature
+
+    if st.session_state.pending_quick_edit is not None:
+        pending_quick_edit = st.session_state.pending_quick_edit
+        st.session_state.quick_rent_monthly_pay = f"{int(pending_quick_edit.get('rent_monthly_pay', rent_monthly_pay)):,}"
+        st.session_state.quick_rent_resale_pct = f"{float(pending_quick_edit.get('rent_resale_pct', rent_resale_pct)):g}"
+        st.session_state.quick_months = int(pending_quick_edit.get("months", months))
+        st.session_state.quick_mileage = pending_quick_edit.get("mileage", mileage)
+        rent_deposit = int(pending_quick_edit.get("rent_deposit", rent_deposit))
+        st.session_state.quick_prepayment_mode = pending_quick_edit.get("prepayment_mode", st.session_state.get("quick_prepayment_mode", "원" if rent_deposit else "%"))
+        st.session_state.quick_prepayment_value = pending_quick_edit.get("prepayment_value", st.session_state.get("quick_prepayment_value", f"{rent_deposit:,}" if rent_deposit else ""))
+        if pending_quick_edit.get("finance_mode") in ["rent", "lease"]:
+            st.session_state.finance_mode = pending_quick_edit.get("finance_mode")
+            st.session_state.finance_mode_choice = "리스" if st.session_state.finance_mode == "lease" else "렌트"
+        if "lease_tax_included" in pending_quick_edit:
+            st.session_state.lease_tax_included = bool(pending_quick_edit.get("lease_tax_included", False))
+        st.session_state.quick_edit_applied = True
+        st.session_state.pending_quick_edit = None
+
+    # quick edit state 보장 (텍스트 공백/active 유지 대응)
+    st.session_state.setdefault("quick_months", int(months))
+    st.session_state.setdefault("quick_mileage", mileage)
+    st.session_state.setdefault("quick_rent_monthly_pay", f"{rent_monthly_pay:,}")
+    st.session_state.setdefault("quick_rent_resale_pct", f"{rent_resale_pct:g}")
+    st.session_state.setdefault("quick_prepayment_mode", "원" if rent_deposit else "%")
+    st.session_state.setdefault("quick_prepayment_value", f"{rent_deposit:,}" if rent_deposit else "")
+
+    quick_month_options = [24, 36, 48, 60]
+    if int(st.session_state.get("quick_months", months)) not in quick_month_options:
+        quick_month_options.append(int(st.session_state.get("quick_months", months)))
+        quick_month_options = sorted(quick_month_options)
+
+    quick_mileage_options = ["1만KM", "1.5만KM", "2만Km", "3만KM"]
+    if st.session_state.get("quick_mileage", mileage) not in quick_mileage_options:
+        quick_mileage_options.append(st.session_state.get("quick_mileage", mileage))
+
+    def sync_finance_option_to_active_quote():
+        if isinstance(st.session_state.get("active_quote_data"), dict):
+            st.session_state.active_quote_data["finance_mode"] = st.session_state.get("finance_mode", "rent")
+            st.session_state.active_quote_data["lease_tax_included"] = bool(st.session_state.get("lease_tax_included", False))
+
+    sync_finance_option_to_active_quote()
+
+    current_finance_mode = st.session_state.get("finance_mode", "rent")
+    finance_rent_active = current_finance_mode == "rent"
+    finance_lease_active = current_finance_mode == "lease"
 
     st.markdown('<div class="quick-rent-condition">', unsafe_allow_html=True)
     st.markdown('<div class="quick-rent-condition-title">🔧 렌트/리스 조건 빠른 수정</div>', unsafe_allow_html=True)
