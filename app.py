@@ -3163,16 +3163,23 @@ if not IS_CLIENT_VIEW:
     """, unsafe_allow_html=True)
 
     current_finance_mode = st.session_state.get("finance_mode", "rent")
-    current_finance_label = "리스" if current_finance_mode == "lease" else "렌트"
     rent_active = current_finance_mode == "rent"
     lease_active = current_finance_mode == "lease"
 
-    rent_bg = "#16a34a" if rent_active else "#111827"
-    rent_border = "#22c55e" if rent_active else "#475569"
-    rent_color = "#ffffff" if rent_active else "#cbd5e1"
-    lease_bg = "#7c3aed" if lease_active else "#111827"
-    lease_border = "#a78bfa" if lease_active else "#475569"
-    lease_color = "#ffffff" if lease_active else "#cbd5e1"
+    def build_finance_mode_href(mode):
+        params = {}
+        try:
+            for query_key in st.query_params.keys():
+                query_value = st.query_params.get(query_key)
+                if query_value is not None:
+                    params[query_key] = query_value
+        except Exception:
+            params = {}
+        params["fm"] = mode
+        return "?" + urllib.parse.urlencode(params)
+
+    rent_mode_href = build_finance_mode_href("rent")
+    lease_mode_href = build_finance_mode_href("lease")
 
     st.markdown(f"""
     <style>
@@ -3206,6 +3213,48 @@ if not IS_CLIENT_VIEW:
         white-space: nowrap;
     }}
     html.caprio-dark .finance-toolbar-title {{ color: #f8fafc !important; }}
+
+    .finance-mode-pair {{
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 38px;
+        justify-content: flex-start;
+    }}
+    .finance-mode-link {{
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 78px;
+        height: 34px;
+        padding: 0 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 900;
+        text-decoration: none !important;
+        box-sizing: border-box;
+        transition: none;
+        background: #f8fafc;
+        border: 1px solid #94a3b8;
+        color: #334155 !important;
+    }}
+    html.caprio-dark .finance-mode-link {{
+        background: #111827;
+        border-color: #475569;
+        color: #cbd5e1 !important;
+    }}
+    .finance-mode-link.rent.active {{
+        background: #16a34a !important;
+        border-color: #22c55e !important;
+        color: #ffffff !important;
+        box-shadow: 0 0 0 1px rgba(34,197,94,.25), 0 4px 12px rgba(22,163,74,.18);
+    }}
+    .finance-mode-link.lease.active {{
+        background: #7c3aed !important;
+        border-color: #a78bfa !important;
+        color: #ffffff !important;
+        box-shadow: 0 0 0 1px rgba(167,139,250,.25), 0 4px 12px rgba(124,58,237,.20);
+    }}
 
     .finance-inline-note {{
         display:inline-flex;
@@ -3282,47 +3331,26 @@ if not IS_CLIENT_VIEW:
             margin:0 0 8px 0 !important;
         }}
         .finance-toolbar-title {{ font-size:22px !important; white-space:normal !important; }}
+        .finance-mode-pair {{ width:100%; }}
+        .finance-mode-link {{ flex:1; min-width:0; }}
     }}
     </style>
     """, unsafe_allow_html=True)
 
     st.markdown('<div class="finance-inside-box-anchor"></div>', unsafe_allow_html=True)
-    mode_cols = st.columns([0.38, 0.20, 0.28, 0.14], gap="small")
+    mode_cols = st.columns([0.36, 0.20, 0.34, 0.10], gap="small")
     with mode_cols[0]:
         st.markdown('<div class="finance-toolbar-title">🛠️ 렌트/리스 조건 빠른 수정</div>', unsafe_allow_html=True)
     with mode_cols[1]:
-        components.html(f"""
-        <html>
-        <head>
-            <style>
-                html, body {{ margin:0; padding:0; height:38px; overflow:hidden; background:transparent; font-family:Arial, sans-serif; }}
-                .wrap {{ display:flex; align-items:center; gap:6px; height:38px; }}
-                button {{
-                    height:34px; min-width:72px; padding:0 16px; border-radius:8px;
-                    font-size:13px; font-weight:900; cursor:pointer;
-                    transition: all .12s ease; line-height:34px;
-                }}
-                .rent {{ background:{rent_bg}; border:1px solid {rent_border}; color:{rent_color}; }}
-                .lease {{ background:{lease_bg}; border:1px solid {lease_border}; color:{lease_color}; }}
-                .rent.active {{ box-shadow:0 0 0 1px rgba(34,197,94,.35), 0 4px 12px rgba(22,163,74,.24); }}
-                .lease.active {{ box-shadow:0 0 0 1px rgba(167,139,250,.35), 0 4px 12px rgba(124,58,237,.28); }}
-            </style>
-        </head>
-        <body>
-            <div class="wrap">
-                <button class="rent {'active' if rent_active else ''}" onclick="setMode('rent')">렌트</button>
-                <button class="lease {'active' if lease_active else ''}" onclick="setMode('lease')">리스</button>
-            </div>
-            <script>
-                function setMode(mode) {{
-                    const url = new URL(window.parent.location.href);
-                    url.searchParams.set('fm', mode);
-                    window.parent.location.href = url.toString();
-                }}
-            </script>
-        </body>
-        </html>
-        """, height=38)
+        rent_active_class = "active" if rent_active else ""
+        lease_active_class = "active" if lease_active else ""
+        st.markdown(
+            f"""<div class="finance-mode-pair">
+                <a class="finance-mode-link rent {rent_active_class}" href="{rent_mode_href}">렌트</a>
+                <a class="finance-mode-link lease {lease_active_class}" href="{lease_mode_href}">리스</a>
+            </div>""",
+            unsafe_allow_html=True,
+        )
     with mode_cols[2]:
         if st.session_state.get("finance_mode", "rent") == "lease":
             st.checkbox("리스 월이용료에 자동차세 포함", key="lease_tax_included")
