@@ -3122,30 +3122,51 @@ if not IS_CLIENT_VIEW:
     finance_rent_active = current_finance_mode == "rent"
     finance_lease_active = current_finance_mode == "lease"
 
-    st.markdown('<div class="finance-mode-condition">', unsafe_allow_html=True)
-    st.markdown('<div class="finance-mode-condition-title">금융방식</div>', unsafe_allow_html=True)
+    # 금융방식은 빠른수정 form 밖에서 즉시 반영되도록 독립 섹션으로 렌더링
     st.markdown(f"""
     <style>
-    .finance-mode-condition-title {{
-        font-size:22px;
-        font-weight:800;
-        line-height:1.25;
-        color:inherit;
-        margin:8px 0 6px 0;
-        padding:0;
+    /* ===== 금융방식 독립 섹션: 제목 + 컨트롤 한 줄형 ===== */
+    .finance-mode-row-anchor + div[data-testid="stHorizontalBlock"] {{
+        align-items:center !important;
+        gap:0 !important;
+        margin:8px 0 18px 0 !important;
+        padding:0 !important;
     }}
-    html.caprio-dark .finance-mode-condition-title {{
+    .finance-mode-row-anchor + div[data-testid="stHorizontalBlock"] > div {{
+        padding:0 8px !important;
+        box-sizing:border-box !important;
+    }}
+    .finance-mode-title-inline {{
+        font-size:22px;
+        font-weight:900;
+        line-height:1.2;
+        color:#020617;
+        white-space:nowrap;
+        padding:0;
+        margin:0;
+    }}
+    html.caprio-dark .finance-mode-title-inline {{
         color:#f8fafc !important;
     }}
 
-    /* 금융방식 섹션 전용 버튼: 기존 전역 버튼 CSS와 분리 */
-    .finance-rent-button-anchor + div[data-testid="stButton"] button,
-    div:has(> .finance-rent-button-anchor) + div[data-testid="stButton"] button,
-    div[data-testid="stMarkdownContainer"]:has(.finance-rent-button-anchor) + div[data-testid="stButton"] button {{
+    /* 박스 내부 여백 */
+    .finance-control-anchor + div[data-testid="stHorizontalBlock"] {{
+        align-items:center !important;
+        gap:0 !important;
+        margin:0 !important;
+        padding:0 !important;
+    }}
+    .finance-control-anchor + div[data-testid="stHorizontalBlock"] > div {{
+        padding:0 7px !important;
+        box-sizing:border-box !important;
+    }}
+
+    /* 렌트 버튼: 첫 번째 컬럼 */
+    .finance-control-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stButton"] button {{
         height:38px !important;
         min-height:38px !important;
         border-radius:10px !important;
-        border:1px solid #22c55e !important;
+        border:1.5px solid #22c55e !important;
         background:{'#16a34a' if finance_rent_active else '#ffffff'} !important;
         color:{'#ffffff' if finance_rent_active else '#16a34a'} !important;
         -webkit-text-fill-color:{'#ffffff' if finance_rent_active else '#16a34a'} !important;
@@ -3154,13 +3175,12 @@ if not IS_CLIENT_VIEW:
         box-shadow:none !important;
     }}
 
-    .finance-lease-button-anchor + div[data-testid="stButton"] button,
-    div:has(> .finance-lease-button-anchor) + div[data-testid="stButton"] button,
-    div[data-testid="stMarkdownContainer"]:has(.finance-lease-button-anchor) + div[data-testid="stButton"] button {{
+    /* 리스 버튼: 두 번째 컬럼 */
+    .finance-control-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stButton"] button {{
         height:38px !important;
         min-height:38px !important;
         border-radius:10px !important;
-        border:1px solid #8b5cf6 !important;
+        border:1.5px solid #8b5cf6 !important;
         background:{'#7c3aed' if finance_lease_active else '#ffffff'} !important;
         color:{'#ffffff' if finance_lease_active else '#7c3aed'} !important;
         -webkit-text-fill-color:{'#ffffff' if finance_lease_active else '#7c3aed'} !important;
@@ -3169,74 +3189,85 @@ if not IS_CLIENT_VIEW:
         box-shadow:none !important;
     }}
 
-    html.caprio-dark .finance-rent-button-anchor + div[data-testid="stButton"] button,
-    html.caprio-dark div:has(> .finance-rent-button-anchor) + div[data-testid="stButton"] button,
-    html.caprio-dark div[data-testid="stMarkdownContainer"]:has(.finance-rent-button-anchor) + div[data-testid="stButton"] button {{
+    html.caprio-dark .finance-control-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stButton"] button {{
         background:{'#15803d' if finance_rent_active else '#101826'} !important;
         border-color:#22c55e !important;
         color:{'#ffffff' if finance_rent_active else '#86efac'} !important;
         -webkit-text-fill-color:{'#ffffff' if finance_rent_active else '#86efac'} !important;
     }}
-
-    html.caprio-dark .finance-lease-button-anchor + div[data-testid="stButton"] button,
-    html.caprio-dark div:has(> .finance-lease-button-anchor) + div[data-testid="stButton"] button,
-    html.caprio-dark div[data-testid="stMarkdownContainer"]:has(.finance-lease-button-anchor) + div[data-testid="stButton"] button {{
+    html.caprio-dark .finance-control-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stButton"] button {{
         background:{'#6d28d9' if finance_lease_active else '#101826'} !important;
         border-color:#a78bfa !important;
         color:{'#ffffff' if finance_lease_active else '#c4b5fd'} !important;
         -webkit-text-fill-color:{'#ffffff' if finance_lease_active else '#c4b5fd'} !important;
     }}
 
-    .finance-mode-box-inner div[data-testid="stCheckbox"] label {{
+    .finance-control-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stCheckbox"] label {{
         min-height:38px !important;
         display:flex !important;
         align-items:center !important;
         margin:0 !important;
     }}
-    .finance-mode-box-inner div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p {{
+    .finance-control-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p {{
         margin:0 !important;
         font-size:14px !important;
         font-weight:850 !important;
         color:#111827 !important;
         white-space:nowrap !important;
     }}
-    html.caprio-dark .finance-mode-box-inner div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p {{
+    html.caprio-dark .finance-control-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p {{
         color:#f3f6fb !important;
     }}
     .finance-lease-tax-empty {{
         min-height:38px;
     }}
-    .finance-mode-condition [data-testid="stVerticalBlockBorderWrapper"] {{
-        margin:0 0 12px 0 !important;
-    }}
+
     @media (max-width: 768px) {{
-        .finance-mode-condition-title {{
-            font-size:22px !important;
-            margin:8px 0 6px 0 !important;
+        .finance-mode-row-anchor + div[data-testid="stHorizontalBlock"] {{
+            display:block !important;
+            margin:8px 0 16px 0 !important;
+        }}
+        .finance-mode-row-anchor + div[data-testid="stHorizontalBlock"] > div {{
+            width:100% !important;
+            padding:0 !important;
+            margin:0 0 8px 0 !important;
+        }}
+        .finance-mode-title-inline {{
+            margin:0 0 6px 0 !important;
+        }}
+        .finance-control-anchor + div[data-testid="stHorizontalBlock"] {{
+            display:block !important;
+        }}
+        .finance-control-anchor + div[data-testid="stHorizontalBlock"] > div {{
+            width:100% !important;
+            padding:0 !important;
+            margin:0 0 8px 0 !important;
         }}
     }}
     </style>
     """, unsafe_allow_html=True)
 
-    with st.container(border=True):
-        st.markdown('<div class="finance-mode-box-inner"></div>', unsafe_allow_html=True)
-        finance_mode_col1, finance_mode_col2, finance_mode_col3 = st.columns([0.18, 0.18, 0.64], gap="small")
-        with finance_mode_col1:
-            st.markdown('<div class="finance-rent-button-anchor"></div>', unsafe_allow_html=True)
-            if st.button("렌트", key="finance_mode_rent_button", use_container_width=True):
-                set_finance_mode("rent")
-                st.rerun()
-        with finance_mode_col2:
-            st.markdown('<div class="finance-lease-button-anchor"></div>', unsafe_allow_html=True)
-            if st.button("리스", key="finance_mode_lease_button", use_container_width=True):
-                set_finance_mode("lease")
-                st.rerun()
-        with finance_mode_col3:
-            if st.session_state.get("finance_mode", "rent") == "lease":
-                st.checkbox("리스 월이용료에 자동차세 포함", key="lease_tax_included", on_change=sync_finance_option_to_active_quote)
-            else:
-                st.markdown('<div class="finance-lease-tax-empty"></div>', unsafe_allow_html=True)
-    st.markdown('</div>', unsafe_allow_html=True)
+    st.markdown('<div class="finance-mode-row-anchor"></div>', unsafe_allow_html=True)
+    finance_title_col, finance_control_col = st.columns([0.12, 0.88], gap="small")
+    with finance_title_col:
+        st.markdown('<div class="finance-mode-title-inline">금융방식</div>', unsafe_allow_html=True)
+    with finance_control_col:
+        with st.container(border=True):
+            st.markdown('<div class="finance-control-anchor"></div>', unsafe_allow_html=True)
+            finance_mode_col1, finance_mode_col2, finance_mode_col3 = st.columns([0.20, 0.20, 0.60], gap="small")
+            with finance_mode_col1:
+                if st.button("렌트", key="finance_mode_rent_button", use_container_width=True):
+                    set_finance_mode("rent")
+                    st.rerun()
+            with finance_mode_col2:
+                if st.button("리스", key="finance_mode_lease_button", use_container_width=True):
+                    set_finance_mode("lease")
+                    st.rerun()
+            with finance_mode_col3:
+                if st.session_state.get("finance_mode", "rent") == "lease":
+                    st.checkbox("리스 월이용료에 자동차세 포함", key="lease_tax_included", on_change=sync_finance_option_to_active_quote)
+                else:
+                    st.markdown('<div class="finance-lease-tax-empty"></div>', unsafe_allow_html=True)
 
     st.markdown('<div class="quick-rent-condition">', unsafe_allow_html=True)
     st.markdown('<div class="quick-rent-condition-title">🔧 렌트/리스 조건 빠른 수정</div>', unsafe_allow_html=True)
