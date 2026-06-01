@@ -34,11 +34,11 @@ DEFAULT_VISIBLE_SECTIONS = {
     "compare": True,
     "compare_installment": True,
     "compare_rent": True,
-    "compare_lease": True,
+    "compare_lease": False,
     "guide": True,
     "guide_installment": True,
     "guide_rent": True,
-    "guide_lease": True,
+    "guide_lease": False,
     "outro": True,
 }
 
@@ -2778,6 +2778,22 @@ if not IS_CLIENT_VIEW:
     for section_key, section_value in visible_sections.items():
         st.session_state.setdefault(f"share_{section_key}", section_value)
 
+    # 초기 진입 기본값: 렌트 계산기 기준(할부+렌트만 선택, 리스 해제)
+    if "finance_mode_initialized" not in st.session_state:
+        st.session_state.finance_mode = st.session_state.get("finance_mode", "rent")
+        if st.session_state.finance_mode not in ["rent", "lease"]:
+            st.session_state.finance_mode = "rent"
+        if st.session_state.finance_mode == "rent":
+            st.session_state.share_compare = True
+            st.session_state.share_compare_installment = True
+            st.session_state.share_compare_rent = True
+            st.session_state.share_compare_lease = False
+            st.session_state.share_guide = True
+            st.session_state.share_guide_installment = True
+            st.session_state.share_guide_rent = True
+            st.session_state.share_guide_lease = False
+        st.session_state.finance_mode_initialized = True
+
     # ==========================================
     # [TOP MAIN] 고객 공유 선택 / 견적 저장 이력
     # ==========================================
@@ -3202,7 +3218,8 @@ if not IS_CLIENT_VIEW:
                 "lease_tax_included": bool(loaded_share_data.get("lease_tax_included", False)),
             }
             loaded_visible_sections = normalize_visible_sections(loaded_share_data.get("visible_sections"))
-            apply_visible_sections_to_state(loaded_visible_sections)
+            # 공유 항목 체크박스는 이미 렌더된 뒤 직접 수정하면 Streamlit 위젯 키 오류가 납니다.
+            # 불러오기 값은 pending으로 저장하고, 다음 rerun 초반(UI 렌더 전)에 반영합니다.
             st.session_state.pending_visible_sections = loaded_visible_sections
             st.success("공유 견적을 불러왔습니다.")
             st.rerun()
