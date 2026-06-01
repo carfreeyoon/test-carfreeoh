@@ -2738,6 +2738,22 @@ if not IS_CLIENT_VIEW:
     if "active_quote_raw" not in st.session_state:
         st.session_state.active_quote_raw = ""
 
+    if "quote_parse_error" not in st.session_state:
+        st.session_state.quote_parse_error = ""
+
+    def clear_quote_parse_error():
+        st.session_state.quote_parse_error = ""
+
+    def safe_quote_pct_to_float(value, default_value):
+        value_text = str(value or "").replace("%", "").replace(",", "").strip()
+        if not value_text:
+            return float(default_value)
+        try:
+            return float(value_text)
+        except Exception:
+            st.session_state.quote_parse_error = "잔존율 값이 비어있거나 숫자가 아닙니다. 견적 원문을 확인해 주세요."
+            return float(default_value)
+
     if st.session_state.pending_visible_sections is not None:
         apply_visible_sections_to_state(st.session_state.pending_visible_sections)
         visible_sections = normalize_visible_sections(st.session_state.pending_visible_sections)
@@ -2810,6 +2826,19 @@ if not IS_CLIENT_VIEW:
         else:
             st.warning("유효한 고객 공유 URL 또는 코드가 아닙니다.")
 
+    if st.session_state.get("quote_parse_error"):
+        st.warning(st.session_state.quote_parse_error)
+        st.markdown("#### 📋 렌트 견적 다시 붙여넣기")
+        st.text_area(
+            "렌트 견적 다시 붙여넣기",
+            placeholder="견적 텍스트를 수정해서 다시 붙여넣고 Ctrl+Enter를 누르세요.",
+            height=110,
+            key="raw_quote_input",
+            label_visibility="collapsed",
+            on_change=clear_quote_parse_error,
+        )
+        st.stop()
+
     # ==========================================
     # [TOP MAIN] 고객 공유 선택 / 견적 저장 이력
     # ==========================================
@@ -2832,7 +2861,7 @@ if not IS_CLIENT_VIEW:
                 elif "약정거리" in pre_key: mileage = pre_val.replace(" ", "")
                 elif "월납입" in pre_key: rent_monthly_pay = pre_clean_num(pre_val)
                 elif "선납금" in pre_key or "보증금" in pre_key: rent_deposit = pre_clean_num(pre_val)
-                elif "잔존" in pre_key: rent_resale_pct = float(pre_val.replace("%", "").replace(" ", ""))
+                elif "잔존" in pre_key: rent_resale_pct = safe_quote_pct_to_float(pre_val, rent_resale_pct)
                 elif pre_key == "CC원문": cc_raw_text = pre_val.replace(" ", "")
                 elif pre_key == "유종": fuel_text = pre_val.replace(" ", "")
                 elif pre_key == "인승": passenger_count = pre_clean_num(pre_val)
@@ -2981,7 +3010,7 @@ if not IS_CLIENT_VIEW:
                 elif "약정거리" in key: mileage = val.replace(" ", "")
                 elif "월납입" in key: rent_monthly_pay = clean_num(val)
                 elif "선납금" in key or "보증금" in key: rent_deposit = clean_num(val)
-                elif "잔존" in key: rent_resale_pct = float(val.replace("%", "").replace(" ", ""))
+                elif "잔존" in key: rent_resale_pct = safe_quote_pct_to_float(val, rent_resale_pct)
                 elif key == "CC원문": cc_raw_text = val.replace(" ", "")
                 elif key == "유종": fuel_text = val.replace(" ", "")
                 elif key == "인승": passenger_count = clean_num(val)
