@@ -2636,6 +2636,40 @@ def make_share_url():
 # ==========================================
 # [SIDEBAR] 조건 설정 구역
 # ==========================================
+# URL 불러오기 시 할부 조건 위젯값은 위젯 렌더 전에만 안전하게 반영한다.
+def _safe_int_value(value, default_value=0):
+    try:
+        value_text = str(value if value is not None else "").replace(",", "").strip()
+        if value_text == "":
+            return int(default_value)
+        return int(float(value_text))
+    except Exception:
+        return int(default_value)
+
+def _safe_float_value(value, default_value=0.0):
+    try:
+        value_text = str(value if value is not None else "").replace(",", "").strip()
+        if value_text == "":
+            return float(default_value)
+        return float(value_text)
+    except Exception:
+        return float(default_value)
+
+if not IS_CLIENT_VIEW:
+    _pending_installment_settings = st.session_state.pop("pending_installment_settings", None)
+    if isinstance(_pending_installment_settings, dict):
+        st.session_state["is_corporate_checkbox"] = bool(_pending_installment_settings.get("is_corporate", False))
+        st.session_state["installment_prepaid_input"] = f"{_safe_int_value(_pending_installment_settings.get('installment_prepaid', 0), 0):,}"
+        st.session_state["installment_rate_input"] = _safe_float_value(_pending_installment_settings.get("installment_rate", 5.0), 5.0)
+        st.session_state["insurance_annual_input"] = f"{_safe_int_value(_pending_installment_settings.get('insurance_annual', 1000000), 1000000):,}"
+        st.session_state["installment_resale_pct_input"] = _safe_int_value(_pending_installment_settings.get("installment_resale_pct", installment_resale_pct), installment_resale_pct)
+    else:
+        st.session_state.setdefault("is_corporate_checkbox", bool(shared_quote_data.get("is_corporate", False)))
+        st.session_state.setdefault("installment_prepaid_input", f"{_safe_int_value(shared_quote_data.get('installment_prepaid', 0), 0):,}")
+        st.session_state.setdefault("installment_rate_input", _safe_float_value(shared_quote_data.get("installment_rate", 5.0), 5.0))
+        st.session_state.setdefault("insurance_annual_input", f"{_safe_int_value(shared_quote_data.get('insurance_annual', 1000000), 1000000):,}")
+        st.session_state.setdefault("installment_resale_pct_input", _safe_int_value(shared_quote_data.get("installment_resale_pct", installment_resale_pct), installment_resale_pct))
+
 if IS_CLIENT_VIEW:
     is_corporate = bool(shared_quote_data.get("is_corporate", False))
     installment_prepaid = int(shared_quote_data.get("installment_prepaid", 0))
@@ -2647,36 +2681,38 @@ else:
     # ==========================================
     st.sidebar.header("📋 할부 조건설정")
 
-    is_corporate = st.sidebar.checkbox("🏢 법인 고객 여부", value=False)
+    is_corporate = st.sidebar.checkbox("🏢 법인 고객 여부", key="is_corporate_checkbox")
 
-    installment_prepaid = int(
+    installment_prepaid = _safe_int_value(
         st.sidebar.text_input(
             "💵 할부 선납금",
-            value=f"{int(shared_quote_data.get('installment_prepaid', 0)):,}"
-        ).replace(",", "")
+            key="installment_prepaid_input"
+        ),
+        0
     )
 
     installment_rate = st.sidebar.number_input(
         "📈 할부 금리 (%)",
-        value=float(shared_quote_data.get("installment_rate", 5.0)),
-        step=0.1
+        step=0.1,
+        key="installment_rate_input"
     )
 
-    insurance_annual = int(
+    insurance_annual = _safe_int_value(
         st.sidebar.text_input(
             "🛡️ 연 개인 보험료",
-            value=f"{int(shared_quote_data.get('insurance_annual', 1000000)):,}"
-        ).replace(",", "")
+            key="insurance_annual_input"
+        ),
+        1000000
     )
 
     st.sidebar.markdown("---")
 
     installment_resale_pct = st.sidebar.number_input(
         "📉 할부 잔존가치 (%)",
-        value=installment_resale_pct,
         min_value=0,
         max_value=100,
-        step=1
+        step=1,
+        key="installment_resale_pct_input"
     )
 
 
@@ -3283,6 +3319,13 @@ if not IS_CLIENT_VIEW:
             st.session_state.pending_finance_mode = loaded_finance_mode
             st.session_state.finance_mode_user_override = False
             st.session_state.pending_lease_tax_included = bool(loaded_share_data.get("lease_tax_included", False))
+            st.session_state.pending_installment_settings = {
+                "installment_prepaid": loaded_share_data.get("installment_prepaid", 0),
+                "installment_rate": loaded_share_data.get("installment_rate", 5.0),
+                "insurance_annual": loaded_share_data.get("insurance_annual", 1000000),
+                "installment_resale_pct": loaded_share_data.get("installment_resale_pct", installment_resale_pct),
+                "is_corporate": loaded_share_data.get("is_corporate", False),
+            }
             st.session_state.active_quote_data = {
                 "car_name": loaded_share_data.get("car_name", car_name),
                 "car_option": loaded_share_data.get("car_option", car_option),
@@ -3298,6 +3341,11 @@ if not IS_CLIENT_VIEW:
                 "fuel_text": loaded_share_data.get("fuel_text", fuel_text),
                 "passenger_count": int(loaded_share_data.get("passenger_count", passenger_count)),
                 "car_shape": loaded_share_data.get("car_shape", car_shape),
+                "installment_prepaid": _safe_int_value(loaded_share_data.get("installment_prepaid", 0), 0),
+                "installment_rate": _safe_float_value(loaded_share_data.get("installment_rate", 5.0), 5.0),
+                "insurance_annual": _safe_int_value(loaded_share_data.get("insurance_annual", 1000000), 1000000),
+                "installment_resale_pct": _safe_int_value(loaded_share_data.get("installment_resale_pct", installment_resale_pct), installment_resale_pct),
+                "is_corporate": bool(loaded_share_data.get("is_corporate", False)),
                 "rent_resale_pct": float(loaded_share_data.get("rent_resale_pct", rent_resale_pct)),
                 "finance_mode": loaded_share_data.get("finance_mode", "rent"),
                 "lease_tax_included": bool(loaded_share_data.get("lease_tax_included", False)),
@@ -3316,6 +3364,11 @@ if not IS_CLIENT_VIEW:
                 "prepayment_value": f"{int(loaded_share_data.get('rent_deposit', rent_deposit)):,}" if int(loaded_share_data.get("rent_deposit", rent_deposit)) else "",
                 "finance_mode": loaded_share_data.get("finance_mode", "rent"),
                 "lease_tax_included": bool(loaded_share_data.get("lease_tax_included", False)),
+                "installment_prepaid": _safe_int_value(loaded_share_data.get("installment_prepaid", 0), 0),
+                "installment_rate": _safe_float_value(loaded_share_data.get("installment_rate", 5.0), 5.0),
+                "insurance_annual": _safe_int_value(loaded_share_data.get("insurance_annual", 1000000), 1000000),
+                "installment_resale_pct": _safe_int_value(loaded_share_data.get("installment_resale_pct", installment_resale_pct), installment_resale_pct),
+                "is_corporate": bool(loaded_share_data.get("is_corporate", False)),
             }
             loaded_visible_sections = normalize_visible_sections(loaded_share_data.get("visible_sections"))
             # 공유 항목 체크박스는 이미 렌더된 뒤 직접 수정하면 Streamlit 위젯 키 오류가 납니다.
