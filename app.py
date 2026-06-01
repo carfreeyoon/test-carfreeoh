@@ -463,6 +463,8 @@ def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mile
                     "quick_edit": {
                         "rent_monthly_pay": rent_monthly_pay,
                         "rent_resale_pct": rent_resale_pct,
+                        "installment_car_price": installment_car_price,
+                        "finance_car_price": finance_car_price,
                         "months": months,
                         "mileage": mileage,
                         "rent_deposit": rent_deposit,
@@ -2495,6 +2497,8 @@ passenger_count = 7
 car_shape = "하이브리드"
 installment_resale_pct = 50 # 할부 잔존가치(매각율) 기본값
 rent_resale_pct = 58       # 렌트 고정 잔존가치(기본값 58%)
+installment_car_price = car_price
+finance_car_price = car_price
 
 # 공유 링크로 접속한 경우 기본값 반영
 shared_quote_data = {}
@@ -2508,6 +2512,8 @@ if shared_quote_data:
     car_name = shared_quote_data.get("car_name", car_name)
     car_option = shared_quote_data.get("car_option", car_option)
     car_price = int(shared_quote_data.get("car_price", car_price))
+    installment_car_price = int(shared_quote_data.get("installment_car_price", car_price))
+    finance_car_price = int(shared_quote_data.get("finance_car_price", car_price))
     months = int(shared_quote_data.get("months", months))
     mileage = shared_quote_data.get("mileage", mileage)
     rent_monthly_pay = int(shared_quote_data.get("rent_monthly_pay", rent_monthly_pay))
@@ -2547,6 +2553,8 @@ def make_share_url():
         "car_name": car_name,
         "car_option": car_option,
         "car_price": car_price,
+        "installment_car_price": installment_car_price,
+        "finance_car_price": finance_car_price,
         "months": months,
         "mileage": mileage,
         "rent_monthly_pay": rent_monthly_pay,
@@ -2815,7 +2823,10 @@ if not IS_CLIENT_VIEW:
 
                 if "차량명" in pre_key: car_name = pre_val
                 elif "옵션" in pre_key: car_option = pre_val
-                elif "차량가" in pre_key: car_price = pre_clean_num(pre_val)
+                elif "차량가" in pre_key:
+                    car_price = pre_clean_num(pre_val)
+                    installment_car_price = car_price
+                    finance_car_price = car_price
                 elif "개월수" in pre_key: months = pre_clean_num(pre_val)
                 elif "약정거리" in pre_key: mileage = pre_val.replace(" ", "")
                 elif "월납입" in pre_key: rent_monthly_pay = pre_clean_num(pre_val)
@@ -2831,6 +2842,8 @@ if not IS_CLIENT_VIEW:
             "car_name": car_name,
             "car_option": car_option,
             "car_price": car_price,
+            "installment_car_price": installment_car_price,
+            "finance_car_price": finance_car_price,
             "months": months,
             "mileage": mileage,
             "rent_monthly_pay": rent_monthly_pay,
@@ -2850,6 +2863,8 @@ if not IS_CLIENT_VIEW:
         car_name = active_quote_data.get("car_name", car_name)
         car_option = active_quote_data.get("car_option", car_option)
         car_price = int(active_quote_data.get("car_price", car_price))
+        installment_car_price = int(active_quote_data.get("installment_car_price", car_price))
+        finance_car_price = int(active_quote_data.get("finance_car_price", car_price))
         months = int(active_quote_data.get("months", months))
         mileage = active_quote_data.get("mileage", mileage)
         rent_monthly_pay = int(active_quote_data.get("rent_monthly_pay", rent_monthly_pay))
@@ -2880,13 +2895,15 @@ if not IS_CLIENT_VIEW:
         mileage = st.session_state.get("quick_mileage", mileage)
         quick_prepayment_input_value = st.session_state.get("quick_prepayment_value", "")
         if st.session_state.get("quick_prepayment_mode", "%") == "%":
-            rent_deposit = int(car_price * (pre_history_pct_to_float(quick_prepayment_input_value, 0) / 100))
+            rent_deposit = int(finance_car_price * (pre_history_pct_to_float(quick_prepayment_input_value, 0) / 100))
         else:
             rent_deposit = pre_history_money_to_int(quick_prepayment_input_value)
         st.session_state.active_quote_data = {
             "car_name": car_name,
             "car_option": car_option,
             "car_price": car_price,
+            "installment_car_price": installment_car_price,
+            "finance_car_price": finance_car_price,
             "months": months,
             "mileage": mileage,
             "rent_monthly_pay": rent_monthly_pay,
@@ -3208,6 +3225,8 @@ if not IS_CLIENT_VIEW:
                 "car_name": loaded_share_data.get("car_name", car_name),
                 "car_option": loaded_share_data.get("car_option", car_option),
                 "car_price": int(loaded_share_data.get("car_price", car_price)),
+                "installment_car_price": int(loaded_share_data.get("installment_car_price", loaded_share_data.get("car_price", car_price))),
+                "finance_car_price": int(loaded_share_data.get("finance_car_price", loaded_share_data.get("car_price", car_price))),
                 "months": int(loaded_share_data.get("months", months)),
                 "mileage": loaded_share_data.get("mileage", mileage),
                 "rent_monthly_pay": int(loaded_share_data.get("rent_monthly_pay", rent_monthly_pay)),
@@ -3226,6 +3245,8 @@ if not IS_CLIENT_VIEW:
             st.session_state.pending_quick_edit = {
                 "rent_monthly_pay": int(loaded_share_data.get("rent_monthly_pay", rent_monthly_pay)),
                 "rent_resale_pct": float(loaded_share_data.get("rent_resale_pct", rent_resale_pct)),
+                "installment_car_price": int(loaded_share_data.get("installment_car_price", loaded_share_data.get("car_price", car_price))),
+                "finance_car_price": int(loaded_share_data.get("finance_car_price", loaded_share_data.get("car_price", car_price))),
                 "months": int(loaded_share_data.get("months", months)),
                 "mileage": loaded_share_data.get("mileage", mileage),
                 "rent_deposit": int(loaded_share_data.get("rent_deposit", rent_deposit)),
@@ -3284,7 +3305,10 @@ if not IS_CLIENT_VIEW:
                 
                 if "차량명" in key: car_name = val
                 elif "옵션" in key: car_option = val
-                elif "차량가" in key: car_price = clean_num(val)
+                elif "차량가" in key:
+                    car_price = clean_num(val)
+                    installment_car_price = car_price
+                    finance_car_price = car_price
                 elif "개월수" in key: months = clean_num(val)
                 elif "약정거리" in key: mileage = val.replace(" ", "")
                 elif "월납입" in key: rent_monthly_pay = clean_num(val)
@@ -3300,6 +3324,8 @@ if not IS_CLIENT_VIEW:
             "car_name": car_name,
             "car_option": car_option,
             "car_price": car_price,
+            "installment_car_price": installment_car_price,
+            "finance_car_price": finance_car_price,
             "months": months,
             "mileage": mileage,
             "rent_monthly_pay": rent_monthly_pay,
@@ -3336,7 +3362,7 @@ if not IS_CLIENT_VIEW:
     st.session_state.setdefault("finance_mode", finance_mode)
     st.session_state.setdefault("lease_tax_included", lease_tax_included)
 
-    quick_edit_source_signature = raw_data.strip() if raw_data.strip() else f"{car_name}|{car_price}|{months}|{mileage}|{rent_monthly_pay}|{rent_resale_pct}|{rent_deposit}"
+    quick_edit_source_signature = raw_data.strip() if raw_data.strip() else f"{car_name}|{car_price}|{installment_car_price}|{finance_car_price}|{months}|{mileage}|{rent_monthly_pay}|{rent_resale_pct}|{rent_deposit}"
 
     def quick_money_to_int(value):
         value_text = str(value).replace(",", "").strip()
@@ -3378,6 +3404,8 @@ if not IS_CLIENT_VIEW:
     if st.session_state.get("quick_edit_source_signature") != quick_edit_source_signature:
         st.session_state.quick_rent_monthly_pay = f"{rent_monthly_pay:,}"
         st.session_state.quick_rent_resale_pct = f"{rent_resale_pct:g}"
+        st.session_state.quick_installment_car_price = f"{installment_car_price:,}"
+        st.session_state.quick_finance_car_price = f"{finance_car_price:,}"
         st.session_state.quick_months = int(months)
         st.session_state.quick_mileage = mileage
         st.session_state.quick_prepayment_mode = "원" if rent_deposit else "%"
@@ -3389,6 +3417,10 @@ if not IS_CLIENT_VIEW:
         pending_quick_edit = st.session_state.pending_quick_edit
         st.session_state.quick_rent_monthly_pay = f"{int(pending_quick_edit.get('rent_monthly_pay', rent_monthly_pay)):,}"
         st.session_state.quick_rent_resale_pct = f"{float(pending_quick_edit.get('rent_resale_pct', rent_resale_pct)):g}"
+        installment_car_price = int(pending_quick_edit.get("installment_car_price", installment_car_price))
+        finance_car_price = int(pending_quick_edit.get("finance_car_price", finance_car_price))
+        st.session_state.quick_installment_car_price = f"{installment_car_price:,}"
+        st.session_state.quick_finance_car_price = f"{finance_car_price:,}"
         st.session_state.quick_months = int(pending_quick_edit.get("months", months))
         st.session_state.quick_mileage = pending_quick_edit.get("mileage", mileage)
         rent_deposit = int(pending_quick_edit.get("rent_deposit", rent_deposit))
@@ -3409,6 +3441,8 @@ if not IS_CLIENT_VIEW:
     st.session_state.setdefault("quick_mileage", mileage)
     st.session_state.setdefault("quick_rent_monthly_pay", f"{rent_monthly_pay:,}")
     st.session_state.setdefault("quick_rent_resale_pct", f"{rent_resale_pct:g}")
+    st.session_state.setdefault("quick_installment_car_price", f"{installment_car_price:,}")
+    st.session_state.setdefault("quick_finance_car_price", f"{finance_car_price:,}")
     st.session_state.setdefault("quick_prepayment_mode", "원" if rent_deposit else "%")
     st.session_state.setdefault("quick_prepayment_value", f"{rent_deposit:,}" if rent_deposit else "")
 
@@ -3469,6 +3503,39 @@ if not IS_CLIENT_VIEW:
     html.caprio-dark .quick-prepayment-helper {
         color: #ff8da1 !important;
     }
+    .quick-price-mini-divider {
+        height: 54px;
+        width: 1px;
+        margin: 20px auto 0 auto;
+        background: #94a3b8;
+        opacity: .85;
+    }
+    html.caprio-dark .quick-price-mini-divider {
+        background: #64748b !important;
+        opacity: .9;
+    }
+    .quick-price-label {
+        min-height: 22px;
+        display:flex;
+        align-items:center;
+        margin: 0 0 6px 0;
+        font-size: 14px;
+        font-weight: 850;
+        line-height: 1.15;
+        white-space: nowrap;
+    }
+    .installment-price-label {
+        color:#ef4444 !important;
+        -webkit-text-fill-color:#ef4444 !important;
+    }
+    .finance-price-label {
+        color:#111827 !important;
+        -webkit-text-fill-color:#111827 !important;
+    }
+    html.caprio-dark .finance-price-label {
+        color:#f3f6fb !important;
+        -webkit-text-fill-color:#f3f6fb !important;
+    }
     .lease-tax-option-note {
         display:inline-block;
         margin: 0 0 6px 0;
@@ -3496,7 +3563,7 @@ if not IS_CLIENT_VIEW:
 
     with st.form("quick_rent_edit_form"):
 
-        quick_col1, quick_col2, quick_col3, quick_col4, quick_col5, quick_col6, quick_col7 = st.columns([1.18, 1.08, 0.88, 1.02, 0.62, 1.02, 0.72])
+        quick_col1, quick_col2, quick_col3, quick_col4, quick_col5, quick_col6, quick_sep_col, quick_col7, quick_col8, quick_col9 = st.columns([0.92, 0.82, 0.72, 0.86, 0.50, 0.92, 0.08, 0.96, 1.02, 0.60])
 
         with quick_col1:
             st.text_input("월납입", key="quick_rent_monthly_pay")
@@ -3545,7 +3612,18 @@ if not IS_CLIENT_VIEW:
                 label_visibility="collapsed"
             )
 
+        with quick_sep_col:
+            st.markdown("<div class='quick-price-mini-divider'></div>", unsafe_allow_html=True)
+
         with quick_col7:
+            st.markdown('<div class="quick-price-label installment-price-label">할부 차량가</div>', unsafe_allow_html=True)
+            st.text_input("할부 차량가", key="quick_installment_car_price", label_visibility="collapsed")
+
+        with quick_col8:
+            st.markdown('<div class="quick-price-label finance-price-label">렌트·리스 차량가</div>', unsafe_allow_html=True)
+            st.text_input("렌트·리스 차량가", key="quick_finance_car_price", label_visibility="collapsed")
+
+        with quick_col9:
             st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
             quick_edit_submitted = st.form_submit_button("적용", use_container_width=True)
 
@@ -3558,17 +3636,21 @@ if not IS_CLIENT_VIEW:
     if st.session_state.get("quick_edit_applied"):
         rent_monthly_pay = quick_money_to_int(st.session_state.quick_rent_monthly_pay)
         rent_resale_pct = quick_pct_to_float(st.session_state.quick_rent_resale_pct, rent_resale_pct)
+        installment_car_price = quick_money_to_int(st.session_state.get("quick_installment_car_price", installment_car_price)) or car_price
+        finance_car_price = quick_money_to_int(st.session_state.get("quick_finance_car_price", finance_car_price)) or car_price
         months = int(st.session_state.quick_months)
         mileage = st.session_state.quick_mileage
         quick_prepayment_input_value = st.session_state.get("quick_prepayment_value", "")
         if st.session_state.get("quick_prepayment_mode", "%") == "%":
-            rent_deposit = int(car_price * (quick_pct_to_float(quick_prepayment_input_value, 0) / 100))
+            rent_deposit = int(finance_car_price * (quick_pct_to_float(quick_prepayment_input_value, 0) / 100))
         else:
             rent_deposit = quick_money_to_int(quick_prepayment_input_value)
         st.session_state.active_quote_data = {
             "car_name": car_name,
             "car_option": car_option,
             "car_price": car_price,
+            "installment_car_price": installment_car_price,
+            "finance_car_price": finance_car_price,
             "months": months,
             "mileage": mileage,
             "rent_monthly_pay": rent_monthly_pay,
@@ -3616,18 +3698,23 @@ e14 = "O" if "경차" in car_shape else ""
 g14 = "O" if "전기" in car_shape or "수소" in car_shape else ""
 i14 = "O" if "하이브리드" in car_shape else ""
 
-if e15 != "" and g14 != "":
-    reg_tax_raw = (car_price * 0.05) - 1400000
-elif e15 != "":
-    reg_tax_raw = car_price * 0.05
-elif e14 != "":
-    reg_tax_raw = (car_price * 0.04) - 750000
-elif g14 != "":
-    reg_tax_raw = (car_price * 0.07) - 1400000
-else:
-    reg_tax_raw = car_price * 0.07
+def calc_registration_tax(price):
+    if e15 != "" and g14 != "":
+        tax_raw = (price * 0.05) - 1400000
+    elif e15 != "":
+        tax_raw = price * 0.05
+    elif e14 != "":
+        tax_raw = (price * 0.04) - 750000
+    elif g14 != "":
+        tax_raw = (price * 0.07) - 1400000
+    else:
+        tax_raw = price * 0.07
+    return max(0, int(tax_raw))
 
-reg_tax = max(0, int(reg_tax_raw))
+installment_car_price = int(installment_car_price or car_price)
+finance_car_price = int(finance_car_price or car_price)
+reg_tax = calc_registration_tax(installment_car_price)
+finance_reg_tax = calc_registration_tax(finance_car_price)
 
 if "전기" in cc_text:
     tax_annual = 130000
@@ -3644,7 +3731,7 @@ elif "3000" in cc_text:
 else:
     tax_annual = 130000
 
-loan_amount = car_price - installment_prepaid
+loan_amount = installment_car_price - installment_prepaid
 r = (installment_rate / 100) / 12
 inst_monthly_pay = int(loan_amount / months)
 installment_equal_pay = loan_amount * (r * (1 + r)**months) / ((1 + r)**months - 1) if r > 0 else loan_amount / months
@@ -3655,10 +3742,10 @@ total_tax = int((tax_annual / 12) * months)
 
 # 할부 잔존가치(매각) 산출
 corporate_discount = 0.9 if (is_corporate and car_shape != "경차" and e15 == "") else 1.0
-car_sell_value = int(car_price * (installment_resale_pct / 100) * corporate_discount)
+car_sell_value = int(installment_car_price * (installment_resale_pct / 100) * corporate_discount)
 
 # 렌트 고정 잔존가치 산출 (수정: 렌트 고정값 58% 사용)
-rent_takeover_price = int(car_price * (rent_resale_pct / 100))
+rent_takeover_price = int(finance_car_price * (rent_resale_pct / 100))
 
 if e15 != "" and g14 != "":
     rent_takeover_tax_raw = (rent_takeover_price * 0.05) - 1400000
@@ -3718,6 +3805,13 @@ reg_van = "td-highlight" if e15 != "" else ""
 tax_type_text = "승합차(9인승 이상)" if e15 != "" else car_shape
 
 car_option_display = format_option_html(car_option)
+if int(installment_car_price or car_price) == int(finance_car_price or car_price):
+    car_price_display_html = f"{int(finance_car_price or car_price):,} 원"
+else:
+    car_price_display_html = (
+        f'<div class="vehicle-price-split"><div><span style="color:#ef4444; font-weight:900;">할부</span> {int(installment_car_price):,} 원</div>'
+        f'<div><span style="font-weight:900;">렌트·리스</span> {int(finance_car_price):,} 원</div></div>'
+    )
 
 
 def render_customer_intro_card(customer_name_value):
@@ -3731,7 +3825,7 @@ def render_customer_intro_card(customer_name_value):
         </div>
         <div style="font-size:13px; line-height:1.6; color:#333333;">
             복잡한 조건은 대신 정리하고,<br>
-            편하게 선택하실 수 있게 만들었어요.
+            편하게 비교하실 수 있게 만들었어요.
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -3772,7 +3866,7 @@ if visible_sections.get("common", True):
                 <tr>
                     <td>{car_name}</td>
                     <td>{car_option_display}</td>
-                    <td>{car_price:,} 원</td>
+                    <td>{car_price_display_html}</td>
                 </tr>
             </tbody>
         </table>
