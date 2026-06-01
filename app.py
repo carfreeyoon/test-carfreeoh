@@ -2955,7 +2955,7 @@ if not IS_CLIENT_VIEW:
         st.session_state.raw_quote_input = st.session_state.pending_quote_input
         st.session_state.pending_quote_input = None
 
-    st.markdown("#### 📋 렌트 견적 붙여넣기")
+    st.markdown('<div class="caprio-section-title">📋 렌트 견적 붙여넣기</div>', unsafe_allow_html=True)
     raw_data = st.text_area(
         "렌트 견적 붙여넣기",
         placeholder="견적 텍스트를 입력하세요.",
@@ -3028,289 +3028,195 @@ if not IS_CLIENT_VIEW:
     st.session_state.setdefault("finance_mode", finance_mode)
     st.session_state.setdefault("lease_tax_included", lease_tax_included)
 
-    # 금융방식 HTML 버튼은 URL query param으로 즉시 상태를 전달한다.
-    # 고객용에서는 UI/조작값이 노출되지 않도록 영업자 화면에서만 반영한다.
-    finance_mode_param = st.query_params.get("finance_mode") if not IS_CLIENT_VIEW else None
-    if finance_mode_param in ["rent", "lease"] and finance_mode_param != st.session_state.get("finance_mode", "rent"):
-        set_finance_mode(finance_mode_param)
-
-    quick_edit_source_signature = raw_data.strip() if raw_data.strip() else f"{car_name}|{car_price}|{months}|{mileage}|{rent_monthly_pay}|{rent_resale_pct}|{rent_deposit}"
-
-    def quick_money_to_int(value):
-        value_text = str(value).replace(",", "").strip()
-        return int("".join(filter(str.isdigit, value_text))) if any(ch.isdigit() for ch in value_text) else 0
-
-    def quick_pct_to_float(value, default_value):
-        try:
-            return float(str(value).replace("%", "").replace(",", "").strip())
-        except Exception:
-            return float(default_value)
-
-    def quick_prepayment_display_value(mode, value):
-        amount = quick_money_to_int(value)
-        if not amount or not car_price:
-            return ""
-        if mode == "%":
-            prepayment_amount = int(car_price * (quick_pct_to_float(value, 0) / 100))
-            return f"{prepayment_amount:,}원" if prepayment_amount else ""
-        prepayment_pct = (amount / car_price) * 100
-        return f"{prepayment_pct:.1f}%" if prepayment_pct else ""
-
-    def convert_quick_prepayment_value(mode, value):
-        if not car_price:
-            return ""
-        if mode == "%":
-            converted_amount = int(car_price * (quick_pct_to_float(value, 0) / 100))
-            return f"{converted_amount:,}" if converted_amount else ""
-        converted_pct = (quick_money_to_int(value) / car_price) * 100
-        return f"{converted_pct:.1f}" if converted_pct else ""
-
-    def toggle_quick_prepayment_mode():
-        current_mode = st.session_state.get("quick_prepayment_mode", "%")
-        st.session_state.quick_prepayment_value = convert_quick_prepayment_value(
-            current_mode,
-            st.session_state.get("quick_prepayment_value", "")
-        )
-        st.session_state.quick_prepayment_mode = "원" if current_mode == "%" else "%"
-
-    if st.session_state.get("quick_edit_source_signature") != quick_edit_source_signature:
-        st.session_state.quick_rent_monthly_pay = f"{rent_monthly_pay:,}"
-        st.session_state.quick_rent_resale_pct = f"{rent_resale_pct:g}"
-        st.session_state.quick_months = int(months)
-        st.session_state.quick_mileage = mileage
-        st.session_state.quick_prepayment_mode = "원" if rent_deposit else "%"
-        st.session_state.quick_prepayment_value = f"{rent_deposit:,}" if rent_deposit else ""
-        st.session_state.quick_edit_applied = False
-        st.session_state.quick_edit_source_signature = quick_edit_source_signature
-
-    if st.session_state.pending_quick_edit is not None:
-        pending_quick_edit = st.session_state.pending_quick_edit
-        st.session_state.quick_rent_monthly_pay = f"{int(pending_quick_edit.get('rent_monthly_pay', rent_monthly_pay)):,}"
-        st.session_state.quick_rent_resale_pct = f"{float(pending_quick_edit.get('rent_resale_pct', rent_resale_pct)):g}"
-        st.session_state.quick_months = int(pending_quick_edit.get("months", months))
-        st.session_state.quick_mileage = pending_quick_edit.get("mileage", mileage)
-        rent_deposit = int(pending_quick_edit.get("rent_deposit", rent_deposit))
-        st.session_state.quick_prepayment_mode = pending_quick_edit.get("prepayment_mode", st.session_state.get("quick_prepayment_mode", "원" if rent_deposit else "%"))
-        st.session_state.quick_prepayment_value = pending_quick_edit.get("prepayment_value", st.session_state.get("quick_prepayment_value", f"{rent_deposit:,}" if rent_deposit else ""))
-        if pending_quick_edit.get("finance_mode") in ["rent", "lease"]:
-            st.session_state.finance_mode = pending_quick_edit.get("finance_mode")
-            st.session_state.finance_mode_choice = "리스" if st.session_state.finance_mode == "lease" else "렌트"
-        if "lease_tax_included" in pending_quick_edit:
-            st.session_state.lease_tax_included = bool(pending_quick_edit.get("lease_tax_included", False))
-        st.session_state.quick_edit_applied = True
-        st.session_state.pending_quick_edit = None
-
-    # quick edit state 보장 (텍스트 공백/active 유지 대응)
-    st.session_state.setdefault("quick_months", int(months))
-    st.session_state.setdefault("quick_mileage", mileage)
-    st.session_state.setdefault("quick_rent_monthly_pay", f"{rent_monthly_pay:,}")
-    st.session_state.setdefault("quick_rent_resale_pct", f"{rent_resale_pct:g}")
-    st.session_state.setdefault("quick_prepayment_mode", "원" if rent_deposit else "%")
-    st.session_state.setdefault("quick_prepayment_value", f"{rent_deposit:,}" if rent_deposit else "")
-
-    quick_month_options = [24, 36, 48, 60]
-    if int(st.session_state.get("quick_months", months)) not in quick_month_options:
-        quick_month_options.append(int(st.session_state.get("quick_months", months)))
-        quick_month_options = sorted(quick_month_options)
-
-    quick_mileage_options = ["1만KM", "1.5만KM", "2만Km", "3만KM"]
-    if st.session_state.get("quick_mileage", mileage) not in quick_mileage_options:
-        quick_mileage_options.append(st.session_state.get("quick_mileage", mileage))
-
-    def sync_finance_option_to_active_quote():
-        if isinstance(st.session_state.get("active_quote_data"), dict):
-            st.session_state.active_quote_data["finance_mode"] = st.session_state.get("finance_mode", "rent")
-            st.session_state.active_quote_data["lease_tax_included"] = bool(st.session_state.get("lease_tax_included", False))
-
-    sync_finance_option_to_active_quote()
-
+    # 금융방식은 빠른수정 form 밖에서 즉시 반영되도록 독립 섹션으로 렌더링한다.
+    # v5: URL/query 이동 방식 제거. Streamlit 기본 radio를 버튼처럼 스타일링해
+    # 로그인 화면 재진입 없이 session_state/on_change 흐름만 사용한다.
     current_finance_mode = st.session_state.get("finance_mode", "rent")
-    finance_rent_active = current_finance_mode == "rent"
-    finance_lease_active = current_finance_mode == "lease"
+    st.session_state.finance_mode_choice = "리스" if current_finance_mode == "lease" else "렌트"
 
-    # 금융방식은 빠른수정 form 밖에서 즉시 반영되도록 독립 섹션으로 렌더링
-    # 렌트/리스는 st.button이 아닌 전용 HTML 링크 버튼으로 구성해 기존 버튼 CSS와 완전히 분리한다.
-    current_query_params = dict(st.query_params)
-
-    def make_finance_mode_href(mode):
-        next_params = current_query_params.copy()
-        next_params["finance_mode"] = mode
-        return "?" + urllib.parse.urlencode(next_params)
-
-    rent_button_href = make_finance_mode_href("rent")
-    lease_button_href = make_finance_mode_href("lease")
-    rent_button_class = "finance-html-button active rent" if finance_rent_active else "finance-html-button rent"
-    lease_button_class = "finance-html-button active lease" if finance_lease_active else "finance-html-button lease"
-
-    st.markdown(f'''
+    st.markdown("""
     <style>
-    /* ===== 금융방식 독립 섹션: HTML 버튼 전용 ===== */
-    .finance-mode-row-anchor + div[data-testid="stHorizontalBlock"] {{
-        align-items:center !important;
-        gap:0 !important;
-        margin:8px 0 18px 0 !important;
-        padding:0 !important;
-    }}
-    .finance-mode-row-anchor + div[data-testid="stHorizontalBlock"] > div {{
-        padding:0 8px !important;
-        box-sizing:border-box !important;
-    }}
-    .finance-mode-title-inline {{
+    /* ===== 공통 섹션 제목: 렌트 견적 붙여넣기 / 금융방식 / 빠른수정 통일 ===== */
+    .caprio-section-title {
         font-size:22px;
         font-weight:900;
-        line-height:1.2;
+        line-height:1.25;
         color:#020617;
-        white-space:nowrap;
+        margin:0 0 12px 0;
         padding:0;
-        margin:0;
-    }}
-    html.caprio-dark .finance-mode-title-inline {{
+        letter-spacing:-0.4px;
+    }
+    html.caprio-dark .caprio-section-title {
         color:#f8fafc !important;
-    }}
-    .finance-html-control-wrap {{
+    }
+
+    /* ===== 금융방식 독립 섹션: radio를 버튼형으로 스타일링 ===== */
+    .finance-mode-row-anchor + div[data-testid="stHorizontalBlock"] {
+        align-items:center !important;
+        gap:0 !important;
+        margin:8px 0 26px 0 !important;
+        padding:0 !important;
+    }
+    .finance-mode-row-anchor + div[data-testid="stHorizontalBlock"] > div {
+        padding:0 8px !important;
+        box-sizing:border-box !important;
+    }
+    .finance-mode-inline-title-wrap {
+        min-height:48px;
         display:flex;
         align-items:center;
-        gap:14px;
-        width:100%;
-        min-height:38px;
-        margin:0;
-        padding:0;
-    }}
-    .finance-html-button-group {{
-        display:grid;
-        grid-template-columns:1fr 1fr;
-        gap:14px;
-        width:520px;
-        max-width:100%;
-        flex:0 0 520px;
-    }}
-    .finance-html-button {{
-        height:38px;
-        min-height:38px;
-        border-radius:10px;
-        display:flex;
-        align-items:center;
-        justify-content:center;
-        text-decoration:none !important;
-        font-size:14px;
-        font-weight:950;
-        line-height:1;
-        box-sizing:border-box;
-        box-shadow:none;
-        user-select:none;
-        -webkit-user-select:none;
-    }}
-    .finance-html-button.rent {{
-        border:1.5px solid #22c55e;
-        background:#ffffff;
+    }
+
+    div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[data-testid="stRadio"] {
+        margin:0 !important;
+        padding:0 !important;
+    }
+    div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[data-testid="stRadio"] > label {
+        display:none !important;
+    }
+    div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[role="radiogroup"] {
+        display:grid !important;
+        grid-template-columns:1fr 1fr !important;
+        gap:14px !important;
+        width:520px !important;
+        max-width:100% !important;
+        margin:0 !important;
+        padding:0 !important;
+    }
+    div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[role="radiogroup"] label {
+        height:38px !important;
+        min-height:38px !important;
+        border-radius:10px !important;
+        display:flex !important;
+        align-items:center !important;
+        justify-content:center !important;
+        padding:0 !important;
+        margin:0 !important;
+        box-sizing:border-box !important;
+        cursor:pointer !important;
+        font-size:14px !important;
+        font-weight:950 !important;
+        line-height:1 !important;
+        background:#ffffff !important;
+        box-shadow:none !important;
+    }
+    div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[role="radiogroup"] label > div:first-child {
+        display:none !important;
+    }
+    div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[role="radiogroup"] label span,
+    div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[role="radiogroup"] label p,
+    div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[role="radiogroup"] label div[data-testid="stMarkdownContainer"] p {
+        margin:0 !important;
+        padding:0 !important;
+        line-height:1 !important;
+        font-size:14px !important;
+        font-weight:950 !important;
+        text-align:center !important;
+    }
+    div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[role="radiogroup"] label:nth-child(1) {
+        border:1.5px solid #22c55e !important;
         color:#16a34a !important;
         -webkit-text-fill-color:#16a34a !important;
-    }}
-    .finance-html-button.lease {{
-        border:1.5px solid #8b5cf6;
-        background:#ffffff;
+    }
+    div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[role="radiogroup"] label:nth-child(2) {
+        border:1.5px solid #8b5cf6 !important;
         color:#7c3aed !important;
         -webkit-text-fill-color:#7c3aed !important;
-    }}
-    .finance-html-button.rent.active {{
-        background:#16a34a;
+    }
+    div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[role="radiogroup"] label:nth-child(1):has(input:checked) {
+        background:#16a34a !important;
         color:#ffffff !important;
         -webkit-text-fill-color:#ffffff !important;
-    }}
-    .finance-html-button.lease.active {{
-        background:#7c3aed;
+    }
+    div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[role="radiogroup"] label:nth-child(2):has(input:checked) {
+        background:#7c3aed !important;
         color:#ffffff !important;
         -webkit-text-fill-color:#ffffff !important;
-    }}
-    .finance-html-button:hover {{
-        text-decoration:none !important;
-        filter:brightness(0.98);
-    }}
-    html.caprio-dark .finance-html-button.rent {{
-        border-color:#22c55e;
-        background:#101826;
+    }
+    div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[role="radiogroup"] label:has(input:checked) * {
+        color:#ffffff !important;
+        -webkit-text-fill-color:#ffffff !important;
+    }
+    html.caprio-dark div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[role="radiogroup"] label {
+        background:#101826 !important;
+    }
+    html.caprio-dark div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[role="radiogroup"] label:nth-child(1) {
+        border-color:#22c55e !important;
         color:#86efac !important;
         -webkit-text-fill-color:#86efac !important;
-    }}
-    html.caprio-dark .finance-html-button.lease {{
-        border-color:#a78bfa;
-        background:#101826;
+    }
+    html.caprio-dark div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[role="radiogroup"] label:nth-child(2) {
+        border-color:#a78bfa !important;
         color:#c4b5fd !important;
         -webkit-text-fill-color:#c4b5fd !important;
-    }}
-    html.caprio-dark .finance-html-button.rent.active {{
-        background:#15803d;
+    }
+    html.caprio-dark div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[role="radiogroup"] label:nth-child(1):has(input:checked) {
+        background:#15803d !important;
         color:#ffffff !important;
         -webkit-text-fill-color:#ffffff !important;
-    }}
-    html.caprio-dark .finance-html-button.lease.active {{
-        background:#6d28d9;
+    }
+    html.caprio-dark div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[role="radiogroup"] label:nth-child(2):has(input:checked) {
+        background:#6d28d9 !important;
         color:#ffffff !important;
         -webkit-text-fill-color:#ffffff !important;
-    }}
-    .finance-lease-tax-empty {{
+    }
+
+    .finance-lease-tax-empty {
         min-height:38px;
-    }}
-    .finance-tax-checkbox-anchor + div[data-testid="stCheckbox"] label {{
+    }
+    .finance-tax-checkbox-anchor + div[data-testid="stCheckbox"] label {
         min-height:38px !important;
         display:flex !important;
         align-items:center !important;
         margin:0 !important;
-    }}
-    .finance-tax-checkbox-anchor + div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p {{
+    }
+    .finance-tax-checkbox-anchor + div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p {
         margin:0 !important;
         font-size:14px !important;
         font-weight:850 !important;
         color:#111827 !important;
         white-space:nowrap !important;
-    }}
-    html.caprio-dark .finance-tax-checkbox-anchor + div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p {{
+    }
+    html.caprio-dark .finance-tax-checkbox-anchor + div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p {
         color:#f3f6fb !important;
-    }}
-    @media (max-width: 768px) {{
-        .finance-mode-row-anchor + div[data-testid="stHorizontalBlock"] {{
+    }
+    @media (max-width: 768px) {
+        .finance-mode-row-anchor + div[data-testid="stHorizontalBlock"] {
             display:block !important;
-            margin:8px 0 16px 0 !important;
-        }}
-        .finance-mode-row-anchor + div[data-testid="stHorizontalBlock"] > div {{
+            margin:8px 0 20px 0 !important;
+        }
+        .finance-mode-row-anchor + div[data-testid="stHorizontalBlock"] > div {
             width:100% !important;
             padding:0 !important;
             margin:0 0 8px 0 !important;
-        }}
-        .finance-mode-title-inline {{
-            margin:0 0 6px 0 !important;
-        }}
-        .finance-html-control-wrap {{
-            display:block;
-        }}
-        .finance-html-button-group {{
-            width:100%;
-            flex:none;
-            gap:10px;
-            margin-bottom:8px;
-        }}
-    }}
+        }
+        .finance-mode-inline-title-wrap {
+            min-height:auto !important;
+        }
+        div[data-testid="stVerticalBlock"]:has(.finance-radio-anchor) div[role="radiogroup"] {
+            width:100% !important;
+            gap:10px !important;
+        }
+    }
     </style>
-    ''', unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
     st.markdown('<div class="finance-mode-row-anchor"></div>', unsafe_allow_html=True)
     finance_title_col, finance_control_col = st.columns([0.12, 0.88], gap="small")
     with finance_title_col:
-        st.markdown('<div class="finance-mode-title-inline">금융방식</div>', unsafe_allow_html=True)
+        st.markdown('<div class="finance-mode-inline-title-wrap"><div class="caprio-section-title">🏢 금융방식</div></div>', unsafe_allow_html=True)
     with finance_control_col:
         with st.container(border=True):
             finance_button_col, finance_tax_col = st.columns([0.42, 0.58], gap="small")
             with finance_button_col:
-                st.markdown(
-                    f'''
-                    <div class="finance-html-control-wrap">
-                        <div class="finance-html-button-group">
-                            <a class="{rent_button_class}" href="{html.escape(rent_button_href, quote=True)}">렌트</a>
-                            <a class="{lease_button_class}" href="{html.escape(lease_button_href, quote=True)}">리스</a>
-                        </div>
-                    </div>
-                    ''',
-                    unsafe_allow_html=True,
+                st.markdown('<div class="finance-radio-anchor"></div>', unsafe_allow_html=True)
+                st.radio(
+                    "금융방식",
+                    options=["렌트", "리스"],
+                    key="finance_mode_choice",
+                    horizontal=True,
+                    label_visibility="collapsed",
+                    on_change=on_finance_mode_choice_change,
                 )
             with finance_tax_col:
                 if st.session_state.get("finance_mode", "rent") == "lease":
@@ -3320,13 +3226,13 @@ if not IS_CLIENT_VIEW:
                     st.markdown('<div class="finance-lease-tax-empty"></div>', unsafe_allow_html=True)
 
     st.markdown('<div class="quick-rent-condition">', unsafe_allow_html=True)
-    st.markdown('<div class="quick-rent-condition-title">🔧 렌트/리스 조건 빠른 수정</div>', unsafe_allow_html=True)
+    st.markdown('<div class="caprio-section-title quick-rent-condition-title">🔧 렌트/리스 조건 빠른 수정</div>', unsafe_allow_html=True)
 
     quick_edit_submitted = False
 
     st.markdown("""
     <style>
-    .quick-rent-condition-title { font-size:22px; font-weight:800; line-height:1.25; color:inherit; margin:8px 0 6px 0; padding:0; }
+    .quick-rent-condition-title { margin:8px 0 12px 0 !important; }
     html.caprio-dark .quick-rent-condition-title {
         color: #f8fafc !important;
     }
