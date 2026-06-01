@@ -3000,6 +3000,8 @@ if not IS_CLIENT_VIEW:
             "passenger_count": passenger_count,
             "car_shape": car_shape,
             "rent_resale_pct": rent_resale_pct,
+            "finance_mode": st.session_state.get("finance_mode", finance_mode),
+            "lease_tax_included": bool(st.session_state.get("lease_tax_included", lease_tax_included)),
         }
         st.session_state.active_quote_raw = raw_data
 
@@ -3107,17 +3109,13 @@ if not IS_CLIENT_VIEW:
     if st.session_state.get("quick_mileage", mileage) not in quick_mileage_options:
         quick_mileage_options.append(st.session_state.get("quick_mileage", mileage))
 
-    st.markdown('<div class="quick-rent-condition">', unsafe_allow_html=True)
-    st.markdown('<div class="quick-rent-condition-title">🔧 렌트/리스 조건 빠른 수정</div>', unsafe_allow_html=True)
+    st.markdown("#### 🔧 렌트/리스 조건 빠른 수정")
 
     quick_edit_submitted = False
 
     st.markdown("""
     <style>
-    .quick-rent-condition-title { font-size:22px; font-weight:800; line-height:1.25; color:inherit; margin:8px 0 6px 0; padding:0; }
-    html.caprio-dark .quick-rent-condition-title {
-        color: #f8fafc !important;
-    }
+    /* 빠른수정 제목은 Streamlit 기본 h4를 사용해 상단 견적 붙여넣기 제목과 위치/서식을 맞춤 */
     .quick-prepayment-label {
         min-height: 22px;
         display: flex;
@@ -3145,60 +3143,6 @@ if not IS_CLIENT_VIEW:
         color: #ff8da1 !important;
     }
 
-    /* ===== 렌트/리스 빠른수정 버튼 전용 색상 보강 ===== */
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) button,
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stFormSubmitButton"] button,
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stButton"] button {
-        background: #16a34a !important;
-        border: 1px solid #22c55e !important;
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-        font-weight: 900 !important;
-        box-shadow: 0 0 0 1px rgba(34,197,94,.22) !important;
-    }
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover,
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stFormSubmitButton"] button:hover,
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stButton"] button:hover {
-        background: #15803d !important;
-        border-color: #22c55e !important;
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-    }
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) button,
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stFormSubmitButton"] button,
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stButton"] button {
-        background: #7c3aed !important;
-        border: 1px solid #a78bfa !important;
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-        font-weight: 900 !important;
-        box-shadow: 0 0 0 1px rgba(167,139,250,.24) !important;
-    }
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover,
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stFormSubmitButton"] button:hover,
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stButton"] button:hover {
-        background: #6d28d9 !important;
-        border-color: #a78bfa !important;
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-    }
-    html.caprio-dark .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) button,
-    html.caprio-dark .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stFormSubmitButton"] button,
-    html.caprio-dark .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stButton"] button {
-        background: #15803d !important;
-        border-color: #22c55e !important;
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-    }
-    html.caprio-dark .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) button,
-    html.caprio-dark .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stFormSubmitButton"] button,
-    html.caprio-dark .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stButton"] button {
-        background: #6d28d9 !important;
-        border-color: #a78bfa !important;
-        color: #ffffff !important;
-        -webkit-text-fill-color: #ffffff !important;
-    }
-
     .lease-tax-option-note {
         display:inline-block;
         margin: 0 0 6px 0;
@@ -3219,137 +3163,6 @@ if not IS_CLIENT_VIEW:
     </style>
     """, unsafe_allow_html=True)
 
-    current_finance_mode = st.session_state.get("finance_mode", "rent")
-    current_finance_label = "리스" if current_finance_mode == "lease" else "렌트"
-    rent_active = current_finance_mode == "rent"
-    lease_active = current_finance_mode == "lease"
-
-    st.markdown(f"""
-    <style>
-    /* 렌트/리스 모드 툴바: 빠른수정 박스 상단 2버튼형 */
-    .finance-mode-toolbar-anchor + div[data-testid="stHorizontalBlock"] {{
-        align-items: center !important;
-        gap: 0 !important;
-        margin: 0 0 12px 0 !important;
-        padding: 0 !important;
-    }}
-    .finance-mode-toolbar-anchor + div[data-testid="stHorizontalBlock"] > div {{
-        padding: 0 4px !important;
-        box-sizing: border-box !important;
-    }}
-    .finance-toolbar-title {{
-        font-size: 26px;
-        font-weight: 900;
-        line-height: 1.15;
-        color: #0f172a;
-        margin: 0;
-        padding: 0;
-        white-space: nowrap;
-    }}
-    html.caprio-dark .finance-toolbar-title {{ color: #f8fafc !important; }}
-
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] {{
-        gap: 6px !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        align-items: center !important;
-        max-width: 184px !important;
-    }}
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div {{
-        padding: 0 !important;
-        margin: 0 !important;
-    }}
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button,
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stFormSubmitButton"] button {{
-        height: 36px !important;
-        min-height: 36px !important;
-        padding: 0 18px !important;
-        border-radius: 999px !important;
-        font-size: 13px !important;
-        font-weight: 950 !important;
-        box-shadow: none !important;
-        transition: background-color .12s ease, color .12s ease, border-color .12s ease, box-shadow .12s ease;
-        white-space: nowrap !important;
-    }}
-    /* 비선택 기본 */
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button,
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stFormSubmitButton"] button {{
-        background: #f8fafc !important;
-        border: 1px solid #cbd5e1 !important;
-        color: #475569 !important;
-        -webkit-text-fill-color: #475569 !important;
-    }}
-    html.caprio-dark .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stButton"] button,
-    .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stFormSubmitButton"] button {{
-        background: #101826 !important;
-        border-color: #46566d !important;
-        color: #c8d4e6 !important;
-        -webkit-text-fill-color: #c8d4e6 !important;
-    }}
-    /* 렌트 선택 */
-    {'.finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stButton"] button, .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stFormSubmitButton"] button { background:#16a34a !important; border-color:#22c55e !important; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; box-shadow:0 0 0 1px rgba(34,197,94,.32), 0 4px 13px rgba(22,163,74,.24) !important; }' if rent_active else ''}
-    {'.finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stButton"] button:hover, .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) div[data-testid="stFormSubmitButton"] button:hover { background:#15803d !important; border-color:#22c55e !important; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; }' if rent_active else ''}
-    /* 리스 선택 */
-    {'.finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stButton"] button, .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stFormSubmitButton"] button { background:#7c3aed !important; border-color:#a78bfa !important; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; box-shadow:0 0 0 1px rgba(167,139,250,.35), 0 4px 13px rgba(124,58,237,.28) !important; }' if lease_active else ''}
-    {'.finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stButton"] button:hover, .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) div[data-testid="stFormSubmitButton"] button:hover { background:#6d28d9 !important; border-color:#a78bfa !important; color:#ffffff !important; -webkit-text-fill-color:#ffffff !important; }' if lease_active else ''}
-
-    .lease-tax-inline-empty {{ min-height: 38px; }}
-    .finance-mode-toolbar-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stCheckbox"] label {{
-        min-height: 38px !important;
-        display:flex !important;
-        align-items:center !important;
-        margin:0 !important;
-    }}
-    .finance-mode-toolbar-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p {{
-        margin:0 !important;
-        font-size:14px !important;
-        font-weight:850 !important;
-        color:#111827 !important;
-        white-space:nowrap !important;
-    }}
-    html.caprio-dark .finance-mode-toolbar-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p {{
-        color:#f3f6fb !important;
-    }}
-
-    /* 화이트모드 좌측 사이드바 경계선/입력선 보강 */
-    html.caprio-light [data-testid="stSidebar"],
-    html:not(.caprio-dark) [data-testid="stSidebar"] {{
-        border-right: 1px solid #94a3b8 !important;
-        box-shadow: 1px 0 0 #d1d9e6 !important;
-    }}
-    html.caprio-light [data-testid="stSidebar"] > div,
-    html:not(.caprio-dark) [data-testid="stSidebar"] > div {{
-        border-right: 1px solid #cbd5e1 !important;
-    }}
-    html.caprio-light [data-testid="stSidebar"] input,
-    html:not(.caprio-dark) [data-testid="stSidebar"] input,
-    html.caprio-light [data-testid="stSidebar"] div[data-baseweb="input"],
-    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-baseweb="input"],
-    html.caprio-light [data-testid="stSidebar"] div[data-baseweb="input"] > div,
-    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-baseweb="input"] > div,
-    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div,
-    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div,
-    html.caprio-light [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div > div,
-    html:not(.caprio-dark) [data-testid="stSidebar"] div[data-testid="stNumberInput"] > div > div {{
-        border-color: #64748b !important;
-        outline-color: #64748b !important;
-        box-shadow: none !important;
-    }}
-    html.caprio-light [data-testid="stSidebar"] hr,
-    html:not(.caprio-dark) [data-testid="stSidebar"] hr {{
-        border-color: #94a3b8 !important;
-        background-color: #94a3b8 !important;
-        opacity: 1 !important;
-    }}
-    @media (max-width: 768px) {{
-        .finance-mode-toolbar-anchor + div[data-testid="stHorizontalBlock"] {{ display:block !important; }}
-        .finance-toolbar-title {{ font-size:24px !important; margin-bottom:10px !important; white-space:normal !important; }}
-        .finance-mode-toolbar-anchor + div[data-testid="stHorizontalBlock"] > div {{ width:100% !important; padding:0 !important; margin:0 0 7px 0 !important; }}
-        .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] {{ max-width: 190px !important; }}
-    }}
-    </style>
-    """, unsafe_allow_html=True)
-
     if isinstance(st.session_state.get("active_quote_data"), dict):
         st.session_state.active_quote_data["finance_mode"] = st.session_state.get("finance_mode", "rent")
         st.session_state.active_quote_data["lease_tax_included"] = bool(st.session_state.get("lease_tax_included", False))
@@ -3359,24 +3172,91 @@ if not IS_CLIENT_VIEW:
         
         st.markdown('<div class="finance-switch-button-anchor"></div>', unsafe_allow_html=True)
 
-        current_finance_mode = st.session_state.get("finance_mode","rent")
+        current_finance_mode = st.session_state.get("finance_mode", "rent")
+        rent_button_bg = "#16a34a" if current_finance_mode == "rent" else "transparent"
+        rent_button_color = "#ffffff" if current_finance_mode == "rent" else "#16a34a"
+        lease_button_bg = "#7c3aed" if current_finance_mode == "lease" else "transparent"
+        lease_button_color = "#ffffff" if current_finance_mode == "lease" else "#7c3aed"
         st.markdown(f"""
         <style>
+        /* 렌트/리스 선택 버튼 전용: 공통 버튼과 분리 */
+        .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] {{
+            gap: 14px !important;
+            margin: 0 0 14px 0 !important;
+            padding: 0 !important;
+            align-items: center !important;
+        }}
+        .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div {{
+            padding: 0 !important;
+            margin: 0 !important;
+        }}
         .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {{
-            border-radius:10px !important;
-            font-weight:900 !important;
-            border:1px solid #22c55e !important;
-            background: {"#16a34a" if current_finance_mode=="rent" else "#ffffff"} !important;
-            color: {"#ffffff" if current_finance_mode=="rent" else "#16a34a"} !important;
-            -webkit-text-fill-color: {"#ffffff" if current_finance_mode=="rent" else "#16a34a"} !important;
+            min-height: 42px !important;
+            height: 42px !important;
+            border-radius: 8px !important;
+            font-weight: 900 !important;
+            border: 1.5px solid #22c55e !important;
+            background: {rent_button_bg} !important;
+            color: {rent_button_color} !important;
+            -webkit-text-fill-color: {rent_button_color} !important;
+            box-shadow: none !important;
         }}
         .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {{
-            border-radius:10px !important;
-            font-weight:900 !important;
-            border:1px solid #7c3aed !important;
-            background: {"#7c3aed" if current_finance_mode=="lease" else "#ffffff"} !important;
-            color: {"#ffffff" if current_finance_mode=="lease" else "#7c3aed"} !important;
-            -webkit-text-fill-color: {"#ffffff" if current_finance_mode=="lease" else "#7c3aed"} !important;
+            min-height: 42px !important;
+            height: 42px !important;
+            border-radius: 8px !important;
+            font-weight: 900 !important;
+            border: 1.5px solid #8b5cf6 !important;
+            background: {lease_button_bg} !important;
+            color: {lease_button_color} !important;
+            -webkit-text-fill-color: {lease_button_color} !important;
+            box-shadow: none !important;
+        }}
+        .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) button:hover {{
+            border-color: #16a34a !important;
+            background: {"#15803d" if current_finance_mode == "rent" else "rgba(34,197,94,.10)"} !important;
+            color: {rent_button_color} !important;
+            -webkit-text-fill-color: {rent_button_color} !important;
+        }}
+        .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) button:hover {{
+            border-color: #7c3aed !important;
+            background: {"#6d28d9" if current_finance_mode == "lease" else "rgba(139,92,246,.10)"} !important;
+            color: {lease_button_color} !important;
+            -webkit-text-fill-color: {lease_button_color} !important;
+        }}
+        html.caprio-dark .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(1) button {{
+            border-color: #22c55e !important;
+            background: {"#15803d" if current_finance_mode == "rent" else "transparent"} !important;
+            color: {"#ffffff" if current_finance_mode == "rent" else "#4ade80"} !important;
+            -webkit-text-fill-color: {"#ffffff" if current_finance_mode == "rent" else "#4ade80"} !important;
+        }}
+        html.caprio-dark .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] > div:nth-child(2) button {{
+            border-color: #a78bfa !important;
+            background: {"#6d28d9" if current_finance_mode == "lease" else "transparent"} !important;
+            color: {"#ffffff" if current_finance_mode == "lease" else "#c4b5fd"} !important;
+            -webkit-text-fill-color: {"#ffffff" if current_finance_mode == "lease" else "#c4b5fd"} !important;
+        }}
+        .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stCheckbox"] label {{
+            min-height: 42px !important;
+            display: flex !important;
+            align-items: center !important;
+            margin: 0 !important;
+        }}
+        .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p {{
+            margin: 0 !important;
+            font-size: 14px !important;
+            font-weight: 850 !important;
+            color: #111827 !important;
+            white-space: nowrap !important;
+        }}
+        html.caprio-dark .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] div[data-testid="stCheckbox"] [data-testid="stMarkdownContainer"] p {{
+            color: #f3f6fb !important;
+        }}
+        @media (max-width: 768px) {{
+            .finance-switch-button-anchor + div[data-testid="stHorizontalBlock"] {{
+                gap: 8px !important;
+                margin-bottom: 10px !important;
+            }}
         }}
         </style>
         """, unsafe_allow_html=True)
@@ -3448,7 +3328,6 @@ if not IS_CLIENT_VIEW:
             st.markdown("<div style='height:28px;'></div>", unsafe_allow_html=True)
             quick_edit_submitted = st.form_submit_button("적용", use_container_width=True)
 
-    st.markdown('</div>', unsafe_allow_html=True)
 
 
     if quick_edit_submitted:
@@ -3478,6 +3357,8 @@ if not IS_CLIENT_VIEW:
             "passenger_count": passenger_count,
             "car_shape": car_shape,
             "rent_resale_pct": rent_resale_pct,
+            "finance_mode": st.session_state.get("finance_mode", finance_mode),
+            "lease_tax_included": bool(st.session_state.get("lease_tax_included", lease_tax_included)),
         }
 
     history_raw_data = st.session_state.get("active_quote_raw", pre_raw_data) if st.session_state.active_quote_data else pre_raw_data
