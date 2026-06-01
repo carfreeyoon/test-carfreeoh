@@ -3173,7 +3173,12 @@ if not IS_CLIENT_VIEW:
     )
 
     share_query_value = extract_share_query_value(share_url_input)
-    if share_query_value and share_query_value != st.session_state.get("loaded_share_query_value"):
+    has_local_quote_context = bool(str(st.session_state.get("raw_quote_input", "") or "").strip()) or bool(str(st.session_state.get("active_quote_raw", "") or "").strip())
+    should_load_share_url = bool(share_query_value) and (
+        share_query_value != st.session_state.get("loaded_share_query_value")
+        or has_local_quote_context
+    )
+    if should_load_share_url:
         loaded_share_data = decode_share_data(share_query_value)
         if loaded_share_data:
             st.session_state.loaded_share_data = loaded_share_data
