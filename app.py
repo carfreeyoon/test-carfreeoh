@@ -2520,8 +2520,12 @@ if shared_quote_data:
     installment_resale_pct = int(shared_quote_data.get("installment_resale_pct", installment_resale_pct))
     rent_resale_pct = float(shared_quote_data.get("rent_resale_pct", rent_resale_pct))
 
-customer_name = str(shared_quote_data.get("customer_name", st.session_state.get("customer_name", "")) or "").strip()
-if not IS_CLIENT_VIEW:
+# 고객명은 고객용에서는 공유 데이터 기준으로 고정,
+# 영업자용에서는 불러오기 이후에도 입력창 변경값이 즉시 반영되도록 session_state를 우선합니다.
+if IS_CLIENT_VIEW:
+    customer_name = str(shared_quote_data.get("customer_name", "") or "").strip()
+else:
+    customer_name = str(st.session_state.get("customer_name", shared_quote_data.get("customer_name", "")) or "").strip()
     st.session_state.setdefault("customer_name", customer_name)
 
 finance_mode = str(shared_quote_data.get("finance_mode", st.session_state.get("finance_mode", "rent")) or "rent")
