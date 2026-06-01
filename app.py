@@ -3025,6 +3025,13 @@ if not IS_CLIENT_VIEW:
         selected_label = st.session_state.get("finance_mode_choice", "렌트")
         set_finance_mode("lease" if selected_label == "리스" else "rent")
 
+    def sync_finance_option_to_active_quote():
+        # 금융방식 섹션은 빠른수정 form 밖에서 즉시 반영된다.
+        # 저장/공유 payload와 계산부가 같은 값을 보도록 active_quote_data에도 동기화한다.
+        if isinstance(st.session_state.get("active_quote_data"), dict):
+            st.session_state.active_quote_data["finance_mode"] = st.session_state.get("finance_mode", "rent")
+            st.session_state.active_quote_data["lease_tax_included"] = bool(st.session_state.get("lease_tax_included", False))
+
     st.session_state.setdefault("finance_mode", finance_mode)
     st.session_state.setdefault("lease_tax_included", lease_tax_included)
 
