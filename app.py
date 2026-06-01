@@ -3164,6 +3164,14 @@ if not IS_CLIENT_VIEW:
     # [TOP MAIN] 고객 공유 URL 불러오기
     # ==========================================
     st.markdown("#### 🔗 고객 공유 URL 불러오기")
+    st.markdown("""
+    <style>
+    /* 고객 공유 URL 불러오기: Ctrl+Enter 전용으로 사용, 버튼은 화면에서만 숨김 */
+    div[data-testid="stForm"]:has(textarea[aria-label="고객 공유 URL 불러오기"]) div[data-testid="stFormSubmitButton"] {
+        display: none !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
     with st.form("share_url_load_form", clear_on_submit=False):
         share_url_input = st.text_area(
             "고객 공유 URL 불러오기",
