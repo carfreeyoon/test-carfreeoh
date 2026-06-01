@@ -3957,7 +3957,7 @@ if selected_summary_views:
                 ret_product_rows = f"""
                 {"<tr><td class='font-bold'>취등록세</td><td>"+format(reg_tax,",")+" 원</td><td rowspan='2' class='bg-light text-blue' style='vertical-align:middle;'>월 리스료 포함</td></tr><tr><td class='font-bold'>자동차세</td><td>"+format(total_tax,",")+" 원</td></tr>" if lease_tax_included else f"<tr><td class='font-bold'>취등록세</td><td>{reg_tax:,} 원</td><td>월 리스료 포함</td></tr><tr><td class='font-bold'>자동차세</td><td>{total_tax:,} 원</td><td>{lease_extra_tax_display}</td></tr>"}
                 <tr><td class="font-bold">보험료</td><td>{total_ins:,} 원</td><td>{total_ins:,} 원</td></tr>
-                <tr><td class="font-bold">만기 차량 매각</td><td>-{car_sell_value:,} 원</td><td>-</td></tr>
+                <tr><td class="font-bold" style="color:#ef4444;">만기 차량 매각</td><td style="color:#ef4444; font-weight:900;">-{car_sell_value:,} 원</td><td>-</td></tr>
                 <tr><td class="font-bold">-</td><td>-</td><td>-</td></tr>
                 """
                 ret_product_rows = textwrap.dedent(ret_product_rows).strip()
@@ -3967,7 +3967,7 @@ if selected_summary_views:
                 <tr><td class="font-bold">취등록세</td><td>{reg_tax:,} 원</td><td rowspan="5" class="bg-light text-blue" style="vertical-align:middle;">월 렌트료에<br>전부 포함</td></tr>
                 <tr><td class="font-bold">자동차세</td><td>{total_tax:,} 원</td></tr>
                 <tr><td class="font-bold">보험료</td><td>{total_ins:,} 원</td></tr>
-                <tr><td class="font-bold">만기 차량 매각</td><td>-{car_sell_value:,} 원</td></tr>
+                <tr><td class="font-bold" style="color:#ef4444;">만기 차량 매각</td><td style="color:#ef4444; font-weight:900;">-{car_sell_value:,} 원</td></tr>
                 <tr><td class="font-bold">-</td><td>-</td></tr>
                 """
                 ret_product_rows = textwrap.dedent(ret_product_rows).strip()
