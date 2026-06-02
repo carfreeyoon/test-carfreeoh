@@ -2717,33 +2717,75 @@ else:
 
 
 def auto_convert_quote(raw_text):
-    if "견적서" not in raw_text or "최종차량가격" not in raw_text:
+    """견적서 원문을 내부 TSV 형식으로 변환한다.
+
+    신규/올드 견적서 모두 같은 출력 키로 정규화한다.
+    렌트/리스 여부는 파싱 실패 조건으로 쓰지 않는다.
+    - 신규: 최종차량가격 중심
+    - 올드: 총차량가격 중심
+    """
+    if not raw_text or "견적서" not in raw_text:
         return raw_text
 
-    text = raw_text.replace("\r\n", "\n").replace("\r", "\n")
+    text = str(raw_text).replace("\r\n", "\n").replace("\r", "\n")
+    compact_text = re.sub(r"\s+", "", text)
+
+    # 신규/올드 견적서 공통 진입 조건.
+    # 렌트/리스 문구는 필수조건으로 보지 않는다.
+    if not any(key in compact_text for key in ["최종차량가격", "총차량가격", "차량가격"]):
+        return raw_text
+
     lines_raw = [line.strip() for line in text.split("\n")]
     lines_clean = [line for line in lines_raw if line]
 
     def only_num(v):
-        return "".join(re.findall(r"\d+", v))
+        return "".join(re.findall(r"\d+", str(v or "")))
 
-    def money_after(label):
-        m = re.search(label + r"\s*[\t ]*([0-9,]+)원", text)
-        return only_num(m.group(1)) if m else ""
+    def money_after_labels(labels):
+        """라벨 바로 뒤 같은 줄/다음 줄 금액 추출. ex) 총차량가격\n45,060,000원"""
+        for label in labels:
+            # 라벨과 금액 사이에 탭/공백/줄바꿈이 있어도 허용
+            m = re.search(re.escape(label) + r"\s*([0-9][0-9,]*)\s*원", text)
+            if m:
+                return only_num(m.group(1))
+        return ""
 
-    def percent_after(label):
-        m = re.search(label + r"\s*[\t ]*([0-9.]+)%", text)
-        return m.group(1) + "%" if m else ""
+    def percent_after_labels(labels):
+        for label in labels:
+            m = re.search(re.escape(label) + r"\s*([0-9.]+)\s*%", text)
+            if m:
+                return m.group(1) + "%"
+        return ""
 
-    def line_money_after(label):
-        m = re.search(label + r"\s*[\t ]*[0-9.]+%\s*[\t ]*([0-9,]+)원", text)
-        return only_num(m.group(1)) if m else "0"
+    def money_after_percent_label(labels):
+        """선수금/보증금처럼 % 다음 줄에 금액이 나오는 구조 대응."""
+        for label in labels:
+            m = re.search(re.escape(label) + r"\s*[0-9.]+\s*%\s*([0-9][0-9,]*)\s*원", text)
+            if m:
+                return only_num(m.group(1))
+            m = re.search(re.escape(label) + r"\s*([0-9][0-9,]*)\s*원", text)
+            if m:
+                return only_num(m.group(1))
+        return "0"
 
-    car_name_val = ""
-    for i, line in enumerate(lines_clean):
-        if line == "차종" and i + 1 < len(lines_clean):
-            car_name_val = lines_clean[i + 1]
-            break
+    def find_value_after_exact_label(label):
+        for i, line in enumerate(lines_clean):
+            if line == label and i + 1 < len(lines_clean):
+                return lines_clean[i + 1].strip()
+            if line.startswith(label) and line != label:
+                value = line.replace(label, "", 1).strip()
+                if value:
+                    return value
+        return ""
+
+    # 차량명
+    car_name_val = find_value_after_exact_label("차종")
+    if not car_name_val:
+        # 혹시 차종 라벨 앞뒤에 탭이 붙은 old copy 대응
+        for i, line in enumerate(lines_clean):
+            if "차종" == line.replace("\t", "").strip() and i + 1 < len(lines_clean):
+                car_name_val = lines_clean[i + 1].strip()
+                break
 
     car_name_val = re.sub(r"\b20\d{2}년형\b", "", car_name_val)
     car_name_val = re.sub(r"디 올-뉴|디 올 뉴|더 뉴|올 뉴", "", car_name_val)
@@ -2751,28 +2793,41 @@ def auto_convert_quote(raw_text):
     car_name_val = re.sub(r"\([A-Z0-9 ]*(?:F/L|FL)[A-Z0-9 /]*\)", "", car_name_val)
     car_name_val = re.sub(r"\s+", " ", car_name_val).strip()
 
+    # 옵션: 신규/올드 모두 옵션~색상/총차량가격/옵션가격 전까지 수집
     option_val = ""
-    if "옵션가격0원" not in text.replace(" ", ""):
+    if "옵션가격0원" not in compact_text:
         option_lines = []
         in_option = False
+        option_stop_labels = {"색상", "외장", "내장", "총차량가격", "최종차량가격", "차량가격", "기간"}
         for line in lines_clean:
             if line == "옵션":
                 in_option = True
                 continue
-            if in_option and line.startswith("옵션가격"):
-                break
             if in_option:
-                option_lines.append(re.sub(r"\([0-9,]+원\)", "", line).strip())
+                if line.startswith("옵션가격") or line in option_stop_labels or any(line.startswith(stop) for stop in ["총차량가격", "최종차량가격", "차량가격"]):
+                    break
+                cleaned = re.sub(r"\(([0-9,]+)원\)", r"(\1)", line).strip()
+                if cleaned and cleaned not in ["없음", "-", "0원"]:
+                    option_lines.append(cleaned)
         option_val = " / ".join([v for v in option_lines if v])
 
-    car_price_val = money_after("최종차량가격")
-    months_val = only_num(re.search(r"기간\s*[\t ]*([0-9]+)개월", text).group(1)) if re.search(r"기간\s*[\t ]*([0-9]+)개월", text) else ""
-    mileage_match = re.search(r"약정거리\s*[\t ]*([0-9.]+만)km", text)
-    mileage_val = mileage_match.group(1) + "Km" if mileage_match else ""
-    monthly_val = money_after("월 납입금")
-    prepaid_val = line_money_after("선수금")
-    resale_val = percent_after(r"잔존가치\(인수\)")
+    car_price_val = money_after_labels(["최종차량가격", "총차량가격", "차량가격"])
 
+    months_val = ""
+    m = re.search(r"기간\s*([0-9]+)\s*개월", text)
+    if m:
+        months_val = only_num(m.group(1))
+
+    mileage_val = ""
+    mileage_match = re.search(r"약정거리\s*([0-9.]+\s*만)\s*km", text, re.IGNORECASE)
+    if mileage_match:
+        mileage_val = mileage_match.group(1).replace(" ", "") + "Km"
+
+    monthly_val = money_after_labels(["월 납입금", "월납입금", "월납입", "월 렌트료", "월리스료", "월 리스료"])
+    prepaid_val = money_after_percent_label(["선수금", "선납금"])
+    resale_val = percent_after_labels(["잔존가치(인수)", "잔존가치", "잔존(렌트)", "잔존"])
+
+    # 출시/연비/cc 라인
     fuel_line = ""
     for line in lines_clean:
         if "출시" in line and "·" in line:
@@ -2780,27 +2835,32 @@ def auto_convert_quote(raw_text):
             break
 
     fuel_parts = [p.strip() for p in fuel_line.split("·")]
-    fuel_val = fuel_parts[1] if len(fuel_parts) >= 2 else ""
-    
-    cc_match = re.search(r"([0-9,]+)cc", fuel_line)
+    fuel_val = ""
+    # 보통 2026.01 출시 · 휘발유 · 2,497cc 구조
+    if len(fuel_parts) >= 2:
+        fuel_val = fuel_parts[1].strip()
+
+    cc_match = re.search(r"([0-9,]+)\s*cc", fuel_line, re.IGNORECASE)
     cc_num = int(only_num(cc_match.group(1))) if cc_match else 0
     cc_raw_val = cc_match.group(1).replace(",", "") + "cc" if cc_match else ""
 
-    passenger_match = re.search(r"([0-9]+)인승", car_name_val)
+    passenger_match = re.search(r"([0-9]+)\s*인승", car_name_val)
     passenger_val = int(passenger_match.group(1)) if passenger_match else 0
 
-    if fuel_val == "전기" or fuel_val == "수소":
+    if fuel_val in ["전기", "수소"]:
         cc_val = "전기차"
-    elif cc_num <= 1000:
+    elif cc_num and cc_num <= 1000:
         cc_val = "1000CC이하"
-    elif cc_num <= 1600:
+    elif cc_num and cc_num <= 1600:
         cc_val = "1600CC이하"
-    elif cc_num <= 2000:
+    elif cc_num and cc_num <= 2000:
         cc_val = "2000CC이하"
-    elif cc_num <= 2500:
+    elif cc_num and cc_num <= 2500:
         cc_val = "2500CC이하"
-    else:
+    elif cc_num:
         cc_val = "3000CC초과"
+    else:
+        cc_val = ""
 
     if fuel_val == "전기":
         shape_val = "전기"
