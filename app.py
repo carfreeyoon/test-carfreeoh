@@ -4517,7 +4517,7 @@ def render_customer_outro_card():
     <div class="common-info-box customer-message-box">
         <div style="font-size:15px; font-weight:bold; margin-bottom:9px; line-height:1.45; color:#0b3873;">
             혼자 비교하기 복잡하시다면<br>
-            언제든 카프리오에 물어보세요 🙂
+            언제든 카프리오가 도와드릴게요!🙂
         </div>
         <div style="font-size:13px; line-height:1.6; color:#333333;">
             고객님 손해 안 보게<br>
