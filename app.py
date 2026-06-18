@@ -174,10 +174,10 @@ def build_share_copy_message(share_url, finance_mode=None):
 어떤 방식이 더 유리한지
 지금 바로 확인해 보세요. 👇
 
-{share_url}
-
 국내최다 33개 금융사 비교!
-카 라이프에 자유를 더하다, 카프리오!"""
+카 라이프에 자유를 더하다, 카프리오!
+
+{share_url}"""
 
 
 def render_share_section_selector(current_sections):
@@ -916,7 +916,16 @@ if IS_CLIENT_VIEW:
 
     html.caprio-client-view .excel-green.caprio-reveal-target,
     html.caprio-client-view .excel-red.caprio-reveal-target {
-        transition-delay: 0.16s;
+        opacity: 0;
+        transform: translateY(-18px) scale(0.985);
+        transition-delay: 0.34s;
+        transition-duration: 0.82s;
+    }
+
+    html.caprio-client-view .excel-green.caprio-reveal-target.caprio-show,
+    html.caprio-client-view .excel-red.caprio-reveal-target.caprio-show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
     }
 
     html.caprio-client-view .caprio-calc-loader {
@@ -1320,9 +1329,9 @@ if IS_CLIENT_VIEW:
                     setTimeout(function(){
                         el.classList.add('caprio-show');
                         if (el.classList.contains('excel-green') || el.classList.contains('excel-red')) {
-                            animateInlineMoney(el, 120);
+                            animateInlineMoney(el, 420);
                         }
-                    }, 160);
+                    }, (el.classList.contains('excel-green') || el.classList.contains('excel-red')) ? 520 : 160);
                 }
 
                 revealObserver.unobserve(el);
