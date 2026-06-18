@@ -921,8 +921,8 @@ if IS_CLIENT_VIEW:
 
     /* 비교 계산기 표와 최종 결과 카드 사이 실제 간격: st.markdown 래퍼 때문에 + 선택자가 먹지 않아 전용 spacer를 출력부에 직접 삽입 */
     html.caprio-client-view .caprio-result-spacer {
-        height: 32px;
-        line-height: 32px;
+        height: 22px;
+        line-height: 22px;
         display: block;
         width: 100%;
         clear: both;
@@ -1167,8 +1167,8 @@ if IS_CLIENT_VIEW:
         }
 
         html.caprio-client-view .caprio-result-spacer {
-            height: 38px;
-            line-height: 38px;
+            height: 24px;
+            line-height: 24px;
         }
     }
     </style>
@@ -1401,8 +1401,19 @@ if IS_CLIENT_VIEW:
                     animateGuideWrap(el);
                 } else {
                     const isFinalCard = el.classList.contains('excel-green') || el.classList.contains('excel-red');
+                    const isBlueHeader = el.classList.contains('excel-header-blue');
                     const finalIndex = parseInt(el.dataset.caprioFinalIndex || '0', 10);
-                    const showDelay = isFinalCard ? (1180 + Math.min(finalIndex * 680, 1600)) : 180;
+                    const headerIndex = parseInt(el.dataset.caprioHeaderIndex || '0', 10);
+
+                    let showDelay = 180;
+                    if (isFinalCard) {
+                        showDelay = 1180 + Math.min(finalIndex * 680, 1600);
+                    } else if (isBlueHeader) {
+                        // 모바일에서 반납형 결과 카드가 보이자마자 인수형 바가 바로 튀어나오지 않도록
+                        // 파란 제목 바는 순서별로 조금 더 늦게 등장시킨다.
+                        showDelay = 180 + Math.min(headerIndex * 900, 1800);
+                    }
+
                     setTimeout(function(){
                         el.classList.add('caprio-show');
                         if (isFinalCard) {
@@ -1430,9 +1441,17 @@ if IS_CLIENT_VIEW:
             });
         }
 
+        function assignHeaderOrder() {
+            const headers = Array.from(doc.querySelectorAll('.excel-header-blue'));
+            headers.forEach(function(header, index){
+                if (!header.dataset.caprioHeaderIndex) header.dataset.caprioHeaderIndex = String(index);
+            });
+        }
+
         function setupCaprioAnimations() {
             ensureFinalCues();
             assignCalcTableOrder();
+            assignHeaderOrder();
             const targets = doc.querySelectorAll([
                 '.common-info-box',
                 '.excel-header-blue',
