@@ -11,7 +11,7 @@ import urllib.error
 import html
 import textwrap
 
-st.set_page_config(page_title="카프리오 비교 프로그램", layout="wide")
+st.set_page_config(page_title=카프리오 할부·렌트·리스 비교 계산기", layout="wide")
 
 APP_PASSWORD = st.secrets.get("APP_PASSWORD", "")
 SUPABASE_URL = st.secrets.get("SUPABASE_URL", "").rstrip("/")
