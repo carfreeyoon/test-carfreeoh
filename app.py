@@ -849,14 +849,15 @@ if not IS_CLIENT_VIEW:
 # - 영업자용에는 적용하지 않음
 # - 기존 계산 로직/값/색상은 건드리지 않고 화면 표시 효과만 적용
 # - PC/MO 공통 적용
+# - 비교 계산기 영역은 자동차 진행바 → 숫자 카운트업 순서로 연출
 # ==========================================
 if IS_CLIENT_VIEW:
     st.markdown("""
     <style>
     html.caprio-client-view .caprio-reveal-target {
         opacity: 0;
-        transform: translateY(18px);
-        transition: opacity 0.52s ease, transform 0.52s ease;
+        transform: translateY(24px);
+        transition: opacity 0.92s cubic-bezier(.22,.75,.2,1), transform 0.92s cubic-bezier(.22,.75,.2,1);
         will-change: opacity, transform;
     }
 
@@ -865,10 +866,21 @@ if IS_CLIENT_VIEW:
         transform: translateY(0);
     }
 
+    html.caprio-client-view .pure-table.caprio-calc-ready {
+        opacity: 0;
+        transform: translateY(14px);
+        transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+
+    html.caprio-client-view .pure-table.caprio-calc-ready.caprio-show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
     html.caprio-client-view .pure-table.caprio-calc-ready tr:not(:first-child) {
         opacity: 0;
-        transform: translateY(7px);
-        transition: opacity 0.28s ease, transform 0.28s ease;
+        transform: translateY(9px);
+        transition: opacity 0.42s ease, transform 0.42s ease;
     }
 
     html.caprio-client-view .pure-table.caprio-calc-ready tr.caprio-row-show {
@@ -878,13 +890,180 @@ if IS_CLIENT_VIEW:
 
     html.caprio-client-view .excel-green.caprio-reveal-target,
     html.caprio-client-view .excel-red.caprio-reveal-target {
-        transition-delay: 0.12s;
+        transition-delay: 0.16s;
+    }
+
+    html.caprio-client-view .caprio-calc-loader {
+        display: none;
+        width: min(680px, 100%);
+        margin: 10px auto 14px auto;
+        padding: 14px 16px 13px 16px;
+        border-radius: 14px;
+        background: rgba(248, 250, 252, 0.96);
+        border: 1px solid rgba(214, 224, 235, 0.95);
+        box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+        box-sizing: border-box;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    html.caprio-dark.caprio-client-view .caprio-calc-loader {
+        background: rgba(19, 26, 36, 0.96);
+        border-color: rgba(70, 86, 109, 0.95);
+        box-shadow: 0 10px 26px rgba(0, 0, 0, 0.24);
+    }
+
+    html.caprio-client-view .caprio-calc-loader.caprio-loader-active {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    html.caprio-client-view .caprio-calc-loader.caprio-loader-done {
+        opacity: 0;
+        transform: translateY(-6px);
+        pointer-events: none;
+    }
+
+    html.caprio-client-view .caprio-loader-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+        font-size: 13px;
+        font-weight: 900;
+        color: #0f172a;
+        line-height: 1.25;
+    }
+
+    html.caprio-dark.caprio-client-view .caprio-loader-title {
+        color: #f3f6fb;
+    }
+
+    html.caprio-client-view .caprio-loader-percent {
+        font-size: 13px;
+        font-weight: 950;
+        color: #1d4ed8;
+        white-space: nowrap;
+    }
+
+    html.caprio-client-view .caprio-loader-track {
+        position: relative;
+        height: 30px;
+        border-radius: 999px;
+        background: #e8eef6;
+        overflow: visible;
+    }
+
+    html.caprio-dark.caprio-client-view .caprio-loader-track {
+        background: #273244;
+    }
+
+    html.caprio-client-view .caprio-loader-fill {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 0%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #1d4ed8 0%, #38bdf8 100%);
+        transition: width 0.38s ease;
+    }
+
+    html.caprio-client-view .caprio-loader-car {
+        position: absolute;
+        left: 0%;
+        top: 50%;
+        width: 42px;
+        height: 24px;
+        transform: translate(-5px, -62%);
+        transition: left 0.38s ease;
+        z-index: 2;
+    }
+
+    html.caprio-client-view .caprio-loader-car svg {
+        width: 42px;
+        height: 24px;
+        display: block;
+        filter: drop-shadow(0 4px 5px rgba(15, 23, 42, 0.18));
+    }
+
+    html.caprio-client-view .caprio-loader-car .wheel {
+        transform-box: fill-box;
+        transform-origin: center;
+        animation: caprioWheelSpin 0.48s linear infinite;
+    }
+
+    @keyframes caprioWheelSpin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    html.caprio-client-view .caprio-loader-sub {
+        margin-top: 9px;
+        font-size: 11px;
+        line-height: 1.35;
+        color: #64748b;
+        text-align: center;
+        font-weight: 800;
+    }
+
+    html.caprio-dark.caprio-client-view .caprio-loader-sub {
+        color: #b7c3d4;
+    }
+
+
+
+    html.caprio-client-view .compare-summary-table.caprio-compare-ready tr:not(:first-child) {
+        opacity: 0;
+        transform: translateY(8px);
+        transition: opacity 0.38s ease, transform 0.38s ease;
+    }
+
+    html.caprio-client-view .compare-summary-table.caprio-compare-ready tr.caprio-compare-row-show {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    html.caprio-client-view .guide-wrap.caprio-guide-ready .guide-card {
+        opacity: 0;
+        transform: translateY(16px) scale(0.985);
+        transition: opacity 0.55s cubic-bezier(.22,.75,.2,1), transform 0.55s cubic-bezier(.22,.75,.2,1);
+    }
+
+    html.caprio-client-view .guide-wrap.caprio-guide-ready .guide-card.caprio-guide-card-show {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
+    html.caprio-client-view .excel-green.caprio-final-pulse.caprio-show,
+    html.caprio-client-view .excel-red.caprio-final-pulse.caprio-show {
+        animation: caprioFinalPulse 0.72s ease 1;
+    }
+
+    @keyframes caprioFinalPulse {
+        0% { transform: translateY(0) scale(1); }
+        45% { transform: translateY(-1px) scale(1.018); }
+        100% { transform: translateY(0) scale(1); }
     }
 
     @media (max-width: 768px) {
         html.caprio-client-view .caprio-reveal-target {
-            transform: translateY(14px);
-            transition-duration: 0.45s;
+            transform: translateY(18px);
+            transition-duration: 0.78s;
+        }
+
+        html.caprio-client-view .caprio-calc-loader {
+            width: 100%;
+            margin: 8px auto 12px auto;
+            padding: 13px 13px 12px 13px;
+            border-radius: 12px;
+        }
+
+        html.caprio-client-view .caprio-loader-title {
+            font-size: 12px;
         }
     }
     </style>
@@ -897,10 +1076,84 @@ if IS_CLIENT_VIEW:
         const root = doc.documentElement;
         root.classList.add('caprio-client-view');
 
+        const loaderMessages = [
+            { pct: 12, text: '고객님 조건 반영 중...' },
+            { pct: 35, text: '월 납입금 계산 중...' },
+            { pct: 58, text: '잔존가치 계산 중...' },
+            { pct: 80, text: '보험·세금 계산 중...' },
+            { pct: 100, text: '계산 완료 ✓' }
+        ];
+
         function formatWon(value) {
             const sign = value < 0 ? '-' : '';
             const absValue = Math.abs(Math.round(value));
             return sign + absValue.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + ' 원';
+        }
+
+        function carSvg() {
+            return `
+                <svg viewBox="0 0 84 48" aria-hidden="true">
+                    <path d="M18 28 L25 15 C27 11 31 9 36 9 H50 C55 9 59 12 62 16 L70 28 Z" fill="#1d4ed8"/>
+                    <path d="M28 17 C30 14 33 13 37 13 H42 V27 H22 L28 17Z" fill="#dff6ff"/>
+                    <path d="M45 13 H50 C54 13 56 15 59 18 L65 27 H45 Z" fill="#bdefff"/>
+                    <path d="M9 27 C10 22 15 20 21 20 H62 C70 20 77 26 78 34 L78 36 H8 L8 32 C8 30 8 29 9 27Z" fill="#2563eb"/>
+                    <path d="M8 32 H78 V37 H8 Z" fill="#1e40af"/>
+                    <path d="M74 29 H80 C81 29 82 30 82 31 V34 H76 Z" fill="#facc15"/>
+                    <path d="M8 29 H15 L12 34 H5 V32 C5 30 6 29 8 29Z" fill="#93c5fd"/>
+                    <circle class="wheel" cx="24" cy="37" r="8" fill="#111827"/>
+                    <circle class="wheel" cx="61" cy="37" r="8" fill="#111827"/>
+                    <circle cx="24" cy="37" r="3" fill="#cbd5e1"/>
+                    <circle cx="61" cy="37" r="3" fill="#cbd5e1"/>
+                </svg>
+            `;
+        }
+
+        function makeLoader() {
+            const loader = doc.createElement('div');
+            loader.className = 'caprio-calc-loader';
+            loader.innerHTML = `
+                <div class="caprio-loader-title">
+                    <span class="caprio-loader-text">고객님 조건 반영 중...</span>
+                    <span class="caprio-loader-percent">0%</span>
+                </div>
+                <div class="caprio-loader-track">
+                    <div class="caprio-loader-fill"></div>
+                    <div class="caprio-loader-car">${carSvg()}</div>
+                </div>
+                <div class="caprio-loader-sub">카프리오가 조건별 비용을 계산하고 있습니다</div>
+            `;
+            return loader;
+        }
+
+        function runLoader(loader, done) {
+            if (!loader || loader.dataset.caprioLoaderDone === '1') {
+                done();
+                return;
+            }
+            loader.dataset.caprioLoaderDone = '1';
+            loader.classList.add('caprio-loader-active');
+
+            const textEl = loader.querySelector('.caprio-loader-text');
+            const percentEl = loader.querySelector('.caprio-loader-percent');
+            const fillEl = loader.querySelector('.caprio-loader-fill');
+            const carEl = loader.querySelector('.caprio-loader-car');
+
+            loaderMessages.forEach(function(item, index){
+                setTimeout(function(){
+                    if (textEl) textEl.textContent = item.text;
+                    if (percentEl) percentEl.textContent = item.pct + '%';
+                    if (fillEl) fillEl.style.width = item.pct + '%';
+                    if (carEl) carEl.style.left = item.pct + '%';
+                }, 260 + index * 360);
+            });
+
+            setTimeout(function(){
+                loader.classList.add('caprio-loader-done');
+                setTimeout(function(){
+                    loader.style.display = 'none';
+                    done();
+                }, 360);
+            }, 2260);
         }
 
         function animateMoneyCell(cell, delay) {
@@ -917,7 +1170,7 @@ if IS_CLIENT_VIEW:
             cell.dataset.caprioOriginalText = original;
             cell.textContent = '0 원';
 
-            const duration = 620;
+            const duration = 980;
             const startDelay = Math.max(0, delay || 0);
             const startAt = performance.now() + startDelay;
 
@@ -943,16 +1196,85 @@ if IS_CLIENT_VIEW:
             if (!table || table.dataset.caprioCalcDone === '1') return;
             table.dataset.caprioCalcDone = '1';
 
+            const startRows = function(){
+                table.classList.add('caprio-show');
+                const rows = Array.from(table.querySelectorAll('tr'));
+                rows.forEach(function(row, index){
+                    if (index === 0) return;
+                    const rowDelay = Math.min(index * 145, 1450);
+                    setTimeout(function(){
+                        row.classList.add('caprio-row-show');
+                        row.querySelectorAll('td').forEach(function(cell){
+                            animateMoneyCell(cell, 80);
+                        });
+                    }, rowDelay);
+                });
+            };
+
+            const loader = table.previousElementSibling && table.previousElementSibling.classList.contains('caprio-calc-loader')
+                ? table.previousElementSibling
+                : null;
+            runLoader(loader, startRows);
+        }
+
+
+
+        function animateInlineMoney(el, delay) {
+            if (!el || el.dataset.caprioInlineMoneyDone === '1') return;
+            const original = (el.textContent || '').trim();
+            const match = original.match(/(-?)([0-9,]+)원/);
+            if (!match) return;
+            const target = parseInt(match[2].replace(/,/g, ''), 10) * (match[1] === '-' ? -1 : 1);
+            if (!Number.isFinite(target)) return;
+
+            el.dataset.caprioInlineMoneyDone = '1';
+            const prefix = original.slice(0, match.index);
+            const suffix = original.slice(match.index + match[0].length);
+            const startDelay = Math.max(0, delay || 0);
+            const duration = 1050;
+            const startAt = performance.now() + startDelay;
+
+            function step(now) {
+                if (now < startAt) {
+                    requestAnimationFrame(step);
+                    return;
+                }
+                const progress = Math.min((now - startAt) / duration, 1);
+                const eased = 1 - Math.pow(1 - progress, 3);
+                const current = target * eased;
+                el.textContent = prefix + Math.abs(Math.round(current)).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + '원' + suffix;
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    el.textContent = original;
+                    el.classList.add('caprio-final-pulse');
+                }
+            }
+            requestAnimationFrame(step);
+        }
+
+        function animateCompareSummaryTable(table) {
+            if (!table || table.dataset.caprioCompareDone === '1') return;
+            table.dataset.caprioCompareDone = '1';
+            table.classList.add('caprio-show');
             const rows = Array.from(table.querySelectorAll('tr'));
             rows.forEach(function(row, index){
                 if (index === 0) return;
-                const rowDelay = Math.min(index * 85, 850);
                 setTimeout(function(){
-                    row.classList.add('caprio-row-show');
-                    row.querySelectorAll('td').forEach(function(cell){
-                        animateMoneyCell(cell, 0);
-                    });
-                }, rowDelay);
+                    row.classList.add('caprio-compare-row-show');
+                }, Math.min(index * 95, 1200));
+            });
+        }
+
+        function animateGuideWrap(wrap) {
+            if (!wrap || wrap.dataset.caprioGuideDone === '1') return;
+            wrap.dataset.caprioGuideDone = '1';
+            wrap.classList.add('caprio-show');
+            const cards = Array.from(wrap.querySelectorAll('.guide-card'));
+            cards.forEach(function(card, index){
+                setTimeout(function(){
+                    card.classList.add('caprio-guide-card-show');
+                }, index * 220);
             });
         }
 
@@ -961,15 +1283,25 @@ if IS_CLIENT_VIEW:
                 if (!entry.isIntersecting) return;
 
                 const el = entry.target;
-                el.classList.add('caprio-show');
 
                 if (el.classList.contains('pure-table')) {
                     animateCalcTable(el);
+                } else if (el.classList.contains('compare-summary-table')) {
+                    animateCompareSummaryTable(el);
+                } else if (el.classList.contains('guide-wrap')) {
+                    animateGuideWrap(el);
+                } else {
+                    setTimeout(function(){
+                        el.classList.add('caprio-show');
+                        if (el.classList.contains('excel-green') || el.classList.contains('excel-red')) {
+                            animateInlineMoney(el, 120);
+                        }
+                    }, 160);
                 }
 
                 revealObserver.unobserve(el);
             });
-        }, { threshold: 0.12, rootMargin: '0px 0px -6% 0px' });
+        }, { threshold: 0.18, rootMargin: '0px 0px -10% 0px' });
 
         function setupCaprioAnimations() {
             const targets = doc.querySelectorAll([
@@ -980,7 +1312,8 @@ if IS_CLIENT_VIEW:
                 '.excel-red',
                 '.excel-header-gray',
                 '.matrix-table',
-                '.compare-summary-table'
+                '.compare-summary-table',
+                '.guide-wrap'
             ].join(','));
 
             targets.forEach(function(el){
@@ -990,6 +1323,17 @@ if IS_CLIENT_VIEW:
 
                 if (el.classList.contains('pure-table')) {
                     el.classList.add('caprio-calc-ready');
+                    if (!el.previousElementSibling || !el.previousElementSibling.classList.contains('caprio-calc-loader')) {
+                        el.parentNode.insertBefore(makeLoader(), el);
+                    }
+                }
+
+                if (el.classList.contains('compare-summary-table')) {
+                    el.classList.add('caprio-compare-ready');
+                }
+
+                if (el.classList.contains('guide-wrap')) {
+                    el.classList.add('caprio-guide-ready');
                 }
 
                 revealObserver.observe(el);
@@ -4172,12 +4516,12 @@ def render_customer_outro_card():
     st.markdown("""
     <div class="common-info-box customer-message-box">
         <div style="font-size:15px; font-weight:bold; margin-bottom:9px; line-height:1.45; color:#0b3873;">
-            혼자 비교하기 복잡했다면<br>
+            혼자 비교하기 복잡하시다면<br>
             언제든 카프리오에 물어보세요 🙂
         </div>
         <div style="font-size:13px; line-height:1.6; color:#333333;">
-            할부·렌트·리스까지<br>
-            더 유리한 방향으로 도와드릴게요.
+            고객님 손해 안 보게<br>
+            할부·렌트·리스까지 비교해드릴게요.
         </div>
     </div>
     """, unsafe_allow_html=True)
