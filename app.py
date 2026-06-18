@@ -1407,7 +1407,7 @@ if IS_CLIENT_VIEW:
 
                     let showDelay = 180;
                     if (isFinalCard) {
-                        showDelay = 1180 + Math.min(finalIndex * 680, 1600);
+                        showDelay = 700 + Math.min(finalIndex * 500, 1200);
                     } else if (isBlueHeader) {
                         // 모바일에서 반납형 결과 카드가 보이자마자 인수형 바가 바로 튀어나오지 않도록
                         // 파란 제목 바는 순서별로 조금 더 늦게 등장시킨다.
