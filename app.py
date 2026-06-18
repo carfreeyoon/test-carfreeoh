@@ -919,6 +919,21 @@ if IS_CLIENT_VIEW:
         margin-top: 30px !important;
     }
 
+    /* 비교 계산기 표와 최종 결과 카드 사이 실제 간격: st.markdown 래퍼 때문에 + 선택자가 먹지 않아 전용 spacer를 출력부에 직접 삽입 */
+    html.caprio-client-view .caprio-result-spacer {
+        height: 32px;
+        line-height: 32px;
+        display: block;
+        width: 100%;
+        clear: both;
+    }
+
+    html.caprio-client-view .caprio-result-spacer + div,
+    html.caprio-client-view .caprio-result-spacer + .excel-green,
+    html.caprio-client-view .caprio-result-spacer + .excel-red {
+        margin-top: 0 !important;
+    }
+
     html.caprio-client-view .excel-green.caprio-reveal-target,
     html.caprio-client-view .excel-red.caprio-reveal-target {
         opacity: 0;
@@ -957,6 +972,11 @@ if IS_CLIENT_VIEW:
 
     html.caprio-dark.caprio-client-view .caprio-down-cue {
         color: #8ab9ff;
+    }
+
+    /* 화살표 제거: 절감 카드 전후 간격만 사용 */
+    html.caprio-client-view .caprio-down-cue {
+        display: none !important;
     }
 
     @keyframes caprioCueBounce {
@@ -1143,8 +1163,12 @@ if IS_CLIENT_VIEW:
         }
 
         html.caprio-client-view .caprio-down-cue {
-            margin: 14px 0 58px 0;
-            font-size: 17px;
+            display: none !important;
+        }
+
+        html.caprio-client-view .caprio-result-spacer {
+            height: 38px;
+            line-height: 38px;
         }
     }
     </style>
@@ -1383,10 +1407,7 @@ if IS_CLIENT_VIEW:
                         el.classList.add('caprio-show');
                         if (isFinalCard) {
                             animateInlineMoney(el, 560);
-                            const cue = el.nextElementSibling && el.nextElementSibling.classList.contains('caprio-down-cue') ? el.nextElementSibling : null;
-                            if (cue) {
-                                setTimeout(function(){ cue.classList.add('caprio-cue-show'); }, 980);
-                            }
+                            // 화살표 큐는 제거. 절감 카드 앞 spacer로 시선 구분만 처리.
                         }
                     }, showDelay);
                 }
@@ -1399,13 +1420,6 @@ if IS_CLIENT_VIEW:
             const finalCards = Array.from(doc.querySelectorAll('.excel-green, .excel-red'));
             finalCards.forEach(function(card, index){
                 if (!card.dataset.caprioFinalIndex) card.dataset.caprioFinalIndex = String(index);
-                const next = card.nextElementSibling;
-                if (!next || !next.classList.contains('caprio-down-cue')) {
-                    const cue = doc.createElement('div');
-                    cue.className = 'caprio-down-cue';
-                    cue.innerHTML = '↓';
-                    card.parentNode.insertBefore(cue, card.nextSibling);
-                }
             });
         }
 
@@ -1487,6 +1501,12 @@ st.markdown("""
     .capture-box { border: 2px solid #0b3873; padding: 15px; border-radius: 6px; background-color: #ffffff; }
     .excel-green { background-color: #e2efda; color: #375623; font-weight: bold; font-size: 14px; border: 1px solid #a9d08e; border-radius: 4px; padding: 8px; text-align: center; margin-top: -7px; }
     .excel-red { background-color: #fce4d6; color: #c65911; font-weight: bold; font-size: 14px; border: 1px solid #f4b084; border-radius: 4px; padding: 8px; text-align: center; margin-top: -7px; }
+    html.caprio-client-view .caprio-result-spacer + div .excel-green,
+    html.caprio-client-view .caprio-result-spacer + div .excel-red,
+    html.caprio-client-view .caprio-result-spacer ~ .excel-green,
+    html.caprio-client-view .caprio-result-spacer ~ .excel-red {
+        margin-top: 0 !important;
+    }
 
     html.caprio-client-view .pure-table + .excel-green,
     html.caprio-client-view .pure-table + .excel-red {
@@ -4786,6 +4806,7 @@ if selected_summary_views:
             """
             st.markdown(textwrap.dedent(html_ret).strip(), unsafe_allow_html=True)
             
+            st.markdown('<div class="caprio-result-spacer"></div>', unsafe_allow_html=True)
             if diff_ret > 0:
                 st.markdown(f'<div class="excel-green">🏆 {finance_product_label} 선택 시 할부 대비 {diff_ret:,}원 절감!</div>', unsafe_allow_html=True)
             else:
@@ -4833,6 +4854,7 @@ if selected_summary_views:
             """
             st.markdown(textwrap.dedent(html_ins).strip(), unsafe_allow_html=True)
             
+            st.markdown('<div class="caprio-result-spacer"></div>', unsafe_allow_html=True)
             if diff_ins > 0:
                 st.markdown(f'<div class="excel-green">🏆 {finance_product_label} 선택 시 할부 대비 {diff_ins:,}원 절감!</div>', unsafe_allow_html=True)
             else:
