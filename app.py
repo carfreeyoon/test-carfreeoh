@@ -11,7 +11,7 @@ import urllib.error
 import html
 import textwrap
 
-st.set_page_config(page_title=카프리오 할부·렌트·리스 비교 계산기", layout="wide")
+st.set_page_config(page_title="카프리오 할부·렌트·리스 비교 계산기", layout="wide")
 
 APP_PASSWORD = st.secrets.get("APP_PASSWORD", "")
 SUPABASE_URL = st.secrets.get("SUPABASE_URL", "").rstrip("/")
@@ -155,6 +155,29 @@ def format_option_html(option_text):
 def render_output_section_gap():
     """모바일 출력 섹션 간격 통일용. PC에는 영향을 주지 않음."""
     st.markdown('<div class="output-section-gap"></div>', unsafe_allow_html=True)
+
+def build_share_copy_message(share_url, finance_mode=None):
+    """카톡/문자 붙여넣기용 공유 안내문. URL만 복사하지 않고 문구+링크를 함께 복사한다."""
+    raw_customer_name = str(st.session_state.get("customer_name", "") or "").strip()
+    if raw_customer_name:
+        display_name = raw_customer_name if raw_customer_name.endswith("님") else f"{raw_customer_name}님"
+    else:
+        display_name = "고객님"
+
+    mode = str(finance_mode or st.session_state.get("finance_mode", "rent") or "rent").strip().lower()
+    compare_text = "할부·리스" if mode == "lease" else "할부·렌트"
+
+    return f"""{display_name},
+
+요청하신 [{compare_text}] 비교 계산이 완료되었습니다. ✨
+
+어떤 방식이 더 유리한지
+지금 바로 확인해 보세요. 👇
+
+{share_url}
+
+국내최다 33개 금융사 비교!
+카 라이프에 자유를 더하다, 카프리오!"""
 
 
 def render_share_section_selector(current_sections):
@@ -455,11 +478,14 @@ def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mile
                 f"{short_car_name}\n"
                 f"월 {rent_monthly_pay:,}원｜{months}개월｜{mileage}"
             )
+            current_share_url = make_share_url_func()
+            current_finance_mode = st.session_state.get("finance_mode", "rent")
             st.session_state.quote_history.append(
                 {
                     "title": history_title,
                     "raw": raw_data,
-                    "share_url": make_share_url_func(),
+                    "share_url": current_share_url,
+                    "share_message": build_share_copy_message(current_share_url, current_finance_mode),
                     "quick_edit": {
                         "rent_monthly_pay": rent_monthly_pay,
                         "rent_resale_pct": rent_resale_pct,
@@ -530,7 +556,7 @@ def render_quote_history_area(raw_data, car_name, rent_monthly_pay, months, mile
                     <body>
                     <button
                         onclick="
-                            navigator.clipboard.writeText({item['share_url']!r});
+                            navigator.clipboard.writeText({item.get('share_message') or build_share_copy_message(item.get('share_url', ''), (item.get('quick_edit') or {}).get('finance_mode'))!r});
                             this.innerText='✅';
                             this.style.background='#dff3df';
                             this.style.border='1px solid #86c986';
@@ -4517,7 +4543,7 @@ def render_customer_outro_card():
     <div class="common-info-box customer-message-box">
         <div style="font-size:15px; font-weight:bold; margin-bottom:9px; line-height:1.45; color:#0b3873;">
             혼자 비교하기 복잡하시다면<br>
-            언제든 카프리오가 도와드릴게요!🙂
+            언제든 카프리오에 물어보세요 🙂
         </div>
         <div style="font-size:13px; line-height:1.6; color:#333333;">
             고객님 손해 안 보게<br>
