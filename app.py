@@ -914,18 +914,54 @@ if IS_CLIENT_VIEW:
         transform: translateY(0);
     }
 
+    html.caprio-client-view .pure-table + .excel-green,
+    html.caprio-client-view .pure-table + .excel-red {
+        margin-top: 30px !important;
+    }
+
     html.caprio-client-view .excel-green.caprio-reveal-target,
     html.caprio-client-view .excel-red.caprio-reveal-target {
         opacity: 0;
-        transform: translateY(-18px) scale(0.985);
-        transition-delay: 0.34s;
-        transition-duration: 0.82s;
+        transform: translateY(-22px) scale(0.985);
+        transition-delay: 0s;
+        transition-duration: 0.96s;
+        transition-timing-function: cubic-bezier(.22,.75,.2,1);
     }
 
     html.caprio-client-view .excel-green.caprio-reveal-target.caprio-show,
     html.caprio-client-view .excel-red.caprio-reveal-target.caprio-show {
         opacity: 1;
         transform: translateY(0) scale(1);
+    }
+
+    html.caprio-client-view .caprio-down-cue {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        margin: 12px 0 42px 0;
+        color: #1d4ed8;
+        font-size: 18px;
+        font-weight: 900;
+        opacity: 0;
+        transform: translateY(-6px);
+        transition: opacity 0.58s ease, transform 0.58s ease;
+        pointer-events: none;
+    }
+
+    html.caprio-client-view .caprio-down-cue.caprio-cue-show {
+        opacity: 0.82;
+        transform: translateY(0);
+        animation: caprioCueBounce 1.35s ease-in-out infinite;
+    }
+
+    html.caprio-dark.caprio-client-view .caprio-down-cue {
+        color: #8ab9ff;
+    }
+
+    @keyframes caprioCueBounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(5px); }
     }
 
     html.caprio-client-view .caprio-calc-loader {
@@ -1100,6 +1136,16 @@ if IS_CLIENT_VIEW:
         html.caprio-client-view .caprio-loader-title {
             font-size: 12px;
         }
+
+        html.caprio-client-view .pure-table + .excel-green,
+        html.caprio-client-view .pure-table + .excel-red {
+            margin-top: 36px !important;
+        }
+
+        html.caprio-client-view .caprio-down-cue {
+            margin: 14px 0 58px 0;
+            font-size: 17px;
+        }
     }
     </style>
     """, unsafe_allow_html=True)
@@ -1227,7 +1273,7 @@ if IS_CLIENT_VIEW:
             requestAnimationFrame(step);
         }
 
-        function animateCalcTable(table) {
+        function animateCalcTable(table, extraDelay) {
             if (!table || table.dataset.caprioCalcDone === '1') return;
             table.dataset.caprioCalcDone = '1';
 
@@ -1249,7 +1295,9 @@ if IS_CLIENT_VIEW:
             const loader = table.previousElementSibling && table.previousElementSibling.classList.contains('caprio-calc-loader')
                 ? table.previousElementSibling
                 : null;
-            runLoader(loader, startRows);
+            setTimeout(function(){
+                runLoader(loader, startRows);
+            }, Math.max(0, extraDelay || 0));
         }
 
 
@@ -1320,25 +1368,57 @@ if IS_CLIENT_VIEW:
                 const el = entry.target;
 
                 if (el.classList.contains('pure-table')) {
-                    animateCalcTable(el);
+                    const tableIndex = parseInt(el.dataset.caprioCalcIndex || '0', 10);
+                    const tableDelay = Math.min(tableIndex * 780, 1600);
+                    animateCalcTable(el, tableDelay);
                 } else if (el.classList.contains('compare-summary-table')) {
                     animateCompareSummaryTable(el);
                 } else if (el.classList.contains('guide-wrap')) {
                     animateGuideWrap(el);
                 } else {
+                    const isFinalCard = el.classList.contains('excel-green') || el.classList.contains('excel-red');
+                    const finalIndex = parseInt(el.dataset.caprioFinalIndex || '0', 10);
+                    const showDelay = isFinalCard ? (1180 + Math.min(finalIndex * 680, 1600)) : 180;
                     setTimeout(function(){
                         el.classList.add('caprio-show');
-                        if (el.classList.contains('excel-green') || el.classList.contains('excel-red')) {
-                            animateInlineMoney(el, 420);
+                        if (isFinalCard) {
+                            animateInlineMoney(el, 560);
+                            const cue = el.nextElementSibling && el.nextElementSibling.classList.contains('caprio-down-cue') ? el.nextElementSibling : null;
+                            if (cue) {
+                                setTimeout(function(){ cue.classList.add('caprio-cue-show'); }, 980);
+                            }
                         }
-                    }, (el.classList.contains('excel-green') || el.classList.contains('excel-red')) ? 520 : 160);
+                    }, showDelay);
                 }
 
                 revealObserver.unobserve(el);
             });
         }, { threshold: 0.18, rootMargin: '0px 0px -10% 0px' });
 
+        function ensureFinalCues() {
+            const finalCards = Array.from(doc.querySelectorAll('.excel-green, .excel-red'));
+            finalCards.forEach(function(card, index){
+                if (!card.dataset.caprioFinalIndex) card.dataset.caprioFinalIndex = String(index);
+                const next = card.nextElementSibling;
+                if (!next || !next.classList.contains('caprio-down-cue')) {
+                    const cue = doc.createElement('div');
+                    cue.className = 'caprio-down-cue';
+                    cue.innerHTML = '↓';
+                    card.parentNode.insertBefore(cue, card.nextSibling);
+                }
+            });
+        }
+
+        function assignCalcTableOrder() {
+            const tables = Array.from(doc.querySelectorAll('.pure-table'));
+            tables.forEach(function(table, index){
+                if (!table.dataset.caprioCalcIndex) table.dataset.caprioCalcIndex = String(index);
+            });
+        }
+
         function setupCaprioAnimations() {
+            ensureFinalCues();
+            assignCalcTableOrder();
             const targets = doc.querySelectorAll([
                 '.common-info-box',
                 '.excel-header-blue',
@@ -1407,6 +1487,18 @@ st.markdown("""
     .capture-box { border: 2px solid #0b3873; padding: 15px; border-radius: 6px; background-color: #ffffff; }
     .excel-green { background-color: #e2efda; color: #375623; font-weight: bold; font-size: 14px; border: 1px solid #a9d08e; border-radius: 4px; padding: 8px; text-align: center; margin-top: -7px; }
     .excel-red { background-color: #fce4d6; color: #c65911; font-weight: bold; font-size: 14px; border: 1px solid #f4b084; border-radius: 4px; padding: 8px; text-align: center; margin-top: -7px; }
+
+    html.caprio-client-view .pure-table + .excel-green,
+    html.caprio-client-view .pure-table + .excel-red {
+        margin-top: 30px !important;
+    }
+
+    @media (max-width: 768px) {
+        html.caprio-client-view .pure-table + .excel-green,
+        html.caprio-client-view .pure-table + .excel-red {
+            margin-top: 36px !important;
+        }
+    }
     
     .pure-table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; }
     .pure-table th { background-color: #0b3873; color: white; font-weight: bold; padding: 8px; border: 1px solid #dee2e6; }
