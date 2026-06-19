@@ -7,48 +7,41 @@
   <title>카프리오 비교 계산기</title>
   <meta name="description" content="할부·렌트·리스 비교 계산 결과를 확인해보세요." />
 
-  <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:title" content="카프리오 비교 계산기" />
   <meta property="og:description" content="카 라이프에 자유를 더하다, 카프리오!" />
-  <meta property="og:image" content="https://compare-carfreeoh.com/og-image.png" />
+  <meta property="og:image" content="https://compare-carfreeoh.com/caprio-og.png" />
   <meta property="og:url" content="https://compare-carfreeoh.com" />
 
-  <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="카프리오 비교 계산기" />
   <meta name="twitter:description" content="카 라이프에 자유를 더하다, 카프리오!" />
-  <meta name="twitter:image" content="https://compare-carfreeoh.com/og-image.png" />
+  <meta name="twitter:image" content="https://compare-carfreeoh.com/caprio-og.png" />
 
   <script>
-    (() => {
-      const path = window.location.pathname;
+    (function () {
+      const pathname = window.location.pathname;
 
-      // 이미지나 정적 파일은 리다이렉트하지 않음
-      if (
-        path.endsWith(".png") ||
-        path.endsWith(".jpg") ||
-        path.endsWith(".jpeg") ||
-        path.endsWith(".gif") ||
-        path.endsWith(".webp") ||
-        path.endsWith(".svg") ||
-        path.endsWith(".ico") ||
-        path.endsWith(".css") ||
-        path.endsWith(".js") ||
-        path === "/favicon.ico"
-      ) {
+      const isStaticFile =
+        pathname.endsWith(".png") ||
+        pathname.endsWith(".jpg") ||
+        pathname.endsWith(".jpeg") ||
+        pathname.endsWith(".webp") ||
+        pathname.endsWith(".gif") ||
+        pathname.endsWith(".svg") ||
+        pathname.endsWith(".ico") ||
+        pathname.endsWith(".css") ||
+        pathname.endsWith(".js");
+
+      if (isStaticFile) {
         return;
       }
 
-      // 메인 페이지만 Streamlit으로 이동
       const targetBase = "https://test-carfreeoh.streamlit.app";
-      window.location.replace(targetBase + window.location.search);
+      const queryString = window.location.search || "";
+      window.location.replace(targetBase + queryString);
     })();
   </script>
 </head>
-<body>
-  <noscript>
-    <p>카프리오 비교 계산기로 이동 중입니다...</p>
-  </noscript>
-</body>
+<body></body>
 </html>
