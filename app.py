@@ -168,7 +168,6 @@ def build_share_copy_message(share_url, finance_mode=None):
     compare_text = "할부·리스" if mode == "lease" else "할부·렌트"
 
     return f"""{display_name},
-
 요청하신 [{compare_text}] 비교 계산이 완료되었습니다. ✨
 
 어떤 방식이 더 유리한지
