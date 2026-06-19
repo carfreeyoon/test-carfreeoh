@@ -5,43 +5,57 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <title>카프리오 비교 계산기</title>
-  <meta name="description" content="할부·렌트·리스 비교 계산 결과를 확인해보세요." />
 
   <meta property="og:type" content="website" />
   <meta property="og:title" content="카프리오 비교 계산기" />
   <meta property="og:description" content="카 라이프에 자유를 더하다, 카프리오!" />
   <meta property="og:image" content="https://compare-carfreeoh.com/caprio-og.png" />
-  <meta property="og:url" content="https://compare-carfreeoh.com" />
 
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="카프리오 비교 계산기" />
-  <meta name="twitter:description" content="카 라이프에 자유를 더하다, 카프리오!" />
   <meta name="twitter:image" content="https://compare-carfreeoh.com/caprio-og.png" />
 
   <script>
-    (function () {
-      const pathname = window.location.pathname;
+    (() => {
 
-      const isStaticFile =
-        pathname.endsWith(".png") ||
-        pathname.endsWith(".jpg") ||
-        pathname.endsWith(".jpeg") ||
-        pathname.endsWith(".webp") ||
-        pathname.endsWith(".gif") ||
-        pathname.endsWith(".svg") ||
-        pathname.endsWith(".ico") ||
-        pathname.endsWith(".css") ||
-        pathname.endsWith(".js");
+      const path = window.location.pathname;
 
-      if (isStaticFile) {
-        return;
+      const isStatic =
+        path.endsWith(".png") ||
+        path.endsWith(".jpg") ||
+        path.endsWith(".jpeg") ||
+        path.endsWith(".gif") ||
+        path.endsWith(".webp") ||
+        path.endsWith(".svg") ||
+        path.endsWith(".ico") ||
+        path.endsWith(".css") ||
+        path.endsWith(".js");
+
+      if (isStatic) return;
+
+      // 테스트 링크
+      if (path.startsWith("/test")) {
+
+          const query = window.location.search || "";
+
+          location.replace(
+              "https://test-carfreeoh.streamlit.app/" + query
+          );
+
+          return;
       }
 
-      const targetBase = "https://test-carfreeoh.streamlit.app";
-      const queryString = window.location.search || "";
-      window.location.replace(targetBase + queryString);
+      // 운영 링크
+      const query = window.location.search || "";
+
+      location.replace(
+          "https://carfreeoh-rentcalculator.streamlit.app/" + query
+      );
+
     })();
   </script>
+
 </head>
+
 <body></body>
+
 </html>
