@@ -167,7 +167,7 @@ def build_share_copy_message(share_url, finance_mode=None):
     mode = str(finance_mode or st.session_state.get("finance_mode", "rent") or "rent").strip().lower()
     compare_text = "할부·리스" if mode == "lease" else "할부·렌트"
 
-    return f"""{display_name},
+    return f"""🚗{display_name},
 요청하신 [{compare_text}] 비교 계산이 완료되었습니다. ✨
 
 어떤 방식이 더 유리한지
