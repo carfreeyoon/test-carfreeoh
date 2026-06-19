@@ -16,8 +16,7 @@ st.set_page_config(page_title="카프리오 비교 계산기", layout="wide")
 APP_PASSWORD = st.secrets.get("APP_PASSWORD", "")
 SUPABASE_URL = st.secrets.get("SUPABASE_URL", "").rstrip("/")
 SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", "")
-APP_BASE_URL = "https://test-carfreeoh.streamlit.app"
-
+APP_BASE_URL = "https://compare-carfreeoh.com"
 
 # ==========================================
 # [고객 공유 항목 선택 기본값/유틸]
