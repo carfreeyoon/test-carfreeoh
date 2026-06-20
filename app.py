@@ -5418,15 +5418,15 @@ def guide_card_rent():
 <div class="guide-subtitle">✅ 렌트 체크리스트</div>
 <ol class="guide-list">
 <li>주택 마련 등을 위해 대출한도를 확보해야 해요.</li>
-<li>3~5년마다 새로운 차량으로 교체하는 걸 선호해요.</li>
+<li>3~5년마다 새 차량으로 교체하는 걸 선호해요.</li>
 <li>정비·세금·사고처리 등 번거로운 일은 싫어요.</li>
 </ol>
 <div class="reality-box">
 <div class="reality-title">💡 현실 체크</div>
 <div class="reality-item">🔓 <b>대출 한도 영향 없음</b> : 렌트사 명의라<br class="mo-br"> 개인 대출 한도에 영향이 없어요.</div>
 <div class="reality-item">💵 <b>세금 할증 없음</b> : 재산세 등 세금 인상은<br class="mo-br"> 걱정하지 않으셔도 괜찮아요.</div>
-<div class="reality-item">🚫 <b>보험·사고 기록</b> : 사고 시, 정해진 면책금으로 해결하고<br class="mo-br"> 개인 보험 이력에 남지 않아요.</div>
-<div class="reality-item">🗓️ <b>관리 비용 최소화</b> : 보험·세금이 모두 월 이용료에 포함되며<br class="mo-br"> 추가 비용 부담이 없어요!</div>
+<div class="reality-item">🚫 <b>보험·사고 기록</b> : 사고 시, 면책금으로 해결하고<br class="mo-br"> 사고이력은 남지 않아요.</div>
+<div class="reality-item">🗓️ <b>관리 비용 최소화</b> : 보험·세금이 모두 월 이용료로<br class="mo-br"> 추가비용 부담을 없애요!</div>
 </div>
 <div class="match-card match-rent">
 <div class="match-icon">🚗</div>
@@ -5458,9 +5458,9 @@ def guide_card_lease():
 </ol>
 <div class="reality-box">
 <div class="reality-title">💡 현실 체크</div>
-<div class="reality-item">📉 <b>개인 보험요율 유지</b> : 무사고 경력이 길고 보험료가 낮다면<br class="mo-br"> 유리할 수 있어요.</div>
-<div class="reality-item">✨ <b>일반 번호판</b> : 자가용과 동일한 번호판을 유지해요.</div>
-<div class="reality-item">💰 <b>효율적 비용 구성</b> : 자동차세 포함 + 초기비용 부담을<br class="mo-br"> 낮출 수 있어요.</div>
+<div class="reality-item">📉 <b>개인 보험요율 유지</b> : 무사고 경력이 길고<br class="mo-br">보험료가 낮다면 유리할 수 있어요.</div>
+<div class="reality-item">✨ <b>일반 번호판</b> : 자가용과 같은 번호판을 유지해요.</div>
+<div class="reality-item">💰 <b>효율적 비용 구성</b> : 초기비용 부담을 낮출 수 있어요.</div>
 <div class="reality-item">💵 <b>세금 인상</b> : 재산세 등 세금 인상은<br class="mo-br"> 걱정하지 않으셔도 괜찮아요!</div>
 </div>
 <div class="match-card match-lease">
