@@ -1302,9 +1302,12 @@ if IS_CLIENT_VIEW:
             const startRows = function(){
                 table.classList.add('caprio-show');
                 const rows = Array.from(table.querySelectorAll('tr'));
+                let lastRowDelay = 0;
+
                 rows.forEach(function(row, index){
                     if (index === 0) return;
                     const rowDelay = Math.min(index * 145, 1450);
+                    lastRowDelay = Math.max(lastRowDelay, rowDelay);
                     setTimeout(function(){
                         row.classList.add('caprio-row-show');
                         row.querySelectorAll('td').forEach(function(cell){
@@ -1312,6 +1315,13 @@ if IS_CLIENT_VIEW:
                         });
                     }, rowDelay);
                 });
+
+                // 절감/유리 카드 숫자는 반드시 바로 위 계산표의 행/숫자 애니메이션이 끝난 뒤 시작한다.
+                // 기존에는 카드가 동시에 viewport에 들어오면 final card 타이머가 먼저 돌아서 엇박자가 생길 수 있었다.
+                setTimeout(function(){
+                    table.dataset.caprioCalcVisualDone = '1';
+                    table.dispatchEvent(new CustomEvent('caprioCalcVisualDone', { bubbles: true }));
+                }, lastRowDelay + 700);
             };
 
             const loader = table.previousElementSibling && table.previousElementSibling.classList.contains('caprio-calc-loader')
@@ -1356,6 +1366,48 @@ if IS_CLIENT_VIEW:
                 }
             }
             requestAnimationFrame(step);
+        }
+
+        function findPreviousCalcTable(el) {
+            const tables = Array.from(doc.querySelectorAll('.pure-table'));
+            let previous = null;
+            tables.forEach(function(table){
+                if (table === el) return;
+                if (table.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING) {
+                    previous = table;
+                }
+            });
+            return previous;
+        }
+
+        function revealFinalCardAfterPreviousTable(el, fallbackDelay) {
+            if (!el || el.dataset.caprioFinalRevealStarted === '1') return;
+
+            const previousTable = findPreviousCalcTable(el);
+            const reveal = function(delay){
+                if (el.dataset.caprioFinalRevealStarted === '1') return;
+                el.dataset.caprioFinalRevealStarted = '1';
+                setTimeout(function(){
+                    el.classList.add('caprio-show');
+                    animateInlineMoney(el, 320);
+                }, Math.max(0, delay || 0));
+            };
+
+            if (previousTable && previousTable.dataset.caprioCalcVisualDone !== '1') {
+                const onDone = function(){ reveal(50); };
+                previousTable.addEventListener('caprioCalcVisualDone', onDone, { once: true });
+
+                // 혹시 브라우저/Streamlit 재렌더 타이밍으로 이벤트를 놓쳐도 멈추지 않게 안전장치
+                setTimeout(function(){
+                    if (previousTable.dataset.caprioCalcVisualDone === '1') {
+                        reveal(50);
+                    } else {
+                        reveal(900);
+                    }
+                }, 5200);
+            } else {
+                reveal(fallbackDelay);
+            }
         }
 
         function animateCompareSummaryTable(table) {
@@ -1412,13 +1464,13 @@ if IS_CLIENT_VIEW:
                         showDelay = 180 + Math.min(headerIndex * 900, 1800);
                     }
 
-                    setTimeout(function(){
-                        el.classList.add('caprio-show');
-                        if (isFinalCard) {
-                            animateInlineMoney(el, 560);
-                            // 화살표 큐는 제거. 절감 카드 앞 spacer로 시선 구분만 처리.
-                        }
-                    }, showDelay);
+                    if (isFinalCard) {
+                        revealFinalCardAfterPreviousTable(el, showDelay);
+                    } else {
+                        setTimeout(function(){
+                            el.classList.add('caprio-show');
+                        }, showDelay);
+                    }
                 }
 
                 revealObserver.unobserve(el);
@@ -1503,6 +1555,115 @@ st.markdown("""
     /* 상단 공통 조건 박스 및 테이블 */
     .common-info-box { background-color: #f8f9fa; border: 1px solid #dee2e6; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
     html.caprio-dark .customer-message-box div { color: #f3f6fb !important; }
+
+    /* ===== 고객 인삿말 / 마무리말: 프리미엄 3회 폴리싱 효과 ===== */
+    html.caprio-client-view .customer-message-box.caprio-polish-message {
+        position: relative !important;
+        overflow: hidden !important;
+        isolation: isolate !important;
+        border-radius: 6px !important;
+        animation: caprioMessageSoftIn 0.25s ease-out both;
+        will-change: opacity, transform;
+        box-shadow: 0 10px 24px rgba(11, 56, 115, 0.06) !important;
+    }
+
+    html.caprio-client-view .customer-message-box.caprio-polish-message::before {
+        content: "";
+        position: absolute;
+        inset: -1px;
+        z-index: 1;
+        pointer-events: none;
+        border-radius: inherit;
+        opacity: 0;
+        background:
+            radial-gradient(circle at 16% 0%, rgba(37, 99, 235, 0.13), transparent 36%),
+            radial-gradient(circle at 100% 100%, rgba(14, 165, 233, 0.10), transparent 38%);
+    }
+
+    html.caprio-client-view .customer-message-box.caprio-polish-message::after {
+        content: "";
+        position: absolute;
+        top: -60%;
+        left: -105%;
+        width: 72%;
+        height: 230%;
+        z-index: 2;
+        pointer-events: none;
+        opacity: 0;
+        transform: rotate(10deg);
+        background: linear-gradient(
+            115deg,
+            transparent 0%,
+            rgba(255, 255, 255, 0.00) 18%,
+            rgba(219, 234, 254, 0.20) 34%,
+            rgba(255, 255, 255, 0.62) 50%,
+            rgba(59, 130, 246, 0.14) 64%,
+            rgba(255, 255, 255, 0.00) 82%,
+            transparent 100%
+        );
+    }
+
+    html.caprio-client-view .customer-message-box.caprio-polish-message.caprio-show::before {
+        animation: caprioMessageGlowTriple 7.8s ease-out 0.25s 1 both;
+    }
+
+    html.caprio-client-view .customer-message-box.caprio-polish-message.caprio-show::after {
+        animation: caprioMessagePolishSweepTriple 2.6s cubic-bezier(.22,.75,.2,1) 0.45s 3 both;
+    }
+
+    html.caprio-dark.caprio-client-view .customer-message-box.caprio-polish-message {
+        box-shadow: 0 12px 28px rgba(0, 102, 255, 0.14) !important;
+    }
+
+    html.caprio-dark.caprio-client-view .customer-message-box.caprio-polish-message::before {
+        background:
+            radial-gradient(circle at 16% 0%, rgba(80, 150, 255, 0.18), transparent 38%),
+            radial-gradient(circle at 100% 100%, rgba(56, 189, 248, 0.12), transparent 40%);
+    }
+
+    html.caprio-dark.caprio-client-view .customer-message-box.caprio-polish-message::after {
+        background: linear-gradient(
+            115deg,
+            transparent 0%,
+            rgba(125, 180, 255, 0.00) 18%,
+            rgba(96, 165, 250, 0.16) 34%,
+            rgba(147, 197, 253, 0.46) 50%,
+            rgba(255, 255, 255, 0.16) 64%,
+            rgba(125, 180, 255, 0.00) 82%,
+            transparent 100%
+        );
+    }
+
+    @keyframes caprioMessageSoftIn {
+        0% { opacity: 0; transform: translateY(8px) scale(0.995); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @keyframes caprioMessagePolishSweepTriple {
+        0% { left: -105%; opacity: 0; }
+        7% { opacity: 1; }
+        65% { left: 135%; opacity: 0; }
+        100% { left: 135%; opacity: 0; }
+    }
+
+    @keyframes caprioMessageGlowTriple {
+        0% { opacity: 0; }
+        8% { opacity: 0.9; }
+        32% { opacity: 0.55; }
+        40% { opacity: 0.85; }
+        64% { opacity: 0.55; }
+        72% { opacity: 0.82; }
+        100% { opacity: 0.48; }
+    }
+
+    @media (max-width: 768px) {
+        html.caprio-client-view .customer-message-box.caprio-polish-message::after {
+            width: 86%;
+            top: -65%;
+            height: 240%;
+        }
+    }
+
     .common-table { width: 100%; border-collapse: collapse; background-color: #ffffff; text-align: center; font-size: 13px; }
     .common-table th { background-color: #f1f3f5; color: #0b3873; font-weight: bold; padding: 8px; border: 1px solid #dee2e6; }
     .common-table td { padding: 8px; border: 1px solid #dee2e6; color: #333333; }
@@ -4663,7 +4824,7 @@ def render_customer_intro_card(customer_name_value):
     safe_name = html.escape(str(customer_name_value or "").strip())
     customer_label = f"{safe_name}님" if safe_name else "고객님"
     st.markdown(f"""
-    <div class="common-info-box customer-message-box">
+    <div class="common-info-box customer-message-box caprio-polish-message">
         <div style="font-size:15px; font-weight:bold; margin-bottom:9px; line-height:1.45; color:#0b3873;">
             {customer_label},<br>
             더 합리적인 선택을 위해 준비했어요 🙂
@@ -4678,7 +4839,7 @@ def render_customer_intro_card(customer_name_value):
 
 def render_customer_outro_card():
     st.markdown("""
-    <div class="common-info-box customer-message-box">
+    <div class="common-info-box customer-message-box caprio-polish-message">
         <div style="font-size:15px; font-weight:bold; margin-bottom:9px; line-height:1.45; color:#0b3873;">
             혼자 비교하기 복잡하시다면<br>
             언제든 카프리오에 물어보세요 🙂
