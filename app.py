@@ -5389,7 +5389,7 @@ def guide_card_installment():
 <ul class="match-list">
 <li>✔ 5년 이상 장기 보유 예정이며</li>
 <li>✔ 사고·감가 리스크가 크게 부담되지 않고</li>
-<li>✔ 차량가의 30% 이상 초기비용 부담이 가능하고</li>
+<li>✔ 차량가 30% 이상 초기비용 부담 가능하고</li>
 <li>✔ DSR·대출한도 영향이 중요하지 않다면?</li>
 </ul>
 <div class="match-result">→ 할부가 잘 맞아요.</div>
@@ -5406,9 +5406,9 @@ def guide_card_rent():
 <div class="guide-copy">대출 한도 보호와 차량 관리의 효율성을 동시에!</div>
 <div class="guide-subtitle">✅ 렌트 체크리스트</div>
 <ol class="guide-list">
-<li>추후 주택 마련 등을 위해 대출 한도를 확보해야 해요.</li>
-<li>3~5년마다 새로운 차량으로 교체하는 주기를 선호해요.</li>
-<li>정비·세금·사고처리 등 번거로운 일은 맡기고 싶어요.</li>
+<li>주택 마련 등을 위해 대출 한도를 확보해야 해요.</li>
+<li>3~5년마다 새로운 차량으로 교체하는 걸 선호해요.</li>
+<li>정비·세금·사고처리 등 번거로운 일은 싫어요.</li>
 </ol>
 <div class="reality-box">
 <div class="reality-title">💡 현실 체크</div>
@@ -5422,7 +5422,7 @@ def guide_card_rent():
 <div>
 <div class="match-title">🔥 렌트는 이런 경우 고민없이!</div>
 <ul class="match-list">
-<li>✔ 5년 이하 운행 또는 주기적 신차 교체를 선호하고</li>
+<li>✔ 5년 이하 운행, 신차 교체를 선호하고</li>
 <li>✔ 보험료가 높거나 사고이력이 부담되며</li>
 <li>✔ 사고·세금·보험 처리를 간편한 걸 원하고</li>
 <li>✔ DSR·대출한도 보호까지 신경 쓴다면?</li>
