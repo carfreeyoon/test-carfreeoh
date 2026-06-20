@@ -5460,7 +5460,7 @@ def guide_card_lease():
 <div class="reality-title">💡 현실 체크</div>
 <div class="reality-item">📉 <b>개인 보험요율 유지</b> : 무사고 경력이 길고<br class="mo-br">보험료가 낮다면 유리할 수 있어요.</div>
 <div class="reality-item">✨ <b>일반 번호판</b> : 자가용과 같은 번호판을 유지해요.</div>
-<div class="reality-item">💰 <b>효율적 비용 구성</b> : 초기비용 부담을 낮출 수 있어요.</div>
+<div class="reality-item">💰 <b>월 납입금</b> : 부담을 줄여 이용할 수 있어요.</div>
 <div class="reality-item">💵 <b>세금 인상</b> : 재산세 등 세금 인상은<br class="mo-br"> 걱정하지 않으셔도 괜찮아요!</div>
 </div>
 <div class="match-card match-lease">
