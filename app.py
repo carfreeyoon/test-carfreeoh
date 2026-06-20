@@ -5406,7 +5406,7 @@ def guide_card_rent():
 <div class="guide-copy">대출 한도 보호와 차량 관리의 효율성을 동시에!</div>
 <div class="guide-subtitle">✅ 렌트 체크리스트</div>
 <ol class="guide-list">
-<li>주택 마련 등을 위해 대출 한도를 확보해야 해요.</li>
+<li>주택 마련 등을 위해 대출한도를 확보해야 해요.</li>
 <li>3~5년마다 새로운 차량으로 교체하는 걸 선호해요.</li>
 <li>정비·세금·사고처리 등 번거로운 일은 싫어요.</li>
 </ol>
