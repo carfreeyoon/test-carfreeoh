@@ -5339,11 +5339,15 @@ html.caprio-dark .match-lease .match-result{
     .guide-wrap{
         display:flex !important;
         grid-template-columns:none !important;
-        gap:14px !important;
+        gap:0 !important;
+        column-gap:0 !important;
         overflow-x:auto !important;
         overflow-y:hidden !important;
         scroll-snap-type:x mandatory !important;
+        scroll-padding:0 !important;
         -webkit-overflow-scrolling:touch !important;
+        overscroll-behavior-x:contain !important;
+        touch-action:pan-x pan-y !important;
         padding:0 0 12px 0 !important;
         margin-top:0 !important;
         scrollbar-width:none !important;
@@ -5354,6 +5358,9 @@ html.caprio-dark .match-lease .match-result{
     .guide-card{
         flex:0 0 100% !important;
         width:100% !important;
+        min-width:100% !important;
+        max-width:100% !important;
+        margin-right:0 !important;
         scroll-snap-align:start !important;
         scroll-snap-stop:always !important;
         box-sizing:border-box !important;
@@ -5384,8 +5391,8 @@ html.caprio-dark .match-lease .match-result{
         margin-bottom:5px !important;
     }
     .reality-item{
-        font-size:14px !important;
-        line-height:1.58 !important;
+        font-size:13px !important;
+        line-height:1.52 !important;
         margin-bottom:4px !important;
     }
     .guide-swipe-hint{
