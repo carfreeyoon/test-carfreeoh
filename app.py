@@ -5357,6 +5357,36 @@ html.caprio-dark .match-lease .match-result{
         scroll-snap-align:start !important;
         scroll-snap-stop:always !important;
         box-sizing:border-box !important;
+        padding:16px !important;
+    }
+    .guide-title{
+        font-size:21px !important;
+    }
+    .guide-copy{
+        font-size:17px !important;
+        line-height:1.42 !important;
+        margin-bottom:10px !important;
+    }
+    .guide-subtitle{
+        font-size:14px !important;
+        margin-bottom:5px !important;
+    }
+    .guide-list{
+        font-size:13.5px !important;
+        line-height:1.68 !important;
+        margin-bottom:10px !important;
+    }
+    .reality-box{
+        padding:11px !important;
+    }
+    .reality-title{
+        font-size:16px !important;
+        margin-bottom:5px !important;
+    }
+    .reality-item{
+        font-size:14px !important;
+        line-height:1.58 !important;
+        margin-bottom:4px !important;
     }
     .guide-swipe-hint{
         position:absolute;
@@ -5369,32 +5399,32 @@ html.caprio-dark .match-lease .match-result{
         flex-direction:column;
         align-items:center;
         justify-content:center;
-        gap:6px;
+        gap:7px;
         opacity:0;
-        animation:caprioSwipeHintWrap 7.2s ease-in-out 0.6s infinite both;
+        animation:caprioSwipeHintWrap 6.4s ease-in-out 0.6s infinite both;
         will-change:opacity, transform;
     }
     .guide-swipe-hand{
-        width:58px;
-        height:58px;
+        width:78px;
+        height:78px;
         border-radius:999px;
         display:flex;
         align-items:center;
         justify-content:center;
         background:rgba(15,55,115,0.78);
         color:#ffffff;
-        font-size:30px;
-        box-shadow:0 12px 28px rgba(15,55,115,0.22);
+        font-size:42px;
+        box-shadow:0 16px 34px rgba(15,55,115,0.26);
         backdrop-filter:blur(6px);
-        animation:caprioSwipeHandMove 3.2s ease-in-out 0.6s infinite both;
+        animation:caprioSwipeHandMove 3.0s ease-in-out 0.6s infinite both;
         will-change:opacity, transform;
     }
     .guide-swipe-text{
-        padding:6px 10px;
+        padding:7px 12px;
         border-radius:999px;
         background:rgba(15,55,115,0.70);
         color:#ffffff;
-        font-size:12px;
+        font-size:13px;
         font-weight:800;
         letter-spacing:-0.02em;
         white-space:nowrap;
@@ -5414,42 +5444,49 @@ html.caprio-dark .match-lease .match-result{
     }
     @keyframes caprioSwipeHintWrap{
         0%{opacity:0;}
-        8%{opacity:0.82;}
-        52%{opacity:0.82;}
-        64%{opacity:0;}
+        8%{opacity:0.84;}
+        46%{opacity:0.84;}
+        56%{opacity:0;}
         100%{opacity:0;}
     }
     @keyframes caprioSwipeHandMove{
-        0%{transform:translateX(-34px); opacity:0;}
-        8%{opacity:0.86;}
-        28%{transform:translateX(34px); opacity:0.86;}
-        36%{transform:translateX(34px); opacity:0.55;}
-        50%{transform:translateX(-34px); opacity:0.86;}
-        62%{transform:translateX(-34px); opacity:0;}
-        100%{transform:translateX(-34px); opacity:0;}
+        0%{transform:translateX(54px); opacity:0;}
+        8%{transform:translateX(54px); opacity:0.9;}
+        30%{transform:translateX(-54px); opacity:0.9;}
+        38%{transform:translateX(-54px); opacity:0;}
+        48%{transform:translateX(54px); opacity:0;}
+        56%{transform:translateX(54px); opacity:0.9;}
+        78%{transform:translateX(-54px); opacity:0.9;}
+        88%{transform:translateX(-54px); opacity:0;}
+        100%{transform:translateX(-54px); opacity:0;}
     }
     .match-card{
         display:block;
-        padding:14px;
         margin-top:12px;
+        grid-template-columns:1fr !important;
+        padding:15px 16px !important;
+        border-width:1.5px !important;
+        box-shadow:0 10px 24px rgba(15,55,115,0.10) !important;
     }
     .match-icon{
         display:none !important;
     }
     .match-title{
-        font-size:16px;
-        margin-bottom:8px;
+        font-size:18px !important;
+        margin-bottom:8px !important;
     }
     .match-list{
-        font-size:13px;
-        line-height:1.65;
+        font-size:14px !important;
+        line-height:1.72 !important;
     }
     .match-result{
-        font-size:15px;
+        font-size:16px !important;
+        padding-top:9px !important;
+        margin-top:10px !important;
+        letter-spacing:-0.02em;
     }
-    .match-card{
-        grid-template-columns:1fr !important;
-        padding:15px 16px !important;
+    html.caprio-dark .match-card{
+        box-shadow:0 10px 28px rgba(0,0,0,0.26) !important;
     }
 }
 
@@ -5605,7 +5642,7 @@ if visible_sections.get("guide", True):
 <div class="guide-mobile-carousel-shell">
     <div class="guide-swipe-hint" aria-hidden="true">
         <div class="guide-swipe-hand">☝️</div>
-        <div class="guide-swipe-text">좌우로 밀어 확인하세요</div>
+        <div class="guide-swipe-text">왼쪽으로 밀어 확인하세요</div>
     </div>
     <div class="guide-wrap">
 """
