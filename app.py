@@ -5363,7 +5363,7 @@ html.caprio-dark .match-lease .match-result{
         left:50%;
         top:46%;
         transform:translate(-50%,-50%);
-        z-index:5;
+        z-index:999;
         pointer-events:none;
         display:flex;
         flex-direction:column;
@@ -5371,7 +5371,8 @@ html.caprio-dark .match-lease .match-result{
         justify-content:center;
         gap:6px;
         opacity:0;
-        animation:caprioSwipeHintWrap 4.4s ease-in-out 0.55s 1 both;
+        animation:caprioSwipeHintWrap 7.2s ease-in-out 0.6s infinite both;
+        will-change:opacity, transform;
     }
     .guide-swipe-hand{
         width:58px;
@@ -5385,7 +5386,8 @@ html.caprio-dark .match-lease .match-result{
         font-size:30px;
         box-shadow:0 12px 28px rgba(15,55,115,0.22);
         backdrop-filter:blur(6px);
-        animation:caprioSwipeHandMove 2.0s ease-in-out 0.55s 2 both;
+        animation:caprioSwipeHandMove 3.2s ease-in-out 0.6s infinite both;
+        will-change:opacity, transform;
     }
     .guide-swipe-text{
         padding:6px 10px;
@@ -5399,6 +5401,10 @@ html.caprio-dark .match-lease .match-result{
         box-shadow:0 8px 20px rgba(15,55,115,0.16);
         backdrop-filter:blur(6px);
     }
+    .guide-card{
+        position:relative;
+        z-index:1;
+    }
     html.caprio-dark .guide-swipe-hand{
         background:rgba(92,142,220,0.70) !important;
         box-shadow:0 12px 28px rgba(0,0,0,0.28);
@@ -5409,15 +5415,17 @@ html.caprio-dark .match-lease .match-result{
     @keyframes caprioSwipeHintWrap{
         0%{opacity:0;}
         8%{opacity:0.82;}
-        84%{opacity:0.82;}
+        52%{opacity:0.82;}
+        64%{opacity:0;}
         100%{opacity:0;}
     }
     @keyframes caprioSwipeHandMove{
         0%{transform:translateX(-34px); opacity:0;}
-        12%{opacity:0.88;}
-        45%{transform:translateX(34px); opacity:0.88;}
-        58%{transform:translateX(34px); opacity:0.58;}
-        78%{transform:translateX(-34px); opacity:0.88;}
+        8%{opacity:0.86;}
+        28%{transform:translateX(34px); opacity:0.86;}
+        36%{transform:translateX(34px); opacity:0.55;}
+        50%{transform:translateX(-34px); opacity:0.86;}
+        62%{transform:translateX(-34px); opacity:0;}
         100%{transform:translateX(-34px); opacity:0;}
     }
     .match-card{
