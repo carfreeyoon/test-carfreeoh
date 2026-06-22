@@ -5375,8 +5375,9 @@ html.caprio-dark .match-lease .match-result{
         margin-bottom:10px !important;
     }
     .guide-subtitle{
-        font-size:14px !important;
-        margin-bottom:5px !important;
+        font-size:16px !important;
+        font-weight:800 !important;
+        margin-bottom:7px !important;
     }
     .guide-list{
         font-size:13.5px !important;
@@ -5388,7 +5389,8 @@ html.caprio-dark .match-lease .match-result{
     }
     .reality-title{
         font-size:16px !important;
-        margin-bottom:5px !important;
+        font-weight:800 !important;
+        margin-bottom:7px !important;
     }
     .reality-item{
         font-size:13px !important;
@@ -5479,12 +5481,17 @@ html.caprio-dark .match-lease .match-result{
         display:none !important;
     }
     .match-title{
-        font-size:18px !important;
-        margin-bottom:8px !important;
+        font-size:16px !important;
+        font-weight:900 !important;
+        margin-bottom:7px !important;
     }
     .match-list{
         font-size:14px !important;
-        line-height:1.72 !important;
+        line-height:1.42 !important;
+    }
+    .match-list li{
+        margin-bottom:0 !important;
+        padding-bottom:0 !important;
     }
     .match-result{
         font-size:16px !important;
