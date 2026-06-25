@@ -5169,6 +5169,13 @@ GUIDE_STYLE_HTML = """
     gap:18px;
     margin-top:12px;
 }
+.guide-mobile-carousel-shell{
+    width:100%;
+    overflow:visible;
+}
+.guide-swipe-hint{
+    display:none !important;
+}
 .guide-card{
     width:100%;
     background:#ffffff;
@@ -5355,6 +5362,18 @@ html.caprio-dark .match-lease .match-result{
     .guide-wrap::-webkit-scrollbar{
         display:none !important;
     }
+    .guide-wrap > .guide-card{
+        flex:0 0 100% !important;
+        width:100% !important;
+        min-width:100% !important;
+        max-width:100% !important;
+        margin-left:0 !important;
+        margin-right:0 !important;
+    }
+    .guide-wrap > .guide-card:last-child{
+        margin-right:0 !important;
+        scroll-snap-align:end !important;
+    }
     .guide-card{
         flex:0 0 100% !important;
         width:100% !important;
@@ -5404,7 +5423,7 @@ html.caprio-dark .match-lease .match-result{
         transform:translate(-50%,-50%);
         z-index:999;
         pointer-events:none;
-        display:flex;
+        display:flex !important;
         flex-direction:column;
         align-items:center;
         justify-content:center;
@@ -5649,23 +5668,16 @@ if visible_sections.get("guide", True):
             unsafe_allow_html=True
         )
 
-        guide_html = (
-            GUIDE_STYLE_HTML
-            + """
-
+        guide_cards_html = "".join(selected_guide_cards)
+        guide_html = f"""{GUIDE_STYLE_HTML}
 <div class="guide-mobile-carousel-shell">
     <div class="guide-swipe-hint" aria-hidden="true">
         <div class="guide-swipe-hand">☝️</div>
         <div class="guide-swipe-text">왼쪽으로 밀어 확인하세요</div>
     </div>
-    <div class="guide-wrap">
-"""
-            + "\n".join(selected_guide_cards)
-            + """
-    </div>
+    <div class="guide-wrap">{guide_cards_html}</div>
 </div>
 """
-        )
 
         st.markdown(guide_html, unsafe_allow_html=True)
 
