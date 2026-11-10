@@ -16,7 +16,7 @@ st.set_page_config(page_title="카프리오 비교 계산기", layout="wide")
 APP_PASSWORD = st.secrets.get("APP_PASSWORD", "")
 SUPABASE_URL = st.secrets.get("SUPABASE_URL", "").rstrip("/")
 SUPABASE_KEY = st.secrets.get("SUPABASE_KEY", "")
-APP_BASE_URL = "https://compare-carfreeoh.com/test"
+APP_BASE_URL = "https://test-carfreeoh.streamlit.app"
 
 # ==========================================
 # [고객 공유 항목 선택 기본값/유틸]
@@ -4850,6 +4850,27 @@ def render_customer_outro_card():
         </div>
     </div>
     """, unsafe_allow_html=True)
+
+
+if IS_CLIENT_VIEW:
+    from customer_v2 import render_customer_v2
+
+    render_customer_v2(
+        logo_data_uri=CAPRIO_LOGO_BLUE_DATA_URI,
+        customer_name=customer_name, car_name=car_name, car_option=car_option,
+        car_price=car_price, installment_car_price=installment_car_price,
+        finance_car_price=finance_car_price, months=months, mileage=mileage,
+        rent_monthly_pay=rent_monthly_pay, rent_deposit=rent_deposit,
+        finance_mode=finance_mode, lease_tax_included=lease_tax_included,
+        installment_prepaid=installment_prepaid, inst_monthly_pay=inst_monthly_pay,
+        installment_interest=installment_interest, reg_tax=reg_tax,
+        total_tax=total_tax, total_ins=total_ins, car_sell_value=car_sell_value,
+        rent_takeover_price=rent_takeover_price, rent_takeover_tax=rent_takeover_tax,
+        installment_rate=installment_rate,
+        installment_resale_pct=installment_resale_pct,
+        rent_resale_pct=rent_resale_pct, visible_sections=visible_sections,
+    )
+    st.stop()
 
 
 if visible_sections.get("intro", True):
