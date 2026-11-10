@@ -5,6 +5,7 @@ values are supplied by app.py; this adapter never saves quotes or sends messages
 """
 from pathlib import Path
 import base64
+import re
 from copy import deepcopy
 from bs4 import BeautifulSoup
 import streamlit as st
@@ -131,6 +132,32 @@ def build_customer_html(*, preview=False, **v):
     for section_id in ['return','takeover']:
         if not visible.get('summary',True) or not visible.get('summary_'+section_id,True): soup.select_one('#'+section_id).decompose()
     if not visible.get('outro',True): soup.select_one('.outro').decompose()
+    settings = presentation_settings(v)
+    outro = soup.select_one('.outro')
+    if outro:
+        outro['id'] = 'outro'
+        contact = outro.select_one('.contact-link')
+        digits = re.sub(r'[^0-9]', '', settings['contact_phone'])
+        if digits:
+            contact['href'] = 'tel:' + ('+' if settings['contact_phone'].strip().startswith('+') else '') + digits
+            put('b', (settings['contact_name'].strip() or '담당자') + '에게 물어보기', contact)
+            put('small', settings['contact_phone'], contact)
+        else:
+            contact.decompose()
+    main = soup.select_one('main')
+    step_number = 0
+    for key in settings['section_order']:
+        section = main.select_one('#' + key)
+        if section:
+            main.append(section.extract())
+            step = section.select_one('.step')
+            if step:
+                step_number += 1
+                step.string = f'{step_number:02d}'
+    if preview:
+        frame_style = soup.new_tag('style')
+        frame_style.string = '.app{border:8px solid #243541;border-radius:38px;overflow:hidden;box-shadow:0 18px 45px #142c4930;margin:16px auto;max-width:430px}.brand{padding-top:28px;position:relative}.brand:before{content:"";position:absolute;top:8px;left:50%;transform:translateX(-50%);width:66px;height:5px;border-radius:10px;background:#243541}body{background:transparent!important}'
+        soup.head.append(frame_style)
     if preview:
         soup.select_one('#comparisonOpening').decompose()
     if not preview:
@@ -147,3 +174,47 @@ def render_customer_v2(*, preview=False, **values):
     if not preview:
         st.markdown('<style>#caprio-brand-header{display:none!important}.block-container{max-width:470px!important;padding:0!important}iframe{border:0}</style>', unsafe_allow_html=True)
     components.html(build_customer_html(preview=preview, **values), height=850 if preview else 1100, scrolling=True)
+
+
+SECTION_LABELS = {
+    'intro': '고객 인사', 'common': '차량 공통 조건',
+    'installment': '할부 조건', 'return': '만기 반납 비교',
+    'takeover': '만기 인수 비교', 'rates': '계산 기준',
+    'methods': '이용 방식 비교', 'guide': '이용 방식 가이드', 'outro': '담당자 안내',
+}
+
+def normalize_order(order):
+    result = []
+    for key in order if isinstance(order, list) else []:
+        if key in SECTION_LABELS and key not in result:
+            result.append(key)
+    return result + [key for key in SECTION_LABELS if key not in result]
+
+def presentation_settings(data):
+    return {
+        'section_order': normalize_order(data.get('section_order')),
+        'contact_name': str(data.get('contact_name', '윤정근 팀장') or ''),
+        'contact_phone': str(data.get('contact_phone', '010-6625-5828') or ''),
+    }
+
+def render_presentation_settings():
+    with st.expander('화면 순서 · 담당자 설정'):
+        st.text_input('담당자 이름·직급', key='contact_name')
+        st.text_input('담당자 연락처', key='contact_phone', placeholder='010-1234-5678')
+        st.caption('입력한 연락처로 전화 버튼이 연결돼요. 번호를 비우면 전화 버튼을 숨겨요.')
+        st.caption('위·아래 버튼으로 순서를 바꿔요. 숨긴 항목도 순서는 유지돼요.')
+        def move(key, delta):
+            order = normalize_order(st.session_state.section_order)
+            index = order.index(key)
+            target = index + delta
+            if 0 <= target < len(order):
+                order[index], order[target] = order[target], order[index]
+                st.session_state.section_order = order
+        order = normalize_order(st.session_state.section_order)
+        for index, key in enumerate(order):
+            label, up, down = st.columns([5, 1, 1])
+            label.write(f'{index+1}. {SECTION_LABELS[key]}')
+            up.button('↑', key='move_up_'+key, disabled=index==0,
+                      on_click=move, args=(key,-1), help='위로 이동')
+            down.button('↓', key='move_down_'+key, disabled=index==len(order)-1,
+                        on_click=move, args=(key,1), help='아래로 이동')
