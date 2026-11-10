@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>카프리오 | 견적 비교 작업실</title>
+<style>
+:root{font-family:system-ui,-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;color:#17344b;background:#edf3f6}
+*{box-sizing:border-box}body{margin:0}.wrap{max-width:1040px;margin:auto;padding:28px 18px 80px}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:36px}.brand{font-weight:850;letter-spacing:-.04em;color:#12628a;font-size:25px}.badge{font-size:12px;color:#507189;background:#dceaf2;border-radius:999px;padding:8px 12px}
+h1{font-size:clamp(29px,5vw,44px);line-height:1.25;letter-spacing:-.055em;margin:0 0 9px}p{color:#607d90;line-height:1.6;margin:0}.intro{margin-bottom:28px}
+section{background:white;border:1px solid #dbe6ec;border-radius:22px;padding:24px;margin:18px 0;box-shadow:0 12px 30px #163c5108}
+h2{font-size:21px;letter-spacing:-.035em;margin:0 0 18px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+label{display:block;font-size:13px;font-weight:700;color:#46677c;margin-bottom:7px}
+input,select{width:100%;height:46px;border:1px solid #ccdce4;border-radius:10px;padding:0 13px;color:#17344b;font:inherit;font-size:16px;background:white}
+input:focus,select:focus{outline:2px solid #69a8c8;border-color:transparent}.offer-title{display:flex;justify-content:space-between;align-items:center}.offer-title h2{margin:0}
+.offer{border-top:1px solid #e3ebef;padding:18px 0 5px}.offer:first-child{border:0}.fields{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}
+.field-note{font-size:12px;color:#7890a0;margin-top:7px}.actions{display:flex;gap:9px;flex-wrap:wrap}
+button{border:0;border-radius:11px;min-height:45px;padding:0 18px;font:inherit;font-weight:750;cursor:pointer}.primary{background:#164c70;color:white}.soft{background:#e8f1f6;color:#185677}.remove{background:transparent;color:#777;padding:0 5px}
+#submit{width:100%;font-size:17px;min-height:54px}#error{color:#b44335;min-height:24px;margin-top:10px}.result{display:none}.result.show{display:block}
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.summary>div{background:#eef5f8;border-radius:13px;padding:16px}.summary small{display:block;color:#658399;margin-bottom:6px}.summary strong{font-size:18px}
+table{border-collapse:collapse;width:100%;margin-top:16px}th,td{text-align:right;padding:14px 8px;border-bottom:1px solid #e1ebf0;font-size:14px}th:first-child,td:first-child{text-align:left}th{color:#58778a;font-size:12px}td b{color:#17344b}
+.muted{font-size:12px;color:#708b9b;margin-top:16px}.scroll{overflow-x:auto}
+@media(max-width:700px){.wrap{padding:20px 14px 65px}section{padding:19px 16px;border-radius:18px}.grid,.fields{grid-template-columns:repeat(2,1fr)}.summary{grid-template-columns:1fr}.scroll table{min-width:650px}}
+@media(max-width:400px){.grid,.fields{grid-template-columns:1fr}}
+</style></head>
+<body><div class="wrap"><header><div class="brand">CARFREEOH</div><span class="badge">내부 견적 비교 작업실</span></header>
+<div class="intro"><h1>같은 조건의 견적을<br>한눈에 비교해요.</h1><p>금융사 견적서에 적힌 금액을 입력하면 월 납입금과 만기 선택별 합계를 계산해.</p></div>
+<form id="form"><section><h2>차량과 이용 기간</h2><div class="grid"><div><label for="vehicle">차량</label><input id="vehicle" placeholder="차종 · 트림"></div><div><label for="term">이용 기간</label><select id="term"><option value="36">36개월</option><option value="48">48개월</option><option value="60" selected>60개월</option><option value="72">72개월</option></select></div></div></section>
+<section><div class="offer-title"><h2>금융사 견적</h2><button type="button" class="soft" id="add">+ 견적 추가</button></div><div id="offers"></div></section>
+<button class="primary" id="submit" type="submit">비교하기</button><div id="error" role="alert"></div></form>
+<section id="result" class="result" aria-live="polite"><h2>비교 결과</h2><div class="summary" id="summary"></div><div class="scroll"><table><thead><tr><th>금융사 · 방식</th><th>월 납입금</th><th>초기 비용</th><th>반환 시 합계</th><th>인수 시 합계</th></tr></thead><tbody id="rows"></tbody></table></div>
+<p class="muted">반환 시 합계 = 초기 비용 + 월 납입금 × 기간. 인수 시 합계에는 만기 인수금을 더해. 반환 보증금은 돌려받는 금액이라 합계에서 제외했어. 금융사별 수수료·세금·보험 등은 입력 견적에 포함된 금액만 반영해.</p></section>
+</div><script>
+const $=s=>document.querySelector(s),won=n=>new Intl.NumberFormat('ko-KR').format(n)+'원';
+let count=0;
+function add(){const i=++count,box=document.createElement('div');box.className='offer';box.innerHTML='<div class="offer-title"><h2>견적 '+i+'</h2><button type="button" class="remove">삭제</button></div><div class="fields"><div><label>금융사</label><input data-key="provider" placeholder="금융사명" required></div><div><label>방식</label><select data-key="product"><option>장기렌트</option><option>리스</option><option>할부</option></select></div><div><label>월 납입금</label><input data-key="monthly" type="number" min="0" step="1" placeholder="원" required></div><div><label>선납금·초기 비용</label><input data-key="upfront" type="number" min="0" step="1" value="0"></div><div><label>반환 보증금</label><input data-key="deposit" type="number" min="0" step="1" value="0"></div><div><label>만기 인수금</label><input data-key="buyout" type="number" min="0" step="1" value="0"></div></div>';
+box.querySelector('.remove').onclick=()=>{box.remove();$('#result').classList.remove('show')};$('#offers').append(box)}
+$('#add').onclick=add;add();add();
+$('#form').onsubmit=async e=>{e.preventDefault();$('#error').textContent='';const button=$('#submit');button.disabled=true;button.textContent='계산 중…';
+const offers=[...document.querySelectorAll('.offer')].map(el=>Object.fromEntries([...el.querySelectorAll('[data-key]')].map(x=>[x.dataset.key,x.value])));
+try{const resp=await fetch('/api/compare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({vehicle:$('#vehicle').value,termMonths:$('#term').value,offers})});const data=await resp.json();if(!resp.ok)throw Error(data.error);
+const summary=$('#summary');summary.replaceChildren();[['월 납입금이 낮아요',data.lowestMonthlyIndex],['반환 시 합계가 낮아요',data.lowestReturnIndex],['인수 시 합계가 낮아요',data.lowestBuyoutIndex]].forEach(([label,i])=>{const card=document.createElement('div'),small=document.createElement('small'),strong=document.createElement('strong');small.textContent=label;strong.textContent=data.offers[i].provider;card.append(small,strong);summary.append(card)});
+const rows=$('#rows');rows.replaceChildren();data.offers.forEach(x=>{const tr=document.createElement('tr');[x.provider+' · '+x.product,won(x.monthly),won(x.upfront),won(x.returnTotal),won(x.buyoutTotal)].forEach((v,i)=>{const td=document.createElement('td');td.textContent=v;tr.append(td)});rows.append(tr)});$('#result').classList.add('show');$('#result').scrollIntoView({behavior:'smooth'});
+}catch(err){$('#error').textContent=err.message}finally{button.disabled=false;button.textContent='비교하기'}};
+</script></body></html>
