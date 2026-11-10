@@ -133,6 +133,8 @@ def render_customer_v2(*, logo_data_uri, customer_name, car_name, car_option, ca
     html.caprio-client-view #caprio-brand-header{display:none!important}
     html.caprio-client-view .block-container{max-width:650px!important;padding:0 14px 55px!important}
     html.caprio-client-view .block-container .stVerticalBlock{gap:0!important}
+    .cv2-preview{box-sizing:border-box;max-width:430px;margin:18px auto 32px;padding:0 14px 24px;background:#f4f8fa;border:1px solid #dbe7ed;border-radius:20px;overflow:hidden;color:#17384e}
+    html.caprio-client-view .cv2-preview{margin:0 auto;border:0;border-radius:0}
     .cv2-brand{margin:0 -14px;background:white;padding:13px 21px;border-bottom:1px solid #dce7ed}.cv2-brand img{display:block;width:160px;max-width:55%;height:auto}
     .cv2-hero{margin:0 -14px 18px;padding:28px 25px 34px;background:linear-gradient(130deg,#143b58,#216d92);color:white;border-radius:0 0 25px 25px}
     .cv2-hero span{font-size:12px;letter-spacing:.16em;color:#a6d8ed;font-weight:800}.cv2-hero h1{font-size:27px;line-height:1.36;margin:15px 0 0;color:white}
@@ -148,5 +150,4 @@ def render_customer_v2(*, logo_data_uri, customer_name, car_name, car_option, ca
     @supports(animation-timeline:view()){.cv2-cost,.cv2-guide{animation:cv2-reveal both;animation-timeline:view();animation-range:entry 0% entry 28%}@keyframes cv2-reveal{from{opacity:.35;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}}
     @media(prefers-reduced-motion:reduce){.cv2-cost,.cv2-guide{animation:none!important}}
     </style>''', unsafe_allow_html=True)
-    for section in sections:
-        st.markdown(section, unsafe_allow_html=True)
+    st.markdown('<div class="cv2-preview">' + ''.join(sections) + '</div>', unsafe_allow_html=True)

@@ -4852,12 +4852,15 @@ def render_customer_outro_card():
     """, unsafe_allow_html=True)
 
 
-if IS_CLIENT_VIEW:
-    from customer_v2 import render_customer_v2
+from customer_v2 import render_customer_v2
 
-    render_customer_v2(
+if not IS_CLIENT_VIEW:
+    st.markdown("### 고객 모바일 화면 미리보기")
+
+render_customer_v2(
         logo_data_uri=CAPRIO_LOGO_BLUE_DATA_URI,
-        customer_name=customer_name, car_name=car_name, car_option=car_option,
+        customer_name=customer_name if IS_CLIENT_VIEW else st.session_state.get("customer_name", customer_name),
+        car_name=car_name, car_option=car_option,
         car_price=car_price, installment_car_price=installment_car_price,
         finance_car_price=finance_car_price, months=months, mileage=mileage,
         rent_monthly_pay=rent_monthly_pay, rent_deposit=rent_deposit,
@@ -4868,9 +4871,10 @@ if IS_CLIENT_VIEW:
         rent_takeover_price=rent_takeover_price, rent_takeover_tax=rent_takeover_tax,
         installment_rate=installment_rate,
         installment_resale_pct=installment_resale_pct,
-        rent_resale_pct=rent_resale_pct, visible_sections=visible_sections,
+        rent_resale_pct=rent_resale_pct,
+        visible_sections=visible_sections if IS_CLIENT_VIEW else collect_visible_sections_from_state(),
     )
-    st.stop()
+st.stop()
 
 
 if visible_sections.get("intro", True):
