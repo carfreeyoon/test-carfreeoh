@@ -129,7 +129,7 @@ def render_customer_v2(*, logo_data_uri, customer_name, car_name, car_option, ca
         sections.append('<section class="cv2-card cv2-outro"><h2>궁금한 점이 있어?</h2><p>견적 조건과 진행 순서를 담당자에게 물어보세요.</p></section>')
 
     st.markdown('''<style>
-    html.caprio-client-view body{background:#f4f8fa!important;color:#17384e!important}
+    html.caprio-client-view body,html.caprio-client-view .stApp{background:#f4f8fa!important;color:#17384e!important}
     html.caprio-client-view #caprio-brand-header{display:none!important}
     html.caprio-client-view .block-container{max-width:650px!important;padding:0 14px 55px!important}
     html.caprio-client-view .block-container .stVerticalBlock{gap:0!important}
