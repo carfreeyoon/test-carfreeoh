@@ -126,7 +126,7 @@ def render_customer_v2(*, logo_data_uri, customer_name, car_name, car_option, ca
         if cards:
             sections.append('<section class="cv2-card"><h2>어떤 방식이 어울릴까요?</h2>' + ''.join(cards) + '</section>')
     if visible_sections.get("outro", True):
-        sections.append('<section class="cv2-card cv2-outro"><h2>궁금한 점이 있어?</h2><p>견적 조건과 진행 순서를 담당자에게 물어보세요.</p></section>')
+        sections.append('<section class="cv2-card cv2-outro"><h2>궁금한 점이 있으신가요?</h2><p>견적 조건과 진행 순서는 담당자에게 물어보세요.</p></section>')
 
     st.markdown('''<style>
     html.caprio-client-view body,html.caprio-client-view .stApp{background:#f4f8fa!important;color:#17384e!important}
